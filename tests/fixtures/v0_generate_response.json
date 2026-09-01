@@ -1,0 +1,23 @@
+{
+  "text": "generated",
+  "model": "ryuk/mock",
+  "engine": "mock",
+  "latency_ms": 1.0,
+  "input_tokens": null,
+  "output_tokens": null,
+  "metadata": {
+    "mock": true
+  },
+  "finish_reason": "stop",
+  "attempts": [],
+  "routing_decision": null,
+  "provenance": {
+    "deployment_id": "mock-development",
+    "engine_name": "mock",
+    "engine_version": null,
+    "serving_runtime": "in_process",
+    "model_artifact_id": "ryuk/mock",
+    "model_revision": null,
+    "model_verification": "verified"
+  }
+}

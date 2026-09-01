@@ -1,0 +1,7 @@
+-r requirements.txt
+
+pytest==8.4.2
+pytest-asyncio==1.2.0
+respx==0.22.0
+ruff==0.12.12
+mypy==1.17.1

@@ -1,0 +1,41 @@
+[
+  {
+    "name": "supported_text",
+    "requirements": {},
+    "capabilities": {"task_kinds": ["text"]},
+    "eligible": true,
+    "codes": []
+  },
+  {
+    "name": "unknown_streaming",
+    "requirements": {"requires_streaming": true},
+    "capabilities": {"task_kinds": ["text"]},
+    "eligible": false,
+    "codes": ["unknown_streaming"]
+  },
+  {
+    "name": "unsupported_streaming",
+    "requirements": {"requires_streaming": true},
+    "capabilities": {"task_kinds": ["text"], "streaming": false},
+    "eligible": false,
+    "codes": ["unsupported_streaming"]
+  },
+  {
+    "name": "insufficient_context",
+    "requirements": {"required_context_tokens": 8192},
+    "capabilities": {"task_kinds": ["text"], "max_context_tokens": 4096},
+    "eligible": false,
+    "codes": ["insufficient_context_capacity"]
+  },
+  {
+    "name": "model_and_hardware_mismatch",
+    "requirements": {"required_model": "model/b", "required_accelerator": "h100"},
+    "capabilities": {
+      "task_kinds": ["text"],
+      "served_models": ["model/a"],
+      "accelerators": ["a100"]
+    },
+    "eligible": false,
+    "codes": ["mismatched_served_model", "unsupported_accelerator"]
+  }
+]

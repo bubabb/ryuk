@@ -1,0 +1,8 @@
+{
+  "corpus_version": "ryuk-audit-corpus-v1",
+  "count": 4,
+  "action_accuracy": 1.0,
+  "false_accept_rate": 0.0,
+  "accepted": true,
+  "scope": "deterministic policy mechanics only"
+}

@@ -1,0 +1,101 @@
+{
+  "corpus_version": "routing-corpus-v1",
+  "policy_version": "ryuk-deterministic-v1",
+  "thresholds": {
+    "minimum": {
+      "eligibility_accuracy": 1.0,
+      "selection_accuracy": 1.0,
+      "completion_success_rate": 1.0,
+      "deadline_success_rate": 1.0,
+      "failover_recovery_rate": 1.0,
+      "decision_stability_rate": 1.0,
+      "outcome_coverage": 1.0
+    },
+    "maximum": {"constraint_violation_rate": 0.0}
+  },
+  "scenarios": [
+    {
+      "id": "explicit_preference",
+      "task": {"kind": "text"},
+      "preferred_engine": "vllm",
+      "expected_eligible": ["sglang", "vllm"],
+      "expected_selected": "vllm",
+      "candidates": [
+        {
+          "deployment_id": "sglang", "engine_name": "sglang",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 1.2, "latency_ms": 90}
+        },
+        {
+          "deployment_id": "vllm", "engine_name": "vllm",
+          "capabilities": {"task_kinds": ["text", "chat"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 1.0, "latency_ms": 80}
+        }
+      ]
+    },
+    {
+      "id": "reliability_beats_registration",
+      "task": {"kind": "text"},
+      "expected_eligible": ["unreliable", "reliable"],
+      "expected_selected": "reliable",
+      "candidates": [
+        {
+          "deployment_id": "unreliable", "engine_name": "a",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true, "recent_failure_rate": 1.0},
+          "outcome": {"completed": false, "deadline_met": false, "cost": 0.1, "latency_ms": 20}
+        },
+        {
+          "deployment_id": "reliable", "engine_name": "b",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true, "recent_failure_rate": 0.0},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 0.8, "latency_ms": 70}
+        }
+      ]
+    },
+    {
+      "id": "hard_chat_constraint",
+      "task": {"kind": "chat"},
+      "preferred_engine": "sglang",
+      "expected_eligible": ["chat-worker"],
+      "expected_selected": "chat-worker",
+      "candidates": [
+        {
+          "deployment_id": "text-only", "engine_name": "sglang",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 0.5, "latency_ms": 40}
+        },
+        {
+          "deployment_id": "chat-worker", "engine_name": "vllm",
+          "capabilities": {"task_kinds": ["text", "chat"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 1.1, "latency_ms": 85}
+        }
+      ]
+    },
+    {
+      "id": "generation_failover",
+      "task": {"kind": "text"},
+      "preferred_engine": "primary",
+      "expected_eligible": ["primary", "secondary"],
+      "expected_selected": "primary",
+      "candidates": [
+        {
+          "deployment_id": "primary", "engine_name": "primary",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": false, "deadline_met": false, "cost": 0.2, "latency_ms": 30}
+        },
+        {
+          "deployment_id": "secondary", "engine_name": "secondary",
+          "capabilities": {"task_kinds": ["text"]},
+          "runtime": {"routable": true, "fresh": true},
+          "outcome": {"completed": true, "deadline_met": true, "cost": 1.3, "latency_ms": 110}
+        }
+      ]
+    }
+  ]
+}

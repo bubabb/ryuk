@@ -1,13 +1,23 @@
 from abc import ABC, abstractmethod
-
 from dataclasses import dataclass, field
-
 from typing import Any
 
+from backend.inference.deployment import IdentityVerification
+
+
+@dataclass(frozen=True, slots=True)
+class DeploymentProvenance:
+    deployment_id: str
+    engine_name: str
+    model_artifact_id: str | None
+    model_revision: str | None
+    model_verification: IdentityVerification
+    engine_version: str | None = None
+    serving_runtime: str | None = None
+
+
 @dataclass
-
 class InferenceRequest:
-
     prompt: str
 
     model: str
@@ -18,13 +28,12 @@ class InferenceRequest:
 
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
-
 class InferenceResponse:
-
     text: str
 
-    model: str
+    model: str | None
 
     engine: str
 
@@ -36,8 +45,10 @@ class InferenceResponse:
 
     metadata: dict[str, Any] = field(default_factory=dict)
 
-class InferenceEngine(ABC):
+    provenance: DeploymentProvenance | None = None
 
+
+class InferenceEngine(ABC):
     """
 
     Base contract for every inference backend supported by Ryuk.
@@ -51,29 +62,21 @@ class InferenceEngine(ABC):
     name: str
 
     @abstractmethod
-
     async def is_available(self) -> bool:
-
         """Return True when this engine is ready to accept inference requests."""
 
         raise NotImplementedError
 
     @abstractmethod
-
     async def generate(self, request: InferenceRequest) -> InferenceResponse:
-
         """Run inference and return a normalized Ryuk response."""
 
         raise NotImplementedError
 
     async def health(self) -> dict[str, Any]:
-
         available = await self.is_available()
 
         return {
-
             "engine": self.name,
-
             "available": available,
-
         }

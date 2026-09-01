@@ -1,0 +1,8 @@
+{
+  "machine": "arm64",
+  "nvidia_smi": null,
+  "note": "Controller isolation preflight; not an inference benchmark.",
+  "os": "macOS 26.6.2 (25G83)",
+  "python": "3.12.14",
+  "vllm_installed": false
+}
