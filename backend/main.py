@@ -1,15 +1,19 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Annotated
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from backend.audit.contracts import AuditIdentity, AuditReport
 from backend.audit.deterministic import ValidationPolicy, validate_output
 from backend.audit.policy import EvaluationContext, decide
-from backend.config import settings
+from backend.config import AppEnvironment, Settings, settings
+from backend.control.api import AdmissionPermit, ControlPlaneFailure, load_api_control
+from backend.control.records import ExecutionRecord
+from backend.control.security import Principal, Role
 from backend.inference.capabilities import CapabilityClaim, DeploymentCapabilities
 from backend.inference.contracts import (
     ChatInput,
@@ -22,8 +26,10 @@ from backend.inference.contracts import (
     TextInput,
     TraceContext,
 )
+from backend.inference.deployment import IdentityVerification
 from backend.inference.errors import InferenceFailure
 from backend.inference.registry import (
+    DeploymentRegistry,
     build_deployment_registry,
     engine_registry_from_deployments,
 )
@@ -35,12 +41,14 @@ from backend.middleware import RequestBodyLimitMiddleware, RequestContextMiddlew
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     del app
+    await verify_production_deployments(settings, deployment_registry)
     await runtime_collector.start()
     try:
         yield
     finally:
         await runtime_collector.stop()
         await deployment_registry.aclose()
+        api_control.close()
 
 
 app = FastAPI(
@@ -68,6 +76,26 @@ async def inference_failure_handler(
     )
 
 
+@app.exception_handler(ControlPlaneFailure)
+async def control_plane_failure_handler(
+    request: Request,
+    failure: ControlPlaneFailure,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", "unknown")
+    headers = {"WWW-Authenticate": "Bearer"} if failure.status_code == 401 else None
+    return JSONResponse(
+        status_code=failure.status_code,
+        headers=headers,
+        content={
+            "error": {
+                "code": failure.code,
+                "message": failure.message,
+                "request_id": request_id,
+            }
+        },
+    )
+
+
 deployment_registry = build_deployment_registry()
 
 engine_registry = engine_registry_from_deployments(deployment_registry)
@@ -82,6 +110,114 @@ runtime_collector = RuntimeStateCollector(
 inference_router = InferenceRouter(
     deployment_registry, runtime_states=runtime_collector.store
 )
+
+# Configuration-backed identity and durable-store loading is the next control-plane
+# slice. Empty defaults deliberately fail closed instead of creating a development
+# credential or silently accepting unauthenticated traffic.
+api_control = load_api_control(
+    settings.control_plane_config_path,
+    settings.execution_record_path,
+)
+
+
+def require_role(role: Role):
+    def dependency(request: Request) -> Principal:
+        principal = api_control.authenticate(request.headers.get("authorization"))
+        api_control.require_role(principal, role)
+        request.state.principal = principal
+        api_control.emit(
+            "api.request.authorized",
+            principal.tenant_id,
+            request.state.request_id,
+            {"path": request.url.path, "required_role": role},
+        )
+        return principal
+
+    return dependency
+
+
+InferencePrincipal = Annotated[Principal, Depends(require_role(Role.INFERENCE))]
+OperatorPrincipal = Annotated[Principal, Depends(require_role(Role.OPERATOR))]
+
+
+async def verify_production_deployments(
+    config: Settings,
+    registry: DeploymentRegistry,
+) -> None:
+    if config.app_env is not AppEnvironment.PRODUCTION:
+        return
+    candidates = [
+        deployment
+        for deployment in registry.all()
+        if deployment.capabilities.production_eligible is not None
+        and deployment.capabilities.production_eligible.value is True
+    ]
+    if not candidates:
+        raise RuntimeError("Production requires an eligible inference deployment.")
+    for deployment in candidates:
+        inspection = await deployment.inspect_identity()
+        if inspection.assessment.status is not IdentityVerification.VERIFIED:
+            raise RuntimeError(
+                "Production deployment identity verification failed for "
+                f"'{deployment.ref.deployment_id}'."
+            )
+
+
+def record_terminal(
+    request: Request,
+    principal: Principal,
+    operation: str,
+    status: str,
+    **details: object,
+) -> None:
+    api_control.record(
+        ExecutionRecord(
+            request_id=request.state.request_id,
+            tenant_id=principal.tenant_id,
+            status=status,
+            policy_version="api-control-v1",
+            payload={"operation": operation, **details},
+            created_at=datetime.now(UTC),
+        )
+    )
+    api_control.emit(
+        "api.request.terminal",
+        principal.tenant_id,
+        request.state.request_id,
+        {"operation": operation, "status": status},
+    )
+
+
+def admit_request(
+    request: Request,
+    principal: Principal,
+    operation: str,
+    estimated_tokens: int,
+) -> AdmissionPermit:
+    try:
+        permit = api_control.admit(principal, estimated_tokens)
+        api_control.emit(
+            "api.admission.accepted",
+            principal.tenant_id,
+            request.state.request_id,
+            {"operation": operation, "estimated_tokens": estimated_tokens},
+        )
+        return permit
+    except ControlPlaneFailure as failure:
+        api_control.emit(
+            "api.admission.rejected",
+            principal.tenant_id,
+            request.state.request_id,
+            {"operation": operation, "failure_code": failure.code},
+        )
+        record_terminal(
+            request,
+            principal,
+            operation,
+            "rejected",
+            failure_code=failure.code,
+        )
+        raise
 
 
 class GenerateRequest(BaseModel):
@@ -299,39 +435,64 @@ def health():
 
 
 @app.get("/inference/engines")
-async def inference_engines():
+async def inference_engines(request: Request, principal: OperatorPrincipal):
+    operation = "deployment.status"
+    permit = admit_request(request, principal, operation, 0)
     engines = []
+    status = "failed"
 
-    for deployment in deployment_registry.all():
-        engine = deployment.engine
+    try:
+        for deployment in deployment_registry.all():
+            engine = deployment.engine
 
-        runtime_state = runtime_collector.store.get(deployment.ref.deployment_id)
-        available = runtime_state.is_routable()
+            runtime_state = runtime_collector.store.get(deployment.ref.deployment_id)
+            available = runtime_state.is_routable()
 
-        engines.append(
-            {
-                "name": engine.name,
-                "deployment_id": deployment.ref.deployment_id,
-                "configured_model": (
-                    deployment.ref.model.artifact_id
-                    if deployment.ref.model is not None
-                    else None
-                ),
-                "available": available,
-                "identity": None,
-                "capabilities": serialize_capabilities(deployment.capabilities),
-                "runtime": serialize_runtime_state(runtime_state),
-            }
+            engines.append(
+                {
+                    "name": engine.name,
+                    "deployment_id": deployment.ref.deployment_id,
+                    "configured_model": (
+                        deployment.ref.model.artifact_id
+                        if deployment.ref.model is not None
+                        else None
+                    ),
+                    "available": available,
+                    "identity": None,
+                    "capabilities": serialize_capabilities(deployment.capabilities),
+                    "runtime": serialize_runtime_state(runtime_state),
+                }
+            )
+
+        status = "accepted"
+        return {
+            "count": len(engines),
+            "engines": engines,
+        }
+    finally:
+        permit.release()
+        record_terminal(
+            request,
+            principal,
+            operation,
+            status,
+            deployment_count=len(engines),
         )
-
-    return {
-        "count": len(engines),
-        "engines": engines,
-    }
 
 
 @app.post("/inference/generate")
-async def inference_generate(payload: GenerateRequest, http_request: Request):
+async def inference_generate(
+    payload: GenerateRequest,
+    http_request: Request,
+    principal: InferencePrincipal,
+):
+    operation = "inference.generate"
+    permit = admit_request(
+        http_request,
+        principal,
+        operation,
+        payload.max_tokens or settings.max_generation_tokens,
+    )
     traceparent = getattr(http_request.state, "traceparent", None)
 
     inference_task = InferenceTask(
@@ -349,7 +510,10 @@ async def inference_generate(payload: GenerateRequest, http_request: Request):
             required_accelerator=payload.required_accelerator,
             required_topology=payload.required_topology,
             required_data_location=payload.required_data_location,
-            production_only=payload.production_only,
+            production_only=(
+                payload.production_only
+                or settings.app_env is AppEnvironment.PRODUCTION
+            ),
         ),
         trace=TraceContext(
             request_id=http_request.state.request_id,
@@ -358,16 +522,46 @@ async def inference_generate(payload: GenerateRequest, http_request: Request):
         deadline_at=payload.deadline_at,
     )
 
-    result = await inference_router.generate_task(
-        inference_task,
-        preferred_engine=payload.preferred_engine,
-    )
-
-    return serialize_inference_result(result)
+    status = "failed"
+    record_payload: dict[str, object] = {}
+    try:
+        result = await inference_router.generate_task(
+            inference_task,
+            preferred_engine=payload.preferred_engine,
+        )
+        status = "accepted"
+        record_payload.update(
+            {
+                "deployment_id": result.provenance.deployment_id,
+                "model_artifact_id": result.provenance.model_artifact_id,
+                "finish_reason": result.finish_reason,
+            }
+        )
+        return serialize_inference_result(result)
+    finally:
+        permit.release()
+        record_terminal(
+            http_request,
+            principal,
+            operation,
+            status,
+            **record_payload,
+        )
 
 
 @app.post("/v1/inference/chat")
-async def inference_chat(payload: ChatGenerateRequest, http_request: Request):
+async def inference_chat(
+    payload: ChatGenerateRequest,
+    http_request: Request,
+    principal: InferencePrincipal,
+):
+    operation = "inference.chat"
+    permit = admit_request(
+        http_request,
+        principal,
+        operation,
+        payload.max_tokens or settings.max_generation_tokens,
+    )
     traceparent = getattr(http_request.state, "traceparent", None)
     task = InferenceTask(
         input=ChatInput(
@@ -389,7 +583,10 @@ async def inference_chat(payload: ChatGenerateRequest, http_request: Request):
             required_accelerator=payload.required_accelerator,
             required_topology=payload.required_topology,
             required_data_location=payload.required_data_location,
-            production_only=payload.production_only,
+            production_only=(
+                payload.production_only
+                or settings.app_env is AppEnvironment.PRODUCTION
+            ),
         ),
         trace=TraceContext(
             request_id=http_request.state.request_id,
@@ -398,16 +595,69 @@ async def inference_chat(payload: ChatGenerateRequest, http_request: Request):
         deadline_at=payload.deadline_at,
     )
 
-    result = await inference_router.generate_task(
-        task,
-        preferred_engine=payload.preferred_engine,
-    )
-
-    return serialize_inference_result(result)
+    status = "failed"
+    record_payload: dict[str, object] = {}
+    try:
+        result = await inference_router.generate_task(
+            task,
+            preferred_engine=payload.preferred_engine,
+        )
+        status = "accepted"
+        record_payload.update(
+            {
+                "deployment_id": result.provenance.deployment_id,
+                "model_artifact_id": result.provenance.model_artifact_id,
+                "finish_reason": result.finish_reason,
+            }
+        )
+        return serialize_inference_result(result)
+    finally:
+        permit.release()
+        record_terminal(
+            http_request,
+            principal,
+            operation,
+            status,
+            **record_payload,
+        )
 
 
 @app.post("/v1/audit/validate")
-async def audit_validate(payload: AuditValidationRequest):
+async def audit_validate(
+    payload: AuditValidationRequest,
+    request: Request,
+    principal: OperatorPrincipal,
+):
+    operation = "audit.validate"
+    permit = admit_request(
+        request,
+        principal,
+        operation,
+        max(1, len(payload.output) // 4),
+    )
+    status = "failed"
+    decision_action: str | None = None
+    try:
+        result = _audit_validate(payload)
+        status = "accepted"
+        decision = result.get("decision")
+        if isinstance(decision, dict):
+            value = decision.get("action")
+            if isinstance(value, str):
+                decision_action = value
+        return result
+    finally:
+        permit.release()
+        record_terminal(
+            request,
+            principal,
+            operation,
+            status,
+            decision_action=decision_action,
+        )
+
+
+def _audit_validate(payload: AuditValidationRequest) -> dict[str, object]:
     policy = ValidationPolicy(
         required_sections=tuple(payload.required_sections),
         require_citations=payload.require_citations,

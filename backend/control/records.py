@@ -5,6 +5,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 
@@ -25,11 +26,12 @@ class ExecutionRecord:
 class SQLiteExecutionRecordStore:
     """Durable reference store; production HA databases implement this boundary."""
 
-    schema_version = 1
+    schema_version = 2
 
     def __init__(self, path: Path) -> None:
         self.path = path
-        self._connection = sqlite3.connect(path)
+        self._lock = RLock()
+        self._connection = sqlite3.connect(path, check_same_thread=False)
         self._connection.execute("PRAGMA journal_mode=WAL")
         self._migrate()
 
@@ -44,38 +46,65 @@ class SQLiteExecutionRecordStore:
             self._connection.execute(
                 "INSERT INTO schema_meta(version) VALUES (?)", (self.schema_version,)
             )
+        elif row[0] == 1:
+            self._connection.execute(
+                "ALTER TABLE execution_records RENAME TO execution_records_v1"
+            )
+            self._create_records_table()
+            self._connection.execute(
+                "INSERT INTO execution_records ("
+                "request_id, tenant_id, status, policy_version, payload_json, "
+                "created_at) SELECT request_id, tenant_id, status, policy_version, "
+                "payload_json, created_at FROM execution_records_v1"
+            )
+            self._connection.execute("DROP TABLE execution_records_v1")
+            self._connection.execute(
+                "UPDATE schema_meta SET version = ?", (self.schema_version,)
+            )
         elif row[0] != self.schema_version:
             raise RuntimeError("Unsupported execution-record schema version.")
+        self._create_records_table()
+        self._connection.commit()
+
+    def _create_records_table(self) -> None:
         self._connection.execute(
             "CREATE TABLE IF NOT EXISTS execution_records ("
+            "record_sequence INTEGER PRIMARY KEY AUTOINCREMENT, "
             "request_id TEXT NOT NULL, tenant_id TEXT NOT NULL, "
             "status TEXT NOT NULL, policy_version TEXT NOT NULL, "
-            "payload_json TEXT NOT NULL, created_at TEXT NOT NULL, "
-            "PRIMARY KEY (tenant_id, request_id))"
+            "payload_json TEXT NOT NULL, created_at TEXT NOT NULL)"
         )
-        self._connection.commit()
+        self._connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_execution_records_tenant_request "
+            "ON execution_records(tenant_id, request_id, record_sequence)"
+        )
 
     def put(self, record: ExecutionRecord) -> None:
-        self._connection.execute(
-            "INSERT INTO execution_records VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                record.request_id,
-                record.tenant_id,
-                record.status,
-                record.policy_version,
-                json.dumps(record.payload, sort_keys=True),
-                record.created_at.isoformat(),
-            ),
-        )
-        self._connection.commit()
+        with self._lock:
+            self._connection.execute(
+                "INSERT INTO execution_records ("
+                "request_id, tenant_id, status, policy_version, payload_json, "
+                "created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    record.request_id,
+                    record.tenant_id,
+                    record.status,
+                    record.policy_version,
+                    json.dumps(record.payload, sort_keys=True),
+                    record.created_at.isoformat(),
+                ),
+            )
+            self._connection.commit()
 
     def get(self, tenant_id: str, request_id: str) -> ExecutionRecord | None:
-        row = self._connection.execute(
-            "SELECT request_id, tenant_id, status, policy_version, "
-            "payload_json, created_at FROM execution_records "
-            "WHERE tenant_id = ? AND request_id = ?",
-            (tenant_id, request_id),
-        ).fetchone()
+        with self._lock:
+            row = self._connection.execute(
+                "SELECT request_id, tenant_id, status, policy_version, "
+                "payload_json, created_at FROM execution_records "
+                "WHERE tenant_id = ? AND request_id = ? "
+                "ORDER BY record_sequence DESC LIMIT 1",
+                (tenant_id, request_id),
+            ).fetchone()
         if row is None:
             return None
         return ExecutionRecord(
@@ -90,15 +119,18 @@ class SQLiteExecutionRecordStore:
     def backup(self, destination: Path) -> None:
         target = sqlite3.connect(destination)
         try:
-            self._connection.backup(target)
+            with self._lock:
+                self._connection.backup(target)
         finally:
             target.close()
 
     def health(self) -> dict[str, object]:
-        version = self._connection.execute(
-            "SELECT version FROM schema_meta"
-        ).fetchone()[0]
+        with self._lock:
+            version = self._connection.execute(
+                "SELECT version FROM schema_meta"
+            ).fetchone()[0]
         return {"ready": True, "schema_version": version, "durable": True}
 
     def close(self) -> None:
-        self._connection.close()
+        with self._lock:
+            self._connection.close()

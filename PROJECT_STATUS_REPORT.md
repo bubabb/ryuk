@@ -1,7 +1,7 @@
 # Ryuk Implementation Status, Open Items, and Next Steps
 
-**Report date:** August 31, 2026
-**Repository:** `/Users/bubagv/Desktop/projects/ryuk`
+**Report date:** September 1, 2026
+**Repository:** `/home/sudosu/projects/ryuk`
 **Scope:** Work completed from the original architecture review through Stages
 A–J, current verification evidence, known limitations, production blockers, and
 recommended next work.
@@ -31,20 +31,20 @@ The complete planned architecture through Stage J now exists as code,
 documentation, tests, and explicit decision gates. This does **not** mean Ryuk
 is production-certified. The principal remaining work is real GPU/deployment
 validation, end-to-end implementation of advanced task types in certified
-adapters, representative model-auditor calibration, API-wide control-plane
-enforcement, and replacement of single-process reference services with
+adapters, representative model-auditor calibration, and replacement of
+single-process reference services with
 distributed production infrastructure.
 
 Current automated evidence:
 
-- **163 tests passed**
+- **180 tests passed**
 - **4 optional external integration tests skipped** because their real services
   were not configured
 - **Routing evaluation accepted** with no acceptance failures
 - **Audit mechanics evaluation accepted** with 100% expected-action agreement
   and zero false accepts on the small four-case mechanics corpus
 - Ruff passed
-- Mypy passed across 72 source/test/script files
+- Mypy passed across 73 backend/test/script files
 - Python compilation passed
 - `git diff --check` passed
 - One existing Starlette `TestClient` deprecation warning remains
@@ -324,12 +324,24 @@ Completed reference outcomes:
 - Added tests for authentication, authorization, quotas, tenant isolation,
   persistence, backup, governance, artifact integrity, telemetry, and lifecycle
   transitions.
+- Enforced server-owned authentication, role authorization, and admission on
+  every current non-health API route.
+- Added safe 401/403/429 mappings, API key expiry/revocation, thread-safe local
+  admission/records, server-owned hashed-key/quota loading, and a production
+  configuration gate.
+- Added sanitized terminal records for the direct text-generation route.
+- Added sanitized terminal records for chat, deployment status, audit, and
+  authenticated quota rejection.
+- Added redacted authorization, admission, and terminal-outcome events.
+- Production startup rejects inline provider credentials, resolves supported
+  secret references at the adapter boundary, and requires observed verified
+  identity for every production-eligible deployment.
 - Added ADR-007.
 
 Important limitations:
 
-- The security, quota, governance, and persistence implementations establish
-  the reference boundary but are not yet enforced across every public API path.
+- No streaming endpoint exists yet; disconnected-stream release tests belong to
+  that future vertical slice.
 - Admission state is process-local and unsuitable for multiple controller
   replicas.
 - SQLite/WAL is a durable local reference, not a high-availability distributed
@@ -381,9 +393,9 @@ Not implemented as an executable adapter:
 Latest complete local validation:
 
 ```text
-163 passed, 4 skipped, 1 warning
+180 passed, 4 skipped, 1 warning
 Ruff: passed
-Mypy: passed across 72 files
+Mypy: passed across 73 backend/test/script files
 compileall: passed
 git diff --check: passed
 routing evaluation: accepted
@@ -413,14 +425,7 @@ Known warning:
 
 Work:
 
-- Authenticate every non-health request.
-- Resolve tenant and roles exclusively from trusted server-side identity.
-- Authorize every resource and function access.
-- Apply admission before inference allocation.
-- Release concurrency permits on success, failure, timeout, and cancellation.
-- Write tenant-scoped durable execution records for every terminal outcome.
-- Add negative API tests for missing, malformed, expired, revoked, cross-tenant,
-  and insufficient-role credentials.
+- Add explicit disconnected-stream permit tests when streaming is implemented.
 
 Exit criteria:
 
@@ -620,19 +625,17 @@ following are true:
 
 ## 10. Repository and Change-Management Status
 
-The current workspace contains a large set of modified and untracked files from
-the complete migration. This is an important operational risk even though all
-local validation passes.
+The current workspace contains the reviewed Phase 0/Phase 1 implementation and
+the two owner-provided design documents approved for this Git save. All local
+validation passes.
 
 Required cleanup before handoff:
 
 - Review the complete diff by logical stage.
-- Confirm that `AGENTS.md`, architecture documents, ADRs, fixtures, reports,
-  workers, scripts, and CI files should all be version-controlled.
-- Keep `llms.md` untouched unless the owner explicitly requests otherwise; it is
-  currently untracked and treated as user-owned.
-- Create small, reviewable commits grouped by architecture/domain, execution,
-  adapters, routing/evaluation, advanced contracts/audit, and control plane.
+- Review the Phase 0/Phase 1 diff and baseline report.
+- Keep the tracked, owner-controlled `llms.md` untouched unless explicitly
+  requested.
+- Track the two proposed design documents with this reviewed implementation.
 - Tag the first coherent baseline only after CI passes from a clean checkout.
 
 No destructive cleanup, reset, or commit was performed as part of this report.
@@ -644,7 +647,6 @@ control-plane foundation. The project has crossed from proof-of-concept structur
 into a testable platform architecture.
 
 The remaining gap is not another broad redesign. It is production realization:
-enforce the control plane on actual APIs, certify real GPU deployments, implement
-advanced features vertically, calibrate audit on representative evidence, move
-state and quotas to distributed services, and prove the system under operational
-failure.
+certify real GPU deployments, implement advanced features vertically, calibrate
+audit on representative evidence, move state and quotas to distributed services,
+and prove the system under operational failure.

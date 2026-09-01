@@ -66,6 +66,39 @@ cp .env.example .env
 Review `.env` before starting the service. It is intentionally ignored by Git.
 Never place real credentials in `.env.example`.
 
+All routes except `/health` fail closed unless `CONTROL_PLANE_CONFIG_PATH`
+points to a server-owned JSON file containing hashed API-key records and tenant
+quota policies. `EXECUTION_RECORD_PATH` enables the local SQLite/WAL terminal
+record store and is mandatory in production. The control file contains key
+digests, salts, server-assigned principals/roles, and quotas—not plaintext API
+keys. Restrict its filesystem permissions.
+
+Production provider credentials cannot be supplied inline. A supported locator
+uses `env:VARIABLE_NAME` (for example, `NIM_SECRET_REF=env:RYUK_NIM_API_KEY`),
+and is resolved only while constructing the corresponding deployment adapter.
+
+```json
+{
+  "api_keys": [
+    {
+      "key_id": "hex identifier",
+      "salt": "hex salt",
+      "digest": "scrypt digest",
+      "principal_id": "operator-1",
+      "tenant_id": "tenant-1",
+      "roles": ["admin"]
+    }
+  ],
+  "quotas": {
+    "tenant-1": {
+      "requests_per_minute": 60,
+      "concurrent_requests": 4,
+      "tokens_per_minute": 100000
+    }
+  }
+}
+```
+
 ## Run the API
 
 ```bash
@@ -84,6 +117,7 @@ Example development request:
 
 ```bash
 curl http://127.0.0.1:8000/inference/generate \
+  -H 'Authorization: Bearer <issued-api-key>' \
   -H 'Content-Type: application/json' \
   -d '{
     "prompt": "Explain what Ryuk is.",

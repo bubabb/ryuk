@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from backend.config import AppEnvironment, Settings, settings
+from backend.control.security import resolve_secret_ref
 from backend.inference.base import InferenceEngine
 from backend.inference.capabilities import (
     CapabilityClaim,
@@ -343,7 +344,11 @@ def build_deployment_registry(
                 engine=NIMEngine(
                     config.nim_base_url,
                     model=model_id,
-                    api_key=config.nim_api_key,
+                    api_key=(
+                        resolve_secret_ref(config.nim_secret_ref)
+                        if config.nim_secret_ref.strip()
+                        else config.nim_api_key
+                    ),
                     expected_release=config.nim_release,
                     profile_id=config.nim_profile_id,
                 ),

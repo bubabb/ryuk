@@ -1,4 +1,5 @@
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -30,6 +31,10 @@ class Settings(BaseSettings):
 
     runtime_refresh_interval_seconds: float = Field(default=5.0, gt=0)
 
+    control_plane_config_path: Path | None = None
+
+    execution_record_path: Path | None = None
+
     # Existing model/provider settings
 
     kimi_api_url: str = ""
@@ -37,6 +42,10 @@ class Settings(BaseSettings):
     kimi_api_key: str = ""
 
     nvidia_api_key: str = ""
+
+    kimi_secret_ref: str = ""
+
+    nvidia_secret_ref: str = ""
 
     # Native inference engines
 
@@ -144,6 +153,7 @@ class Settings(BaseSettings):
     nim_base_url: str = "http://127.0.0.1:8003"
 
     nim_api_key: str = ""
+    nim_secret_ref: str = ""
     nim_deployment_id: str = "nim-deployment"
     nim_endpoint_id: str = "nim-http"
     nim_model_artifact_id: str = ""
@@ -185,6 +195,27 @@ class Settings(BaseSettings):
     def validate_mock_environment(self) -> "Settings":
         if self.mock_enabled and self.app_env is AppEnvironment.PRODUCTION:
             raise ValueError("MOCK_ENABLED must be false in production.")
+        if self.app_env is AppEnvironment.PRODUCTION and (
+            self.control_plane_config_path is None
+            or self.execution_record_path is None
+        ):
+            raise ValueError(
+                "Production requires CONTROL_PLANE_CONFIG_PATH and "
+                "EXECUTION_RECORD_PATH."
+            )
+        if self.app_env is AppEnvironment.PRODUCTION and any(
+            value.strip()
+            for value in (self.kimi_api_key, self.nvidia_api_key, self.nim_api_key)
+        ):
+            raise ValueError(
+                "Production provider credentials must use secret references."
+            )
+        if (
+            self.app_env is AppEnvironment.PRODUCTION
+            and self.nim_enabled
+            and not self.nim_secret_ref.strip()
+        ):
+            raise ValueError("Production NIM requires NIM_SECRET_REF.")
         if self.vllm_enabled and not self.vllm_model_artifact_id.strip():
             raise ValueError("VLLM_MODEL_ARTIFACT_ID is required when VLLM is enabled.")
         if self.dynamo_enabled and not self.dynamo_model_artifact_id.strip():
