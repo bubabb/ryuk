@@ -7,6 +7,9 @@ import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Protocol
+
+import httpx
 
 
 class Role(StrEnum):
@@ -110,15 +113,75 @@ class SecretRef:
             raise ValueError("SecretRef stores a locator, never secret material.")
 
 
-def resolve_secret_ref(value: str) -> str:
-    """Resolve a supported locator at the deployment adapter boundary."""
+class SecretManager(Protocol):
+    def resolve(self, reference: str) -> str: ...
+
+
+class EnvironmentSecretManager:
+    def resolve(self, reference: str) -> str:
+        secret = os.environ.get(reference)
+        if not secret:
+            raise ValueError("The referenced secret is unavailable.")
+        return secret
+
+
+class VaultSecretManager:
+    """Resolve one field from a Vault KV response without retaining the value."""
+
+    def __init__(
+        self,
+        address: str,
+        *,
+        token_env: str = "VAULT_TOKEN",
+        client: httpx.Client | None = None,
+    ) -> None:
+        if not address.startswith("https://"):
+            raise ValueError("Vault requires an HTTPS address.")
+        self._address = address.rstrip("/")
+        token = os.environ.get(token_env)
+        if not token:
+            raise ValueError("The Vault authentication token is unavailable.")
+        self._token = token
+        self._owns_client = client is None
+        self._client = client or httpx.Client(
+            timeout=5.0,
+        )
+
+    def resolve(self, reference: str) -> str:
+        path, separator, field = reference.partition("#")
+        if separator != "#" or not path.strip() or not field.strip():
+            raise ValueError("Vault references use the '<path>#<field>' format.")
+        response = self._client.get(
+            f"{self._address}/v1/{path.lstrip('/')}",
+            headers={"X-Vault-Token": self._token},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if isinstance(data, dict) and isinstance(data.get("data"), dict):
+            data = data["data"]
+        secret = data.get(field) if isinstance(data, dict) else None
+        if not isinstance(secret, str) or not secret:
+            raise ValueError("The referenced Vault secret field is unavailable.")
+        return secret
+
+    def close(self) -> None:
+        if self._owns_client:
+            self._client.close()
+
+
+def resolve_secret_ref(
+    value: str,
+    *,
+    managers: dict[str, SecretManager] | None = None,
+) -> str:
+    """Resolve a locator through an explicitly configured secret manager."""
     provider, separator, reference = value.partition(":")
     if separator != ":":
         raise ValueError("Secret references use the '<provider>:<reference>' format.")
     secret_ref = SecretRef(provider, reference)
-    if secret_ref.provider != "env":
+    available = managers or {"env": EnvironmentSecretManager()}
+    manager = available.get(secret_ref.provider)
+    if manager is None:
         raise ValueError("Unsupported secret reference provider.")
-    secret = os.environ.get(secret_ref.reference)
-    if not secret:
-        raise ValueError("The referenced secret is unavailable.")
-    return secret
+    return manager.resolve(secret_ref.reference)

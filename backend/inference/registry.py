@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from backend.config import AppEnvironment, Settings, settings
-from backend.control.security import resolve_secret_ref
+from backend.control.security import VaultSecretManager, resolve_secret_ref
 from backend.inference.base import InferenceEngine
 from backend.inference.capabilities import (
     CapabilityClaim,
@@ -165,6 +165,19 @@ class EngineRegistry:
 def _optional_identifier(value: str) -> str | None:
     stripped = value.strip()
     return stripped or None
+
+
+def _provider_secret(config: Settings, reference: str) -> str:
+    if reference.startswith("vault:"):
+        manager = VaultSecretManager(
+            config.vault_address,
+            token_env=config.vault_token_env,
+        )
+        try:
+            return resolve_secret_ref(reference, managers={"vault": manager})
+        finally:
+            manager.close()
+    return resolve_secret_ref(reference)
 
 
 def _configured_sglang_model(config: Settings) -> ModelRef | None:
@@ -345,7 +358,7 @@ def build_deployment_registry(
                     config.nim_base_url,
                     model=model_id,
                     api_key=(
-                        resolve_secret_ref(config.nim_secret_ref)
+                        _provider_secret(config, config.nim_secret_ref)
                         if config.nim_secret_ref.strip()
                         else config.nim_api_key
                     ),

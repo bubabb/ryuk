@@ -2,9 +2,46 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.inference.contracts import AdapterInferenceResult, ChatInput, InferenceTask
 from backend.inference.deployment import IdentityDiscovery
 from backend.inference.engines.managed_http import ManagedHTTPInferenceEngine
-from backend.inference.errors import UpstreamProtocolFailure
+from backend.inference.errors import UnsupportedTaskFailure, UpstreamProtocolFailure
+
+
+class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
+    """Adapter for NVIDIA API Catalog endpoints hosted on DGX Cloud.
+
+    Hosted catalog endpoints and self-hosted NIMs expose different operational
+    and identity evidence. Keep them as distinct deployment profiles so hosted
+    access never weakens the self-hosted release/profile verification below.
+    """
+
+    name = "nvidia-hosted-nim"
+    readiness_path = "/v1/models"
+
+    def __init__(
+        self,
+        *args: Any,
+        reasoning_effort: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        if reasoning_effort not in {None, "low", "high", "max"}:
+            raise ValueError("reasoning_effort must be low, high, max, or omitted.")
+        self.reasoning_effort = reasoning_effort
+        super().__init__(*args, **kwargs)
+
+    async def generate_task(self, task: InferenceTask) -> AdapterInferenceResult:
+        if not isinstance(task.input, ChatInput):
+            raise UnsupportedTaskFailure(
+                context={"task_kind": "text", "hosted_api": "chat_only"}
+            )
+        return await super().generate_task(task)
+
+    def _request_parameters(self, task: InferenceTask) -> dict[str, Any]:
+        del task
+        if self.reasoning_effort is None:
+            return {}
+        return {"reasoning_effort": self.reasoning_effort}
 
 
 class NIMEngine(ManagedHTTPInferenceEngine):

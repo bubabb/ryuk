@@ -185,6 +185,12 @@ class Settings(BaseSettings):
 
     database_url: str = ""
 
+    redis_url: str = ""
+
+    vault_address: str = ""
+
+    vault_token_env: str = "VAULT_TOKEN"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -197,11 +203,12 @@ class Settings(BaseSettings):
             raise ValueError("MOCK_ENABLED must be false in production.")
         if self.app_env is AppEnvironment.PRODUCTION and (
             self.control_plane_config_path is None
-            or self.execution_record_path is None
+            or not self.database_url.strip()
+            or not self.redis_url.strip()
         ):
             raise ValueError(
-                "Production requires CONTROL_PLANE_CONFIG_PATH and "
-                "EXECUTION_RECORD_PATH."
+                "Production requires CONTROL_PLANE_CONFIG_PATH, DATABASE_URL, "
+                "and REDIS_URL."
             )
         if self.app_env is AppEnvironment.PRODUCTION and any(
             value.strip()
@@ -216,6 +223,14 @@ class Settings(BaseSettings):
             and not self.nim_secret_ref.strip()
         ):
             raise ValueError("Production NIM requires NIM_SECRET_REF.")
+        if self.app_env is AppEnvironment.PRODUCTION and self.nim_enabled and (
+            not self.nim_secret_ref.startswith("vault:")
+            or not self.vault_address.startswith("https://")
+        ):
+            raise ValueError(
+                "Production NIM requires a vault: secret reference and HTTPS "
+                "VAULT_ADDRESS."
+            )
         if self.vllm_enabled and not self.vllm_model_artifact_id.strip():
             raise ValueError("VLLM_MODEL_ARTIFACT_ID is required when VLLM is enabled.")
         if self.dynamo_enabled and not self.dynamo_model_artifact_id.strip():

@@ -3,7 +3,13 @@ import json
 import httpx
 import pytest
 
+from backend.inference.capabilities import (
+    DeploymentCapabilities,
+    TaskKind,
+    configured_claim,
+)
 from backend.inference.contracts import (
+    AttemptOutcome,
     ChatInput,
     ChatMessage,
     ChatRole,
@@ -14,9 +20,16 @@ from backend.inference.contracts import (
     TextInput,
     TraceContext,
 )
+from backend.inference.deployment import DeploymentRef, ModelRef
 from backend.inference.engines.dynamo import DynamoEngine
-from backend.inference.engines.nim import NIMEngine
-from backend.inference.errors import CapacityExceededFailure, UpstreamProtocolFailure
+from backend.inference.engines.nim import NIMEngine, NVIDIAHostedNIMEngine
+from backend.inference.errors import (
+    CapacityExceededFailure,
+    UnsupportedTaskFailure,
+    UpstreamProtocolFailure,
+)
+from backend.inference.registry import DeploymentRegistry, RegisteredDeployment
+from backend.inference.router import InferenceRouter
 
 
 def task(value: TextInput | ChatInput) -> InferenceTask:
@@ -98,6 +111,134 @@ async def test_chat_protocol_is_contained_inside_nim_adapter() -> None:
     )
     await adapter.generate_task(task(ChatInput((ChatMessage(ChatRole.USER, "hi"),))))
     assert captured["messages"] == [{"role": "user", "content": "hi"}]
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_uses_catalog_models_for_readiness_and_identity() -> None:
+    captured: dict[str, object] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v1/models":
+            return httpx.Response(
+                200,
+                json={"data": [{"id": "moonshotai/kimi-k3"}]},
+            )
+        captured.update(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "id": "hosted-response-1",
+                "model": "moonshotai/kimi-k3",
+                "choices": [
+                    {"message": {"content": "ready"}, "finish_reason": "stop"}
+                ],
+                "usage": {"prompt_tokens": 2, "completion_tokens": 1},
+            },
+        )
+
+    adapter = NVIDIAHostedNIMEngine(
+        "https://integrate.api.nvidia.com",
+        model="moonshotai/kimi-k3",
+        api_key="test-key",
+        reasoning_effort="low",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+    )
+
+    assert await adapter.is_available()
+    identity = await adapter.discover_model_identity()
+    assert identity.observation.model.artifact_id == "moonshotai/kimi-k3"
+    result = await adapter.generate_task(
+        task(ChatInput((ChatMessage(ChatRole.USER, "reply ready"),)))
+    )
+    assert captured["reasoning_effort"] == "low"
+    assert result.output.text == "ready"
+    assert result.adapter_metadata["nvidia-hosted-nim"]["served_model"] == (
+        "moonshotai/kimi-k3"
+    )
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_rejects_unsupported_text_completion() -> None:
+    async def unexpected_request(request: httpx.Request) -> httpx.Response:
+        raise AssertionError(f"No hosted request expected: {request.url.path}")
+
+    adapter = NVIDIAHostedNIMEngine(
+        "https://integrate.api.nvidia.com",
+        model="moonshotai/kimi-k3",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(unexpected_request)),
+    )
+
+    with pytest.raises(UnsupportedTaskFailure):
+        await adapter.generate_task(task(TextInput("hello")))
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_generation_failure_fails_over_between_models() -> None:
+    first_model = "moonshotai/kimi-k3"
+    second_model = "deepseek-ai/deepseek-v4-flash-0731"
+
+    def transport(model: str, *, fail_generation: bool) -> httpx.MockTransport:
+        async def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/v1/models":
+                return httpx.Response(
+                    200,
+                    json={"data": [{"id": first_model}, {"id": second_model}]},
+                )
+            if fail_generation:
+                return httpx.Response(503, text="upstream details must stay private")
+            return httpx.Response(
+                200,
+                json={
+                    "id": "fallback-response",
+                    "model": model,
+                    "choices": [
+                        {"message": {"content": "ready"}, "finish_reason": "stop"}
+                    ],
+                    "usage": {"prompt_tokens": 4, "completion_tokens": 1},
+                },
+            )
+
+        return httpx.MockTransport(handler)
+
+    deployments = DeploymentRegistry()
+    engines: list[NVIDIAHostedNIMEngine] = []
+    for sequence, (model, fails) in enumerate(
+        ((first_model, True), (second_model, False)), start=1
+    ):
+        engine = NVIDIAHostedNIMEngine(
+            "https://integrate.api.nvidia.com",
+            model=model,
+            client=httpx.AsyncClient(transport=transport(model, fail_generation=fails)),
+        )
+        engines.append(engine)
+        deployments.register(
+            RegisteredDeployment(
+                ref=DeploymentRef(
+                    deployment_id=f"hosted-nim-{sequence}",
+                    model=ModelRef(model, served_name=model),
+                    engine_name=engine.name,
+                    endpoint_id=f"nvidia-catalog-{sequence}",
+                    serving_runtime="nvidia_dgx_cloud_hosted_nim",
+                ),
+                engine=engine,
+                capabilities=DeploymentCapabilities(
+                    task_kinds=configured_claim(frozenset({TaskKind.CHAT}), "test"),
+                    served_models=configured_claim(frozenset({model}), "test"),
+                ),
+            )
+        )
+
+    result = await InferenceRouter(deployments).generate_task(
+        task(ChatInput((ChatMessage(ChatRole.USER, "reply ready"),)))
+    )
+
+    assert result.output.text == "ready"
+    assert result.provenance.model_artifact_id == second_model
+    assert [attempt.outcome for attempt in result.attempts] == [
+        AttemptOutcome.FAILED,
+        AttemptOutcome.SUCCEEDED,
+    ]
+    assert result.attempts[0].failure_code == "capacity_exceeded"
 
 
 @pytest.mark.asyncio

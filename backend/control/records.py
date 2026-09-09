@@ -134,3 +134,105 @@ class SQLiteExecutionRecordStore:
     def close(self) -> None:
         with self._lock:
             self._connection.close()
+
+
+class PostgreSQLExecutionRecordStore:
+    """Transactional multi-replica execution-record implementation."""
+
+    schema_version = 1
+
+    def __init__(self, database_url: str, *, pool: Any | None = None) -> None:
+        if not database_url.strip() and pool is None:
+            raise ValueError("A PostgreSQL database URL is required.")
+        if pool is None:
+            from psycopg_pool import ConnectionPool
+
+            pool = ConnectionPool(
+                database_url,
+                min_size=1,
+                max_size=10,
+                open=True,
+            )
+        self._pool = pool
+        try:
+            self._migrate()
+        except Exception:
+            self._pool.close()
+            raise
+
+    def _migrate(self) -> None:
+        with self._pool.connection() as connection:
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS ryuk_schema_meta ("
+                "component TEXT PRIMARY KEY, version INTEGER NOT NULL)"
+            )
+            row = connection.execute(
+                "SELECT version FROM ryuk_schema_meta WHERE component = %s",
+                ("execution_records",),
+            ).fetchone()
+            if row is not None and row[0] != self.schema_version:
+                raise RuntimeError("Unsupported PostgreSQL record schema version.")
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS execution_records ("
+                "record_sequence BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, "
+                "request_id TEXT NOT NULL, tenant_id TEXT NOT NULL, "
+                "status TEXT NOT NULL, policy_version TEXT NOT NULL, "
+                "payload_json JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS "
+                "idx_execution_records_tenant_request ON execution_records "
+                "(tenant_id, request_id, record_sequence DESC)"
+            )
+            connection.execute(
+                "INSERT INTO ryuk_schema_meta(component, version) VALUES (%s, %s) "
+                "ON CONFLICT (component) DO NOTHING",
+                ("execution_records", self.schema_version),
+            )
+
+    def put(self, record: ExecutionRecord) -> None:
+        with self._pool.connection() as connection:
+            connection.execute(
+                "INSERT INTO execution_records (request_id, tenant_id, status, "
+                "policy_version, payload_json, created_at) "
+                "VALUES (%s, %s, %s, %s, %s::jsonb, %s)",
+                (
+                    record.request_id,
+                    record.tenant_id,
+                    record.status,
+                    record.policy_version,
+                    json.dumps(record.payload, sort_keys=True),
+                    record.created_at,
+                ),
+            )
+
+    def get(self, tenant_id: str, request_id: str) -> ExecutionRecord | None:
+        with self._pool.connection() as connection:
+            row = connection.execute(
+                "SELECT request_id, tenant_id, status, policy_version, "
+                "payload_json, created_at FROM execution_records "
+                "WHERE tenant_id = %s AND request_id = %s "
+                "ORDER BY record_sequence DESC LIMIT 1",
+                (tenant_id, request_id),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = row[4] if isinstance(row[4], dict) else json.loads(row[4])
+        return ExecutionRecord(row[0], row[1], row[2], row[3], payload, row[5])
+
+    def health(self) -> dict[str, object]:
+        try:
+            with self._pool.connection() as connection:
+                row = connection.execute("SELECT 1").fetchone()
+            ready = row == (1,)
+        except Exception:
+            ready = False
+        return {
+            "ready": ready,
+            "schema_version": self.schema_version,
+            "durable": True,
+            "distributed": True,
+        }
+
+    def close(self) -> None:
+        self._pool.close()

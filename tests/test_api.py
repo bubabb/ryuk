@@ -87,7 +87,8 @@ async def test_production_startup_requires_verified_eligible_deployment() -> Non
         mock_enabled=False,
         sglang_enabled=False,
         control_plane_config_path=Path("control.json"),
-        execution_record_path=Path("records.db"),
+        database_url="postgresql://db/ryuk",
+        redis_url="redis://redis/0",
     )
     empty = DeploymentRegistry()
     with pytest.raises(RuntimeError, match="eligible"):
@@ -151,6 +152,70 @@ def test_non_health_routes_reject_missing_and_malformed_credentials() -> None:
     assert missing.headers["www-authenticate"] == "Bearer"
     assert malformed.status_code == 401
     assert malformed.json()["error"]["code"] == "invalid_credentials"
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "json_body"),
+    (
+        ("get", "/inference/engines", None),
+        (
+            "post",
+            "/inference/generate",
+            {"prompt": "hello", "model": "test-model"},
+        ),
+        (
+            "post",
+            "/v1/inference/chat",
+            {"messages": [{"role": "user", "content": "hello"}]},
+        ),
+        (
+            "post",
+            "/v1/audit/validate",
+            {
+                "output": "result",
+                "generator_deployment_id": "deployment-1",
+                "generator_model_artifact_id": "model-1",
+            },
+        ),
+    ),
+)
+def test_every_governed_route_requires_authentication(
+    method: str,
+    path: str,
+    json_body: dict[str, Any] | None,
+) -> None:
+    client.headers.pop("Authorization")
+
+    response = client.request(method, path, json=json_body)
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "authentication_required"
+    assert response.headers["www-authenticate"] == "Bearer"
+
+
+def test_client_tenant_header_cannot_cross_tenant_boundary() -> None:
+    response = client.post(
+        "/inference/generate",
+        headers={"x-tenant-id": "tenant-other"},
+        json={"prompt": "hello", "model": "test-model"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "forbidden"
+
+
+def test_matching_tenant_header_is_only_a_constraint() -> None:
+    response = client.post(
+        "/inference/generate",
+        headers={"x-tenant-id": "tenant-test"},
+        json={
+            "prompt": "hello",
+            "model": "test-model",
+            "preferred_engine": "mock",
+        },
+    )
+
+    assert response.status_code == 200
 
 
 def test_audit_requires_operator_role(monkeypatch) -> None:

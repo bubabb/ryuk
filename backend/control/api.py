@@ -7,9 +7,17 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
-from backend.control.admission import AdmissionController, QuotaPolicy
+from backend.control.admission import (
+    AdmissionController,
+    QuotaPolicy,
+    RedisAdmissionController,
+)
 from backend.control.observability import ControlEvent
-from backend.control.records import ExecutionRecord, SQLiteExecutionRecordStore
+from backend.control.records import (
+    ExecutionRecord,
+    PostgreSQLExecutionRecordStore,
+    SQLiteExecutionRecordStore,
+)
 from backend.control.security import (
     APIKeyRecord,
     Principal,
@@ -25,6 +33,15 @@ class ExecutionRecordWriter(Protocol):
     def put(self, record: ExecutionRecord) -> None: ...
 
 
+class AdmissionCoordinator(Protocol):
+    @property
+    def configured_tenants(self) -> frozenset[str]: ...
+
+    def admit(self, tenant_id: str, estimated_tokens: int) -> bool: ...
+
+    def release(self, tenant_id: str) -> None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class ControlPlaneFailure(Exception):
     status_code: int
@@ -33,7 +50,7 @@ class ControlPlaneFailure(Exception):
 
 
 class AdmissionPermit:
-    def __init__(self, controller: AdmissionController, tenant_id: str) -> None:
+    def __init__(self, controller: AdmissionCoordinator, tenant_id: str) -> None:
         self._controller = controller
         self.tenant_id = tenant_id
         self._released = False
@@ -50,7 +67,7 @@ class APIControlPlane:
     def __init__(
         self,
         api_keys: dict[str, APIKeyRecord],
-        admission: AdmissionController,
+        admission: AdmissionCoordinator,
         records: ExecutionRecordWriter | None = None,
     ) -> None:
         self.api_keys = api_keys
@@ -74,9 +91,59 @@ class APIControlPlane:
             )
         return principal
 
-    def require_role(self, principal: Principal, role: Role) -> None:
-        if not authorize(principal, tenant_id=principal.tenant_id, role=role):
+    def require_role(
+        self,
+        principal: Principal,
+        role: Role,
+        *,
+        tenant_id: str | None = None,
+    ) -> None:
+        target_tenant = principal.tenant_id if tenant_id is None else tenant_id
+        if not authorize(principal, tenant_id=target_tenant, role=role):
             raise ControlPlaneFailure(403, "forbidden", "Operation not permitted.")
+
+    def verify_production_ready(self, *, now: datetime | None = None) -> None:
+        """Refuse production traffic unless every control-plane guard is usable."""
+        current = datetime.now(UTC) if now is None else now
+        active_records = [
+            record
+            for record in self.api_keys.values()
+            if record.revoked_at is None
+            and (record.expires_at is None or current < record.expires_at)
+        ]
+        if not active_records:
+            raise RuntimeError("Production requires at least one active API key.")
+
+        credential_tenants = {
+            record.principal.tenant_id for record in active_records
+        }
+        missing_quotas = credential_tenants - self.admission.configured_tenants
+        if missing_quotas:
+            raise RuntimeError(
+                "Production requires quota policies for every credential tenant."
+            )
+
+        if self.records is None:
+            raise RuntimeError("Production requires a durable execution-record store.")
+        health = getattr(self.records, "health", None)
+        if health is None:
+            raise RuntimeError("Production execution-record store has no health check.")
+        status = health()
+        if (
+            not status.get("ready")
+            or not status.get("durable")
+            or not status.get("distributed")
+        ):
+            raise RuntimeError("Production execution-record store is not ready.")
+
+        admission_health = getattr(self.admission, "health", None)
+        if admission_health is None:
+            raise RuntimeError("Production admission coordinator has no health check.")
+        admission_status = admission_health()
+        if not admission_status.get("ready") or not admission_status.get(
+            "distributed"
+        ):
+            raise RuntimeError("Production admission coordinator is not ready.")
 
     def admit(self, principal: Principal, estimated_tokens: int) -> AdmissionPermit:
         if not self.admission.admit(principal.tenant_id, estimated_tokens):
@@ -112,13 +179,18 @@ class APIControlPlane:
         )
 
     def close(self) -> None:
-        if isinstance(self.records, SQLiteExecutionRecordStore):
-            self.records.close()
+        for resource in (self.records, self.admission):
+            close = getattr(resource, "close", None)
+            if close is not None:
+                close()
 
 
 def load_api_control(
     config_path: Path | None,
     record_path: Path | None,
+    *,
+    database_url: str = "",
+    redis_url: str = "",
 ) -> APIControlPlane:
     """Load hashed identities and quotas from server-owned configuration."""
     if config_path is None:
@@ -152,12 +224,25 @@ def load_api_control(
         )
         for tenant_id, value in document.get("quotas", {}).items()
     }
-    records = (
-        SQLiteExecutionRecordStore(record_path)
-        if record_path is not None
-        else None
+    admission: AdmissionCoordinator = (
+        RedisAdmissionController(policies, redis_url=redis_url)
+        if redis_url.strip()
+        else AdmissionController(policies)
     )
-    return APIControlPlane(keys, AdmissionController(policies), records)
+    records: ExecutionRecordWriter | None
+    try:
+        if database_url.strip():
+            records = PostgreSQLExecutionRecordStore(database_url)
+        elif record_path is not None:
+            records = SQLiteExecutionRecordStore(record_path)
+        else:
+            records = None
+    except Exception:
+        close = getattr(admission, "close", None)
+        if close is not None:
+            close()
+        raise
+    return APIControlPlane(keys, admission, records)
 
 
 def _optional_datetime(value: str | None) -> datetime | None:

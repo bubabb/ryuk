@@ -41,12 +41,17 @@ from backend.middleware import RequestBodyLimitMiddleware, RequestContextMiddlew
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     del app
-    await verify_production_deployments(settings, deployment_registry)
-    await runtime_collector.start()
+    runtime_started = False
     try:
+        if settings.app_env is AppEnvironment.PRODUCTION:
+            api_control.verify_production_ready()
+        await verify_production_deployments(settings, deployment_registry)
+        await runtime_collector.start()
+        runtime_started = True
         yield
     finally:
-        await runtime_collector.stop()
+        if runtime_started:
+            await runtime_collector.stop()
         await deployment_registry.aclose()
         api_control.close()
 
@@ -111,20 +116,30 @@ inference_router = InferenceRouter(
     deployment_registry, runtime_states=runtime_collector.store
 )
 
-# Configuration-backed identity and durable-store loading is the next control-plane
-# slice. Empty defaults deliberately fail closed instead of creating a development
-# credential or silently accepting unauthenticated traffic.
+# Empty defaults deliberately fail closed instead of creating a development
+# credential or silently accepting unauthenticated traffic. Production settings
+# select the distributed store and admission implementations.
 api_control = load_api_control(
     settings.control_plane_config_path,
     settings.execution_record_path,
+    database_url=settings.database_url,
+    redis_url=settings.redis_url,
 )
 
 
 def require_role(role: Role):
     def dependency(request: Request) -> Principal:
         principal = api_control.authenticate(request.headers.get("authorization"))
-        api_control.require_role(principal, role)
+        # A caller may constrain a request to its own tenant, but can never use a
+        # client-controlled header to acquire another tenant's authority.
+        requested_tenant = request.headers.get("x-tenant-id")
+        api_control.require_role(
+            principal,
+            role,
+            tenant_id=requested_tenant,
+        )
         request.state.principal = principal
+        request.state.tenant_id = principal.tenant_id
         api_control.emit(
             "api.request.authorized",
             principal.tenant_id,

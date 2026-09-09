@@ -105,6 +105,7 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
         }
         if task.generation.max_output_tokens is not None:
             payload["max_tokens"] = task.generation.max_output_tokens
+        payload.update(self._request_parameters(task))
         if isinstance(task.input, TextInput):
             path = "/v1/completions"
             payload["prompt"] = task.input.text
@@ -160,6 +161,11 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
 
     def _response_metadata(self, result: dict[str, Any]) -> dict[str, Any]:
         return {"response_id": result.get("id"), "served_model": result.get("model")}
+
+    def _request_parameters(self, task: InferenceTask) -> dict[str, Any]:
+        """Adapter-specific external parameters; never part of Ryuk's contract."""
+        del task
+        return {}
 
     async def _json(
         self, method: str, path: str, operation: str, **kwargs: Any

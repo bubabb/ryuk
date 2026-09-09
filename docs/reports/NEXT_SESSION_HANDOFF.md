@@ -1,6 +1,6 @@
 # Ryuk Next-Session Handoff
 
-**Updated:** 2026-09-01
+**Updated:** 2026-09-09
 **Branch:** `main`
 **Completed implementation commit:** `163b7597f1cd66c01ba02cf0397dc150fcb59184`
 
@@ -38,6 +38,46 @@ audit evaluation: accepted
 git diff --check: passed
 ```
 
+## Distributed control-plane foundation added after the prior handoff
+
+The current change set adds implementations needed by the later Phase 10 gate,
+without claiming that Phase 10 itself is complete:
+
+- PostgreSQL-backed, append-oriented, tenant-scoped execution records.
+- Redis-backed atomic request, token, and concurrency admission.
+- Production startup checks for active credentials, tenant quotas, and healthy
+  distributed record/admission dependencies.
+- Vault KV secret resolution with TLS-only production configuration.
+- Fail-closed deployment activation evidence and stronger artifact manifest
+  validation.
+- Tenant headers are constraints only and cannot override authenticated identity.
+- Local PostgreSQL and Redis integration runners and real-service contracts.
+
+Review corrections made on 2026-09-09 include closing partially initialized
+resources, cleanup on application startup failure, and preventing Redis quota
+keys from expiring while a request permit is active. The real Redis contention
+test proves the configured concurrency ceiling across multiple clients.
+
+Verified on 2026-09-09:
+
+```text
+PostgreSQL real-service contracts: passed
+Redis real-service contracts, including contention: passed
+Full unit/contract suite with local PostgreSQL/Redis: 199 passed, 5 external-service skips
+Ruff: passed
+Mypy: passed across 74 backend/test/script files
+compileall: passed
+routing evaluation: accepted
+audit evaluation: accepted
+git diff --check: passed
+```
+
+This is implementation evidence, not production certification. Redis permits
+intentionally fail closed after a controller crash and still need an explicit
+lease/reconciliation design. Network-partition semantics, backup/restore RPO/RTO,
+Vault rotation/revocation, multi-replica chaos tests, and operational runbooks
+remain Phase 10 exit work.
+
 The four skips require real Dynamo, NIM, SGLang, and vLLM services. The warning
 is the known Starlette TestClient/httpx migration warning. No real external model
 was integration-tested, benchmark-evaluated, or production-certified.
@@ -48,13 +88,13 @@ The next planned gate is Phase 2: certify two exact real deployments. Other open
 work remains ordered behind the plan rather than being implicitly authorized.
 
 1. Certify Kimi K3 and DeepSeek V4, or explicitly approved substitutes.
-2. Select and integrate a production secret manager beyond the current
-   environment-reference implementation; add rotation and revocation drills.
+2. Complete Vault authentication/rotation/revocation drills; the current KV
+   resolver is an implementation boundary, not operational certification.
 3. Resolve the TestClient/httpx migration warning.
 4. Implement streaming and disconnected-client cancellation as its own vertical
    slice; this is where disconnected-stream permit tests belong.
-5. Before multi-replica production, replace local SQLite/admission coordination
-   with transactional distributed implementations and prove RPO/RTO.
+5. Before multi-replica production, complete Redis permit reconciliation and
+   prove PostgreSQL backup/restore, partition behavior, and RPO/RTO.
 6. Complete supply-chain, load/soak/chaos, observability, incident-response, and
    production-certification gates in their planned phases.
 

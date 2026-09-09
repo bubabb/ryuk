@@ -12,7 +12,9 @@ packaging==26.3
 pydantic==2.13.5
 pydantic-settings==2.15.0
 pydantic_core==2.46.5
+psycopg[binary,pool]==3.3.5
 python-dotenv==1.2.3
+redis==8.1.0
 setuptools==83.0.0
 starlette==1.6.0
 typing-inspection==0.4.4
