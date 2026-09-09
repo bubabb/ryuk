@@ -656,6 +656,16 @@ When working on Ryuk:
 
 When uncertain about an architectural decision with long-term consequences, prefer preserving abstraction boundaries.
 
+Action Tracking
+
+The current operational backlog is maintained in:
+
+docs/ACTION_ITEMS.md
+
+Update that tracker in the same change set as work it describes. Mark an item
+DONE only when its stated completion evidence exists. Add newly discovered work
+under a stable ID rather than leaving it only in session notes or handoff prose.
+
 The primary objective is not merely to make code execute.
 
 The objective is to build Ryuk into a robust, intelligent, auditable, multi-model and multi-engine AI orchestration system.
