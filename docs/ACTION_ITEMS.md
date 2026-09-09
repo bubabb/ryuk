@@ -27,8 +27,8 @@ required real-system evidence must also exist.
 | DOC-001 | DONE | Establish a consolidated current architecture and phase review | None | `docs/RYUK_PROJECT_AND_PHASE_REVIEW_2026-09-09.md`; commit `508a1c0` |
 | CP-001 | DONE | Harden the distributed control-plane foundation | None | PostgreSQL and Redis real-service contracts; commit `907f7e8` |
 | QA-001 | DONE | Resolve the Starlette `TestClient`/httpx deprecation warning without reducing API coverage | None | Pinned development-only `httpx2==2.12.0`; 196 passed and 8 external-service skips with `StarletteDeprecationWarning` promoted to an error |
-| P2A-001 | READY | Verify the current official contracts and exact public identifiers for Kimi K3 and DeepSeek V4 or approved substitutes | Product model choice | Dated source notes with links; identifiers and contract dates recorded |
-| P2A-002 | BLOCKED | Define one immutable offline deployment profile for each selected model | P2A-001 | Separate checked-in profiles containing endpoint/runtime/model identity and unknown fields marked explicitly |
+| P2A-001 | DONE | Verify the current official contracts and exact public identifiers for Kimi K3 and DeepSeek V4 or approved substitutes | Product model choice | `docs/research/phase-2a-model-contracts-2026-09-09.md`; NVIDIA hosted candidates pinned as `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731` |
+| P2A-002 | READY | Define one immutable offline deployment profile for each selected model | P2A-001 | Separate checked-in profiles containing endpoint/runtime/model identity and unknown fields marked explicitly |
 | P2A-003 | BLOCKED | Define the hosted identity-evidence acceptance policy | DEC-005 | Policy distinguishes configured, observed, verified, and unavailable evidence |
 | P2A-004 | BLOCKED | Add sanitized contract fixtures for both profiles | P2A-001, P2A-002 | Fixtures cover success, usage, limits, malformed output, overload, timeout, and identity discovery |
 | P2A-005 | BLOCKED | Complete adapter-local request and response translations for both profiles | P2A-004 | Unit contracts prove Ryuk types remain authoritative and provider details do not leak |
