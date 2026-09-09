@@ -32,6 +32,7 @@ from backend.inference.errors import UnknownEnginePreferenceFailure
 from backend.inference.registry import DeploymentRegistry, RegisteredDeployment
 from backend.inference.router import NoAvailableEngineError
 
+
 class ASGITestClient:
     """Small synchronous facade over HTTPX's in-process async ASGI transport."""
 

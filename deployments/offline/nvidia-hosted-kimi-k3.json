@@ -1,0 +1,60 @@
+{
+  "adapter_name": "nvidia-hosted-nim",
+  "base_url": "https://integrate.api.nvidia.com",
+  "claims": [
+    {
+      "evidence": "advertised",
+      "name": "context_tokens",
+      "source": "https://build.nvidia.com/moonshotai/kimi-k3/modelcard",
+      "value": 1048576
+    },
+    {
+      "evidence": "advertised",
+      "name": "input_text",
+      "source": "https://build.nvidia.com/moonshotai/kimi-k3/modelcard",
+      "value": true
+    },
+    {
+      "evidence": "advertised",
+      "name": "input_image",
+      "source": "https://build.nvidia.com/moonshotai/kimi-k3/modelcard",
+      "value": true
+    },
+    {
+      "evidence": "advertised",
+      "name": "reasoning_effort",
+      "source": "https://build.nvidia.com/moonshotai/kimi-k3",
+      "value": "low,high,max"
+    },
+    {
+      "evidence": "unknown",
+      "name": "artifact_digest",
+      "source": null,
+      "value": null
+    },
+    {
+      "evidence": "unknown",
+      "name": "cancellation",
+      "source": null,
+      "value": null
+    }
+  ],
+  "contract_checked_on": "2026-09-09",
+  "deployment_mode": "hosted",
+  "generation_path": "/v1/chat/completions",
+  "hardware_identity": null,
+  "image_digest": null,
+  "model_artifact_id": "moonshotai/kimi-k3",
+  "model_revision": null,
+  "production_eligible": false,
+  "profile_id": "nvidia-hosted-kimi-k3-candidate-v1",
+  "provider": "NVIDIA API Catalog / Moonshot AI",
+  "runtime_identity": null,
+  "schema_version": 1,
+  "served_model_name": "moonshotai/kimi-k3",
+  "sources": [
+    "https://build.nvidia.com/moonshotai/kimi-k3",
+    "https://build.nvidia.com/moonshotai/kimi-k3/modelcard"
+  ],
+  "status": "offline_candidate"
+}

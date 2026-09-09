@@ -26,11 +26,11 @@ required real-system evidence must also exist.
 | --- | --- | --- | --- | --- |
 | DOC-001 | DONE | Establish a consolidated current architecture and phase review | None | `docs/RYUK_PROJECT_AND_PHASE_REVIEW_2026-09-09.md`; commit `508a1c0` |
 | CP-001 | DONE | Harden the distributed control-plane foundation | None | PostgreSQL and Redis real-service contracts; commit `907f7e8` |
-| QA-001 | DONE | Resolve the Starlette `TestClient`/httpx deprecation warning without reducing API coverage | None | Pinned development-only `httpx2==2.12.0`; 196 passed and 8 external-service skips with `StarletteDeprecationWarning` promoted to an error |
+| QA-001 | DONE | Resolve the Starlette `TestClient`/httpx deprecation warning without reducing API coverage | None | API tests use HTTPX's in-process ASGI transport; 31 API tests passed with `StarletteDeprecationWarning` promoted to an error |
 | P2A-001 | DONE | Verify the current official contracts and exact public identifiers for Kimi K3 and DeepSeek V4 or approved substitutes | Product model choice | `docs/research/phase-2a-model-contracts-2026-09-09.md`; NVIDIA hosted candidates pinned as `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731` |
-| P2A-002 | READY | Define one immutable offline deployment profile for each selected model | P2A-001 | Separate checked-in profiles containing endpoint/runtime/model identity and unknown fields marked explicitly |
+| P2A-002 | DONE | Define one immutable offline deployment profile for each selected model | P2A-001 | Frozen schema and validated manifests under `deployments/offline/`; unknown hosted runtime, hardware, image digest, artifact digest, and cancellation evidence remain explicit |
 | P2A-003 | BLOCKED | Define the hosted identity-evidence acceptance policy | DEC-005 | Policy distinguishes configured, observed, verified, and unavailable evidence |
-| P2A-004 | BLOCKED | Add sanitized contract fixtures for both profiles | P2A-001, P2A-002 | Fixtures cover success, usage, limits, malformed output, overload, timeout, and identity discovery |
+| P2A-004 | READY | Add sanitized contract fixtures for both profiles | P2A-001, P2A-002 | Fixtures cover success, usage, limits, malformed output, overload, timeout, and identity discovery |
 | P2A-005 | BLOCKED | Complete adapter-local request and response translations for both profiles | P2A-004 | Unit contracts prove Ryuk types remain authoritative and provider details do not leak |
 | P2A-006 | BLOCKED | Add offline cross-deployment failure and provenance tests | P2A-002, P2A-005 | Failed primary and successful fallback attempts preserve exact deployment/model provenance |
 | P2A-007 | BLOCKED | Record the Phase 2A review and readiness decision | P2A-001 through P2A-006 | Review report lists passed checks, unknowns, and explicit Phase 2B blockers |
