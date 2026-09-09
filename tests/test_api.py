@@ -1,11 +1,12 @@
+import asyncio
 import json
 import logging
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
 
+import httpx
 import pytest
-from fastapi.testclient import TestClient
 
 import backend.main as main_module
 from backend.control.admission import AdmissionController, QuotaPolicy
@@ -31,7 +32,36 @@ from backend.inference.errors import UnknownEnginePreferenceFailure
 from backend.inference.registry import DeploymentRegistry, RegisteredDeployment
 from backend.inference.router import NoAvailableEngineError
 
-client = TestClient(main_module.app)
+class ASGITestClient:
+    """Small synchronous facade over HTTPX's in-process async ASGI transport."""
+
+    def __init__(self) -> None:
+        self.headers: dict[str, str] = {}
+
+    def request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        async def send() -> httpx.Response:
+            request_headers = kwargs.pop("headers", None)
+            headers = dict(self.headers)
+            if request_headers is not None:
+                headers.update(request_headers)
+            transport = httpx.ASGITransport(app=main_module.app)
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url="http://testserver",
+                headers=headers,
+            ) as async_client:
+                return await async_client.request(method, path, **kwargs)
+
+        return asyncio.run(send())
+
+    def get(self, path: str, **kwargs: Any) -> httpx.Response:
+        return self.request("GET", path, **kwargs)
+
+    def post(self, path: str, **kwargs: Any) -> httpx.Response:
+        return self.request("POST", path, **kwargs)
+
+
+client = ASGITestClient()
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
