@@ -1,8 +1,9 @@
 # Ryuk Action Tracker
 
 **Last updated:** 2026-09-09
-**Current milestone:** Phase 2A — offline deployment-profile preparation
+**Current milestone:** Phase 2A — offline failover and provenance validation
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
+**Next session starts with:** `P2A-006`, followed by the `P2A-007` review
 
 This is the operational task list for Ryuk. Update it in the same change set as
 the work it tracks. Architecture documents explain why; this file records what
