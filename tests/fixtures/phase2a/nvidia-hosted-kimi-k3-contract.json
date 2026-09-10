@@ -18,13 +18,24 @@
       "status": 200,
       "response": {
         "choices": [
-          {"finish_reason": "stop", "message": {"content": "ready"}}
+          {
+            "finish_reason": "stop",
+            "message": {
+              "content": "ready",
+              "reasoning_content": "sanitized fixture reasoning"
+            }
+          }
         ],
         "id": "fixture-kimi-success",
         "model": "moonshotai/kimi-k3",
         "usage": {"completion_tokens": 2, "prompt_tokens": 5}
       },
-      "expected": {"input_tokens": 5, "output_tokens": 2, "text": "ready"}
+      "expected": {
+        "input_tokens": 5,
+        "output_tokens": 2,
+        "reasoning": "sanitized fixture reasoning",
+        "text": "ready"
+      }
     },
     {
       "id": "overload",

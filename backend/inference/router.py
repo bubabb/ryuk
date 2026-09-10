@@ -292,6 +292,7 @@ class InferenceRouter:
                 timing=adapter_result.timing,
                 provenance=self._build_provenance(deployment, identity),
                 adapter_metadata=adapter_result.adapter_metadata,
+                reasoning=adapter_result.reasoning,
                 attempts=tuple(attempts),
                 routing_decision=routing_decision,
             )
@@ -484,6 +485,7 @@ class InferenceRouter:
                     inspection.assessment,
                 ),
                 adapter_metadata=adapter_result.adapter_metadata,
+                reasoning=adapter_result.reasoning,
             )
             return self._typed_to_legacy_response(result)
 

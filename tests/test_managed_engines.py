@@ -172,6 +172,44 @@ async def test_hosted_nim_rejects_unsupported_text_completion() -> None:
         await adapter.generate_task(task(TextInput("hello")))
 
 
+def test_hosted_nim_requires_an_exact_supported_model_profile() -> None:
+    with pytest.raises(ValueError, match="supported exact model profile"):
+        NVIDIAHostedNIMEngine(
+            "https://integrate.api.nvidia.com",
+            model="moving-or-unknown-alias",
+        )
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_rejects_malformed_reasoning_without_leaking_it() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": "ready",
+                            "reasoning_content": {"private": "not text"},
+                        }
+                    }
+                ]
+            },
+        )
+
+    adapter = NVIDIAHostedNIMEngine(
+        "https://integrate.api.nvidia.com",
+        model="moonshotai/kimi-k3",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+    )
+    with pytest.raises(UpstreamProtocolFailure) as raised:
+        await adapter.generate_task(
+            task(ChatInput((ChatMessage(ChatRole.USER, "reply ready"),)))
+        )
+    assert raised.value.context["reason"] == "invalid_reasoning"
+    assert "private" not in str(raised.value)
+
+
 @pytest.mark.asyncio
 async def test_hosted_nim_generation_failure_fails_over_between_models() -> None:
     first_model = "moonshotai/kimi-k3"
@@ -192,7 +230,13 @@ async def test_hosted_nim_generation_failure_fails_over_between_models() -> None
                     "id": "fallback-response",
                     "model": model,
                     "choices": [
-                        {"message": {"content": "ready"}, "finish_reason": "stop"}
+                        {
+                            "message": {
+                                "content": "ready",
+                                "reasoning": "separate reasoning",
+                            },
+                            "finish_reason": "stop",
+                        }
                     ],
                     "usage": {"prompt_tokens": 4, "completion_tokens": 1},
                 },
@@ -233,6 +277,8 @@ async def test_hosted_nim_generation_failure_fails_over_between_models() -> None
     )
 
     assert result.output.text == "ready"
+    assert result.reasoning is not None
+    assert result.reasoning.text == "separate reasoning"
     assert result.provenance.model_artifact_id == second_model
     assert [attempt.outcome for attempt in result.attempts] == [
         AttemptOutcome.FAILED,

@@ -107,6 +107,7 @@ async def test_phase2a_fixture_normalizes_identity_success_and_usage(
     adapter = NVIDIAHostedNIMEngine(
         "https://integrate.api.nvidia.com",
         model=fixture["model"],
+        reasoning_effort="high",
         client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
     )
     identity = await adapter.discover_model_identity()
@@ -115,7 +116,18 @@ async def test_phase2a_fixture_normalizes_identity_success_and_usage(
     assert identity.observation.model.artifact_id == fixture["model"]
     assert captured["model"] == fixture["model"]
     assert captured["stream"] is False
+    if fixture["model"] == "moonshotai/kimi-k3":
+        assert captured["reasoning_effort"] == "high"
+        assert "chat_template_kwargs" not in captured
+    else:
+        assert captured["chat_template_kwargs"] == {
+            "thinking": True,
+            "reasoning_effort": "high",
+        }
+        assert "reasoning_effort" not in captured
     assert result.output.text == success["expected"]["text"]
+    assert result.reasoning is not None
+    assert result.reasoning.text == success["expected"]["reasoning"]
     assert result.usage.input_tokens == success["expected"]["input_tokens"]
     assert result.usage.output_tokens == success["expected"]["output_tokens"]
 

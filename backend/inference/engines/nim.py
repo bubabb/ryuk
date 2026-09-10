@@ -1,11 +1,22 @@
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Any
 
-from backend.inference.contracts import AdapterInferenceResult, ChatInput, InferenceTask
+from backend.inference.contracts import (
+    AdapterInferenceResult,
+    ChatInput,
+    InferenceTask,
+    ReasoningOutput,
+)
 from backend.inference.deployment import IdentityDiscovery
 from backend.inference.engines.managed_http import ManagedHTTPInferenceEngine
 from backend.inference.errors import UnsupportedTaskFailure, UpstreamProtocolFailure
+
+
+class NVIDIAHostedModelProfile(StrEnum):
+    KIMI_K3 = "moonshotai/kimi-k3"
+    DEEPSEEK_V4_FLASH_0731 = "deepseek-ai/deepseek-v4-flash-0731"
 
 
 class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
@@ -27,6 +38,17 @@ class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
     ) -> None:
         if reasoning_effort not in {None, "low", "high", "max"}:
             raise ValueError("reasoning_effort must be low, high, max, or omitted.")
+        model = kwargs.get("model")
+        if not isinstance(model, str):
+            raise ValueError(
+                "The hosted NIM adapter requires a supported exact model profile."
+            )
+        try:
+            self.profile = NVIDIAHostedModelProfile(model)
+        except ValueError as exc:
+            raise ValueError(
+                "The hosted NIM adapter requires a supported exact model profile."
+            ) from exc
         self.reasoning_effort = reasoning_effort
         super().__init__(*args, **kwargs)
 
@@ -41,7 +63,30 @@ class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
         del task
         if self.reasoning_effort is None:
             return {}
+        if self.profile is NVIDIAHostedModelProfile.DEEPSEEK_V4_FLASH_0731:
+            return {
+                "chat_template_kwargs": {
+                    "thinking": True,
+                    "reasoning_effort": self.reasoning_effort,
+                }
+            }
         return {"reasoning_effort": self.reasoning_effort}
+
+    def _reasoning_output(self, choice: dict[str, Any]) -> ReasoningOutput | None:
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            return None
+        for key in ("reasoning_content", "reasoning"):
+            value = message.get(key)
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                raise self._protocol("generation", "invalid_reasoning")
+            try:
+                return ReasoningOutput(value)
+            except ValueError as exc:
+                raise self._protocol("generation", "invalid_reasoning") from exc
+        return None
 
 
 class NIMEngine(ManagedHTTPInferenceEngine):

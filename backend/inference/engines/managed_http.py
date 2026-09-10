@@ -14,6 +14,7 @@ from backend.inference.contracts import (
     FinishReason,
     InferenceTask,
     InferenceTiming,
+    ReasoningOutput,
     TextInput,
     TextOutput,
     TokenUsage,
@@ -153,6 +154,7 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
             ),
             timing=InferenceTiming(total_ms=(time.perf_counter() - started) * 1000),
             adapter_metadata={self.name: self._response_metadata(result)},
+            reasoning=self._reasoning_output(choice),
         )
 
     async def generate(self, request: InferenceRequest) -> InferenceResponse:
@@ -166,6 +168,11 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
         """Adapter-specific external parameters; never part of Ryuk's contract."""
         del task
         return {}
+
+    def _reasoning_output(self, choice: dict[str, Any]) -> ReasoningOutput | None:
+        """Translate optional reasoning only in adapters that define its schema."""
+        del choice
+        return None
 
     async def _json(
         self, method: str, path: str, operation: str, **kwargs: Any

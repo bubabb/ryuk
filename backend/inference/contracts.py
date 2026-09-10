@@ -188,6 +188,16 @@ class TextOutput:
 
 
 @dataclass(frozen=True, slots=True)
+class ReasoningOutput:
+    """Provider-returned reasoning kept separate from the user-facing answer."""
+
+    text: str
+
+    def __post_init__(self) -> None:
+        _require_text(self.text, "reasoning text")
+
+
+@dataclass(frozen=True, slots=True)
 class AdapterInferenceResult:
     """Typed adapter output before router-owned provenance is attached."""
 
@@ -196,6 +206,7 @@ class AdapterInferenceResult:
     usage: TokenUsage
     timing: InferenceTiming
     adapter_metadata: dict[str, Any]
+    reasoning: ReasoningOutput | None = None
 
 
 @runtime_checkable
@@ -211,6 +222,7 @@ class InferenceResult:
     timing: InferenceTiming
     provenance: DeploymentProvenance
     adapter_metadata: dict[str, Any]
+    reasoning: ReasoningOutput | None = None
     attempts: tuple[ExecutionAttempt, ...] = ()
     routing_decision: RoutingDecision | None = None
 

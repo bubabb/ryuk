@@ -12,6 +12,7 @@ from backend.inference.contracts import (
     InferenceResult,
     InferenceTask,
     InferenceTiming,
+    ReasoningOutput,
     TaskRequirements,
     TextInput,
     TextOutput,
@@ -85,6 +86,12 @@ def test_task_deadline_requires_timezone() -> None:
 def test_unknown_usage_is_distinct_from_zero() -> None:
     assert TokenUsage().input_tokens is None
     assert TokenUsage(input_tokens=0).input_tokens == 0
+
+
+def test_reasoning_output_is_typed_and_separate_from_answer() -> None:
+    assert ReasoningOutput("analysis").text == "analysis"
+    with pytest.raises(ValueError, match="reasoning text"):
+        ReasoningOutput("  ")
 
 
 def test_negative_usage_and_timing_are_rejected() -> None:
