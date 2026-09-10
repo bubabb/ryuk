@@ -1,0 +1,58 @@
+{
+  "fixture_version": "phase2a-hosted-contract-v1",
+  "profile_id": "nvidia-hosted-deepseek-v4-flash-0731-candidate-v1",
+  "model": "deepseek-ai/deepseek-v4-flash-0731",
+  "identity": {
+    "status": 200,
+    "response": {
+      "data": [
+        {"id": "moonshotai/kimi-k3"},
+        {"id": "deepseek-ai/deepseek-v4-flash-0731"}
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "success_with_usage",
+      "behavior": "response",
+      "status": 200,
+      "response": {
+        "choices": [
+          {"finish_reason": "stop", "message": {"content": "ready"}}
+        ],
+        "id": "fixture-deepseek-success",
+        "model": "deepseek-ai/deepseek-v4-flash-0731",
+        "usage": {"completion_tokens": 3, "prompt_tokens": 7}
+      },
+      "expected": {"input_tokens": 7, "output_tokens": 3, "text": "ready"}
+    },
+    {
+      "id": "overload",
+      "behavior": "response",
+      "status": 503,
+      "response": {"error": {"message": "sanitized overload"}},
+      "expected_failure": "capacity_exceeded"
+    },
+    {
+      "id": "timeout",
+      "behavior": "read_timeout",
+      "expected_failure": "deadline_exceeded"
+    },
+    {
+      "id": "malformed_choices",
+      "behavior": "response",
+      "status": 200,
+      "response": {
+        "choices": [],
+        "model": "deepseek-ai/deepseek-v4-flash-0731"
+      },
+      "expected_failure": "upstream_protocol_failure"
+    },
+    {
+      "id": "response_limit",
+      "behavior": "oversized_response",
+      "max_response_bytes": 64,
+      "expected_failure": "upstream_protocol_failure"
+    }
+  ]
+}
