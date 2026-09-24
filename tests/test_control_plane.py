@@ -54,15 +54,11 @@ def test_expired_and_revoked_api_keys_are_rejected() -> None:
     principal = Principal("user-1", "tenant-a", frozenset({Role.INFERENCE}))
     now = datetime.now(UTC)
     key, expired = issue_api_key(principal, expires_at=now - timedelta(seconds=1))
-    assert authenticate_api_key(
-        key, {expired.key_id: expired}, now=now
-    ) is None
+    assert authenticate_api_key(key, {expired.key_id: expired}, now=now) is None
 
     key, active = issue_api_key(principal, expires_at=now + timedelta(hours=1))
     revoked = replace(active, revoked_at=now)
-    assert authenticate_api_key(
-        key, {revoked.key_id: revoked}, now=now
-    ) is None
+    assert authenticate_api_key(key, {revoked.key_id: revoked}, now=now) is None
 
 
 def test_server_control_configuration_loads_hashes_quotas_and_store(tmp_path) -> None:
@@ -440,10 +436,13 @@ def test_vault_secret_manager_resolves_kv_v2_field_without_logging(
         client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
 
-    assert resolve_secret_ref(
-        "vault:secret/data/ryuk/nim#api_key",
-        managers={"vault": manager},
-    ) == "provider-secret"
+    assert (
+        resolve_secret_ref(
+            "vault:secret/data/ryuk/nim#api_key",
+            managers={"vault": manager},
+        )
+        == "provider-secret"
+    )
 
 
 def test_vault_secret_manager_requires_tls_and_fails_on_missing_field(
@@ -467,3 +466,50 @@ def test_vault_secret_manager_requires_tls_and_fails_on_missing_field(
     )
     with pytest.raises(ValueError, match="unavailable"):
         manager.resolve("secret/data/ryuk/nim#api_key")
+
+
+@pytest.mark.parametrize(
+    "key",
+    (
+        "prompt",
+        "output",
+        "apiKey",
+        "API-KEY",
+        "Authorization",
+        "secret",
+        "password",
+        "messages",
+        "nested",
+    ),
+)
+def test_events_drop_unknown_fields_and_nested_sensitive_containers(key):
+    from backend.control.observability import ControlEvent
+
+    sensitive = {key: [{"authorization": "private", "prompt": "private"}]}
+    event = ControlEvent(
+        "test",
+        "tenant",
+        "request",
+        datetime.now(UTC),
+        {
+            **sensitive,
+            "operation": sensitive,
+            "deployment_id": ["private"],
+            "estimated_tokens": sensitive,
+            "status": "accepted",
+        },
+    )
+    assert event.safe_attributes() == {"status": "accepted"}
+
+
+def test_events_reject_objects_control_characters_and_invalid_counts():
+    from backend.control.observability import ControlEvent
+
+    attributes = {
+        "status": "bad\nline",
+        "operation": object(),
+        "estimated_tokens": True,
+        "deployment_count": -1,
+    }
+    event = ControlEvent("test", "tenant", None, datetime.now(UTC), attributes)
+    assert event.safe_attributes() == {}

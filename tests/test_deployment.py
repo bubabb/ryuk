@@ -114,3 +114,20 @@ def test_mismatch_assessment_requires_conflicting_fields() -> None:
             expected=ModelRef("expected"),
             observed=observation(ModelRef("observed")),
         )
+
+
+def test_catalog_match_is_observed_not_artifact_verified() -> None:
+    model = ModelRef("hosted/model", served_name="hosted/model")
+    catalog = ModelIdentityObservation(
+        model, datetime.now(UTC), "catalog", catalog_only=True
+    )
+    assert assess_model_identity(model, catalog).status is IdentityVerification.OBSERVED
+    pinned = ModelRef("hosted/model", revision="pinned", served_name="hosted/model")
+    assert (
+        assess_model_identity(pinned, catalog).status
+        is IdentityVerification.CONFIGURED_ONLY
+    )
+    assert (
+        assess_model_identity(ModelRef("other"), catalog).status
+        is IdentityVerification.MISMATCH
+    )

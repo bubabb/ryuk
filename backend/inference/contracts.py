@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 from backend.inference.base import DeploymentProvenance
+from backend.inference.deployment import DeploymentRef
 
 
 def _require_text(value: str, field_name: str) -> None:
@@ -140,10 +141,21 @@ class ExecutionAttempt:
     outcome: AttemptOutcome
     failure_code: str | None = None
     retry_classification: str | None = None
+    # Version 1 records predate snapshots and remain readable with None.
+    schema_version: int = 1
+    configured_deployment: DeploymentRef | None = None
 
     def __post_init__(self) -> None:
         _require_text(self.attempt_id, "attempt_id")
         _require_text(self.deployment_id, "deployment_id")
+        if self.schema_version not in (1, 2):
+            raise ValueError("Unsupported execution-attempt schema version.")
+        if self.schema_version == 2 and self.configured_deployment is None:
+            raise ValueError("Version 2 attempts require a configured deployment.")
+        if self.configured_deployment is not None and (
+            self.configured_deployment.deployment_id != self.deployment_id
+        ):
+            raise ValueError("Attempt snapshot deployment ID must match.")
         if self.sequence < 1:
             raise ValueError("sequence must be positive.")
         if self.duration_ms < 0:

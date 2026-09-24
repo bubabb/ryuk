@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from enum import StrEnum
 from typing import Any
 
@@ -11,7 +12,11 @@ from backend.inference.contracts import (
 )
 from backend.inference.deployment import IdentityDiscovery
 from backend.inference.engines.managed_http import ManagedHTTPInferenceEngine
-from backend.inference.errors import UnsupportedTaskFailure, UpstreamProtocolFailure
+from backend.inference.errors import (
+    IdentityMismatchFailure,
+    UnsupportedTaskFailure,
+    UpstreamProtocolFailure,
+)
 
 
 class NVIDIAHostedModelProfile(StrEnum):
@@ -58,6 +63,21 @@ class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
                 context={"task_kind": "text", "hosted_api": "chat_only"}
             )
         return await super().generate_task(task)
+
+    async def discover_model_identity(self) -> IdentityDiscovery:
+        discovery = await super().discover_model_identity()
+        return replace(
+            discovery,
+            observation=replace(discovery.observation, catalog_only=True),
+        )
+
+    def _response_metadata(self, result: dict[str, Any]) -> dict[str, Any]:
+        model = result.get("model")
+        if not isinstance(model, str) or not model.strip():
+            raise self._protocol("generation", "missing_response_model")
+        if model != self.model:
+            raise IdentityMismatchFailure()
+        return super()._response_metadata(result)
 
     def _request_parameters(self, task: InferenceTask) -> dict[str, Any]:
         del task

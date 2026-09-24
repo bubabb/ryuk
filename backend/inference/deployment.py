@@ -18,6 +18,7 @@ def _validate_optional_identifier(value: str | None, field_name: str) -> None:
 
 class IdentityVerification(StrEnum):
     VERIFIED = "verified"
+    OBSERVED = "observed"
     CONFIGURED_ONLY = "configured_only"
     UNVERIFIED = "unverified"
     MISMATCH = "mismatch"
@@ -67,6 +68,7 @@ class ModelIdentityObservation:
     model: ModelRef
     observed_at: datetime
     source: str
+    catalog_only: bool = False
 
     def __post_init__(self) -> None:
         _require_identifier(self.source, "source")
@@ -151,6 +153,10 @@ def assess_model_identity(
     status = (
         IdentityVerification.CONFIGURED_ONLY
         if missing_evidence
-        else IdentityVerification.VERIFIED
+        else (
+            IdentityVerification.OBSERVED
+            if observed.catalog_only
+            else IdentityVerification.VERIFIED
+        )
     )
     return IdentityAssessment(status=status, expected=expected, observed=observed)

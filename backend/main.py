@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -14,6 +15,7 @@ from backend.config import AppEnvironment, Settings, settings
 from backend.control.api import AdmissionPermit, ControlPlaneFailure, load_api_control
 from backend.control.records import ExecutionRecord
 from backend.control.security import Principal, Role
+from backend.inference.attempts import serialize_attempt
 from backend.inference.capabilities import CapabilityClaim, DeploymentCapabilities
 from backend.inference.contracts import (
     ChatInput,
@@ -36,6 +38,9 @@ from backend.inference.registry import (
 from backend.inference.router import InferenceRouter
 from backend.inference.runtime import DeploymentRuntimeState, RuntimeStateCollector
 from backend.middleware import RequestBodyLimitMiddleware, RequestContextMiddleware
+from backend.workflows.api import build_workflow_router
+from backend.workflows.governance import load_workflow_policies
+from backend.workflows.store import SQLiteWorkflowStore
 
 
 @asynccontextmanager
@@ -54,6 +59,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             await runtime_collector.stop()
         await deployment_registry.aclose()
         api_control.close()
+        if workflow_store is not None:
+            workflow_store.close()
 
 
 app = FastAPI(
@@ -127,6 +134,14 @@ api_control = load_api_control(
 )
 
 
+workflow_policies = load_workflow_policies(settings.workflow_policy_config_path)
+workflow_store = (
+    SQLiteWorkflowStore(settings.workflow_store_path)
+    if settings.workflow_store_path is not None
+    else None
+)
+
+
 def require_role(role: Role):
     def dependency(request: Request) -> Principal:
         principal = api_control.authenticate(request.headers.get("authorization"))
@@ -185,16 +200,23 @@ def record_terminal(
     status: str,
     **details: object,
 ) -> None:
-    api_control.record(
-        ExecutionRecord(
-            request_id=request.state.request_id,
-            tenant_id=principal.tenant_id,
-            status=status,
-            policy_version="api-control-v1",
-            payload={"operation": operation, **details},
-            created_at=datetime.now(UTC),
+    try:
+        api_control.record(
+            ExecutionRecord(
+                request_id=request.state.request_id,
+                tenant_id=principal.tenant_id,
+                status=status,
+                policy_version="api-control-v2",
+                payload={"operation": operation, **details},
+                created_at=datetime.now(UTC),
+            )
         )
-    )
+    except ControlPlaneFailure:
+        if status == "accepted":
+            raise
+        # Preserve the original inference/quota failure, while explicitly
+        # reporting failed persistence through the sanitized control event.
+        return
     api_control.emit(
         "api.request.terminal",
         principal.tenant_id,
@@ -350,20 +372,7 @@ def serialize_inference_result(result: InferenceResult) -> dict[str, object]:
         "output_tokens": result.usage.output_tokens,
         "metadata": result.adapter_metadata,
         "finish_reason": result.finish_reason,
-        "attempts": [
-            {
-                "attempt_id": attempt.attempt_id,
-                "sequence": attempt.sequence,
-                "deployment_id": attempt.deployment_id,
-                "started_at": attempt.started_at.isoformat(),
-                "finished_at": attempt.finished_at.isoformat(),
-                "duration_ms": attempt.duration_ms,
-                "outcome": attempt.outcome,
-                "failure_code": attempt.failure_code,
-                "retry_classification": attempt.retry_classification,
-            }
-            for attempt in result.attempts
-        ],
+        "attempts": [serialize_attempt(attempt) for attempt in result.attempts],
         "routing_decision": (
             {
                 "policy_version": result.routing_decision.policy_version,
@@ -526,8 +535,7 @@ async def inference_generate(
             required_topology=payload.required_topology,
             required_data_location=payload.required_data_location,
             production_only=(
-                payload.production_only
-                or settings.app_env is AppEnvironment.PRODUCTION
+                payload.production_only or settings.app_env is AppEnvironment.PRODUCTION
             ),
         ),
         trace=TraceContext(
@@ -550,9 +558,18 @@ async def inference_generate(
                 "deployment_id": result.provenance.deployment_id,
                 "model_artifact_id": result.provenance.model_artifact_id,
                 "finish_reason": result.finish_reason,
+                "provenance": asdict(result.provenance),
+                "attempts": [serialize_attempt(attempt) for attempt in result.attempts],
             }
         )
         return serialize_inference_result(result)
+    except InferenceFailure as failure:
+        record_payload["failure_code"] = failure.code
+        record_payload["attempts"] = [
+            serialize_attempt(attempt)
+            for attempt in failure.context.get("execution_attempts", ())
+        ]
+        raise
     finally:
         permit.release()
         record_terminal(
@@ -599,8 +616,7 @@ async def inference_chat(
             required_topology=payload.required_topology,
             required_data_location=payload.required_data_location,
             production_only=(
-                payload.production_only
-                or settings.app_env is AppEnvironment.PRODUCTION
+                payload.production_only or settings.app_env is AppEnvironment.PRODUCTION
             ),
         ),
         trace=TraceContext(
@@ -623,9 +639,18 @@ async def inference_chat(
                 "deployment_id": result.provenance.deployment_id,
                 "model_artifact_id": result.provenance.model_artifact_id,
                 "finish_reason": result.finish_reason,
+                "provenance": asdict(result.provenance),
+                "attempts": [serialize_attempt(attempt) for attempt in result.attempts],
             }
         )
         return serialize_inference_result(result)
+    except InferenceFailure as failure:
+        record_payload["failure_code"] = failure.code
+        record_payload["attempts"] = [
+            serialize_attempt(attempt)
+            for attempt in failure.context.get("execution_attempts", ())
+        ]
+        raise
     finally:
         permit.release()
         record_terminal(
@@ -709,3 +734,15 @@ def _audit_validate(payload: AuditValidationRequest) -> dict[str, object]:
             "iteration": decision.iteration,
         },
     }
+
+
+app.include_router(
+    build_workflow_router(
+        require_role(Role.INFERENCE),
+        lambda: workflow_store,
+        lambda: workflow_policies,
+        admit_request,
+        record_terminal,
+        lambda: (settings.max_prompt_chars, settings.max_generation_tokens),
+    )
+)

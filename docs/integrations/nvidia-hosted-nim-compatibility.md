@@ -45,3 +45,12 @@ response spellings, identity discovery, answer/reasoning separation, usage,
 overload, timeout, malformed output, and response-size enforcement. Real hosted
 behavior remains gated by `NVIDIA_API_KEY` and the product-owner decisions in
 `docs/ACTION_ITEMS.md`.
+
+## Identity hardening (2026-09-15)
+
+Hosted catalog matches are OBSERVED, not VERIFIED. Missing required revision
+evidence remains CONFIGURED_ONLY. Generation responses must name the exact
+selected model; missing model identity is a protocol failure and a different
+model is an identity mismatch. Both use bounded router failure handling.
+Production startup still requires VERIFIED identity. See ADR-010 for evidence
+semantics, official references, and the pending hosted activation decision.

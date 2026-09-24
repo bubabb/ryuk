@@ -1,9 +1,9 @@
 # Ryuk Implementation Status, Open Items, and Next Steps
 
-**Report date:** September 1, 2026
+**Report date:** September 24, 2026
 **Repository:** `/home/sudosu/projects/ryuk`
 **Scope:** Work completed from the original architecture review through Stages
-A–J, current verification evidence, known limitations, production blockers, and
+A–K, current verification evidence, known limitations, production blockers, and
 recommended next work.
 
 ## 1. Executive Summary
@@ -37,17 +37,19 @@ distributed production infrastructure.
 
 Current automated evidence:
 
-- **180 tests passed**
-- **4 optional external integration tests skipped** because their real services
-  were not configured
+- **359 offline tests passed**
+- **8 optional external integration tests deselected** because live services
+  and GPU workers are intentionally out of scope for this session
 - **Routing evaluation accepted** with no acceptance failures
 - **Audit mechanics evaluation accepted** with 100% expected-action agreement
   and zero false accepts on the small four-case mechanics corpus
 - Ruff passed
-- Mypy passed across 73 backend/test/script files
+- Mypy passed across 95 backend/test/script files
 - Python compilation passed
 - `git diff --check` passed
-- One existing Starlette `TestClient` deprecation warning remains
+- Live certification remains pending by owner instruction: synthetic/public
+  inputs only, no private repositories, and hosted catalog identity is observed
+  rather than artifact-verified.
 
 ## 2. Architectural Position
 
@@ -350,6 +352,42 @@ Important limitations:
   identity integration, centralized telemetry, and operational alerting remain
   deployment work.
 
+### Stage K — Offline Durable Single-Task Workflow Foundation
+
+Completed offline outcomes:
+
+- Added ADR-011 defining tenant-scoped workflow states, atomic events,
+  leases/fencing, cancellation, uncertain execution, and the SQLite reference
+  boundary.
+- Added versioned `TaskPacket` contracts wrapping the existing typed
+  `InferenceTask`; text/chat inputs, requirements, generation, trace, and UTC
+  deadlines round-trip canonically.
+- Added immutable, checksummed `ArtifactRef`/`StoredArtifact` records and
+  transactional terminal completion. Artifact, workflow state, and event are
+  committed together; reads verify SHA-256 integrity and tenant/workflow scope.
+- Added v1-to-v2 workflow schema migration with rollback-on-failure tests.
+- Added transactional claims with owner, lease, and fencing checks; concurrent
+  workers cannot both claim one task, and stale/expired/cancelled workers cannot
+  publish results.
+- Added ADR-012 and `WorkflowBudget`: one monotonic deadline, attempt ceiling,
+  and optional output-token ceiling shared across router retries.
+- Added ADR-013 and `WorkflowExecutor`: one stored packet, one shared budget,
+  router failover attempts, immutable provenance, and one terminal artifact.
+  Normalized failures are persisted without provider bodies or prompt content.
+
+This remains an offline foundation. WF-008 adds opt-in tenant-authorized
+create/status/cancel/result APIs; no automatic dispatcher is enabled. WF-006
+commits inference success as `awaiting_validation`;
+only a durable artifact-bound deterministic acceptance decision yields
+`succeeded`. Rejection yields `rejected` without rewriting inference evidence.
+ADR-014 defines deterministic acceptance and rule limitations. WF-007 adds a
+durable dispatch/outcome journal and fenced reconciliation without inference
+replay (ADR-015, schema v4). Missing outcome evidence remains uncertain.
+Distributed durability, live-provider outcome lookup, retention, and production
+rollout remain open. WF-008 binds authorized acceptance rules and budgets at
+creation and enforces them during internal execution/validation. ADR-016 defines
+schema v5 and the disabled-by-default API, which production settings cannot enable.
+
 ## 4. Architecture Decision Record Inventory
 
 | ADR | Decision | Current status |
@@ -362,6 +400,14 @@ Important limitations:
 | ADR-006 | Dynamo responsibility boundary | Implemented; measured adoption held |
 | ADR-007 | Production control plane | Reference boundary implemented; distributed rollout gated |
 | ADR-008 | Audit/evaluation trust boundary | Implemented; model-auditor production use gated |
+| ADR-009 | Terminal-record failure semantics | Implemented; API-control-v2 behavior tested |
+| ADR-010 | Hosted identity evidence | Accepted for offline observed catalog evidence; live activation gated |
+| ADR-011 | Offline durable workflow foundation | Implemented for SQLite single-task scope |
+| ADR-012 | Shared workflow budget allocation | Implemented for offline router execution |
+| ADR-013 | Single-task workflow dispatch | Implemented internally; public workflow API gated |
+| ADR-014 | Deterministic artifact-bound workflow acceptance | Implemented offline; schema v3, replay and rollback tested |
+| ADR-015 | Offline journal-based restart recovery | Implemented; unknown external outcomes remain uncertain |
+| ADR-016 | Governed offline workflow API and creation-time policy binding | Implemented; production activation prohibited |
 
 ## 5. Current API and Runtime Surface
 
@@ -390,34 +436,48 @@ Not implemented as an executable adapter:
 
 ## 6. Verification Evidence
 
-Latest complete local validation:
+Latest complete local validation (offline scope, 2026-09-24):
 
 ```text
-180 passed, 4 skipped, 1 warning
+359 passed, 8 external integrations deselected
 Ruff: passed
-Mypy: passed across 73 backend/test/script files
+Mypy: passed across 95 backend/test/script files
 compileall: passed
 git diff --check: passed
-routing evaluation: accepted
-audit mechanics evaluation: accepted
+routing evaluation: previously accepted (not rerun in WF-008)
+audit mechanics evaluation: previously accepted (not rerun in WF-008)
 ```
 
 Skipped tests and reasons:
 
-1. Dynamo real integration: `DYNAMO_TEST_BASE_URL`, model, and version are not
-   configured.
-2. NIM real integration: base URL, model, release, and profile are not
-   configured.
-3. SGLang real integration: `SGLANG_TEST_BASE_URL` is not configured.
-4. vLLM real GPU worker: `VLLM_WORKER_TEST_BASE_URL` is not configured.
+The eight integration contracts were deliberately deselected for this offline
+session: PostgreSQL, two Redis contracts, Dynamo, self-hosted NIM, hosted
+NVIDIA NIM, SGLang, and the vLLM GPU worker. No credentials, external calls, or
+live deployment evidence were used.
 
-Known warning:
-
-- FastAPI/Starlette's current `TestClient` path warns that its `httpx` integration
-  is deprecated and recommends `httpx2`. This does not fail tests but should be
-  resolved before dependency upgrades make it an error.
+No test warning remains in the offline suite.
 
 ## 7. Open Items and Risks
+
+### Current offline continuation
+
+WF-008 is complete for the offline management API; see
+`docs/reports/workflow-api-review-2026-09-24.md`. The next tracked task is WF-009:
+review Phase 3 exit evidence against the broader phase plan before advancing to
+context preparation. Automatic scheduling/startup recovery, provider cancellation
+propagation, cost/task-budget expansion and distributed execution remain outside
+the implemented management API. Unknown external outcomes stay uncertain.
+
+The next session should begin by reading:
+
+- `docs/NEXT_SESSION_HANDOFF.md`;
+- `docs/ACTION_ITEMS.md`;
+- `backend/workflows/contracts.py`, `store.py`, `budget.py`, and `executor.py`;
+- `docs/adr/ADR-011-offline-durable-workflows.md` through ADR-016.
+
+Run `python -m pytest -q -m 'not integration'` before modifying the workflow
+boundary. Keep all inputs synthetic/public, do not use private repositories,
+and leave live certification pending.
 
 ### P0 — Required Before Any Production Traffic
 
@@ -650,3 +710,13 @@ The remaining gap is not another broad redesign. It is production realization:
 certify real GPU deployments, implement advanced features vertically, calibrate
 audit on representative evidence, move state and quotas to distributed services,
 and prove the system under operational failure.
+
+## Development model allocation (2026-09-24)
+
+The owner requested usage-conscious model assignments and a saved checkpoint.
+`docs/MODEL_TASK_ALLOCATION.md` maps all 26 open tracker items, preserves owner
+approval/live-certification gates, and recommends Sol for most implementation,
+Luna for bounded support, and Astra for difficult design or risk review. The
+mapping received a static second-pass review and a mechanical coverage check.
+An 87% empirical success target is proposed but has not been measured; no model
+benchmark, automatic delegation or runtime deployment change was performed.

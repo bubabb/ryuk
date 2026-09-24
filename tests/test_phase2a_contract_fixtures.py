@@ -163,3 +163,30 @@ async def test_phase2a_fixture_normalizes_failures(
     assert raised.value.code == case["expected_failure"]
     assert "sanitized overload" not in str(raised.value)
     assert "sanitized fixture timeout" not in str(raised.value)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("fixture_path", FIXTURE_PATHS)
+@pytest.mark.parametrize("response_model", (None, "unexpected/model"))
+async def test_hosted_response_identity_cannot_disagree_or_be_missing(
+    fixture_path, response_model
+):
+    fixture = load_fixture(fixture_path)
+    success = next(
+        case for case in fixture["cases"] if case["id"] == "success_with_usage"
+    )
+    body = dict(success["response"], model=response_model)
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body))
+    ) as client:
+        adapter = NVIDIAHostedNIMEngine(
+            "https://offline.invalid", model=fixture["model"], client=client
+        )
+        with pytest.raises(InferenceFailure) as raised:
+            await adapter.generate_task(inference_task(fixture["model"]))
+        assert raised.value.code == (
+            "upstream_protocol_failure"
+            if response_model is None
+            else "identity_mismatch"
+        )
+        assert "unexpected/model" not in str(raised.value)

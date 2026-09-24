@@ -35,6 +35,9 @@ class Settings(BaseSettings):
 
     execution_record_path: Path | None = None
 
+    workflow_store_path: Path | None = None
+    workflow_policy_config_path: Path | None = None
+
     # Existing model/provider settings
 
     kimi_api_url: str = ""
@@ -198,6 +201,21 @@ class Settings(BaseSettings):
     )
 
     @model_validator(mode="after")
+    def workflow_configuration(self) -> "Settings":
+        if (self.workflow_store_path is None) != (
+            self.workflow_policy_config_path is None
+        ):
+            raise ValueError(
+                "Workflow store and policy paths must be configured together"
+            )
+        if (
+            self.app_env is AppEnvironment.PRODUCTION
+            and self.workflow_store_path is not None
+        ):
+            raise ValueError("Offline workflows cannot be enabled in production")
+        return self
+
+    @model_validator(mode="after")
     def validate_mock_environment(self) -> "Settings":
         if self.mock_enabled and self.app_env is AppEnvironment.PRODUCTION:
             raise ValueError("MOCK_ENABLED must be false in production.")
@@ -223,9 +241,13 @@ class Settings(BaseSettings):
             and not self.nim_secret_ref.strip()
         ):
             raise ValueError("Production NIM requires NIM_SECRET_REF.")
-        if self.app_env is AppEnvironment.PRODUCTION and self.nim_enabled and (
-            not self.nim_secret_ref.startswith("vault:")
-            or not self.vault_address.startswith("https://")
+        if (
+            self.app_env is AppEnvironment.PRODUCTION
+            and self.nim_enabled
+            and (
+                not self.nim_secret_ref.startswith("vault:")
+                or not self.vault_address.startswith("https://")
+            )
         ):
             raise ValueError(
                 "Production NIM requires a vault: secret reference and HTTPS "

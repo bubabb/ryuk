@@ -38,6 +38,7 @@ from backend.inference.errors import (
     InferenceFailure,
     RetryClassification,
     UnknownEnginePreferenceFailure,
+    WorkflowBudgetExceededFailure,
 )
 from backend.inference.policy import PolicyCandidate, PolicyRuntime, rank_candidates
 from backend.inference.registry import (
@@ -46,6 +47,7 @@ from backend.inference.registry import (
     RegisteredDeployment,
 )
 from backend.inference.runtime import CapacityState, RuntimeStateStore
+from backend.workflows.budget import WorkflowBudget
 
 
 class NoAvailableEngineError(DeploymentUnavailableFailure):
@@ -158,6 +160,7 @@ class InferenceRouter:
         self,
         task: InferenceTask,
         preferred_engine: str | None = None,
+        budget: WorkflowBudget | None = None,
     ) -> InferenceResult:
         if not isinstance(self.registry, DeploymentRegistry):
             raise TypeError("Typed task execution requires a DeploymentRegistry.")
@@ -187,6 +190,13 @@ class InferenceRouter:
                 available = True
             else:
                 remaining = self._remaining(monotonic_deadline)
+                if budget is not None:
+                    budget_remaining = budget.remaining_seconds()
+                    remaining = (
+                        budget_remaining
+                        if remaining is None
+                        else min(remaining, budget_remaining)
+                    )
                 if remaining is not None and remaining <= 0:
                     deadline = self._terminal_deadline(attempts)
                     deadline.context["routing_decision"] = routing_decision
@@ -202,6 +212,15 @@ class InferenceRouter:
             if not available:
                 deployment_index += 1
                 continue
+            if budget is not None and not budget.reserve_attempt():
+                budget_failure = WorkflowBudgetExceededFailure(
+                    context={
+                        "execution_attempts": tuple(attempts),
+                        "budget_attempts": budget.attempts,
+                    }
+                )
+                budget_failure.context["routing_decision"] = routing_decision
+                raise budget_failure
 
             attempt_id = str(uuid4())
             sequence = len(attempts) + 1
@@ -209,6 +228,13 @@ class InferenceRouter:
             started = time.monotonic()
             try:
                 remaining = self._remaining(monotonic_deadline)
+                if budget is not None:
+                    budget_remaining = budget.remaining_seconds()
+                    remaining = (
+                        budget_remaining
+                        if remaining is None
+                        else min(remaining, budget_remaining)
+                    )
                 adapter_result, identity = await self._within_budget(
                     self._execute_task(deployment, task), remaining
                 )
@@ -282,9 +308,22 @@ class InferenceRouter:
                     finished_at=datetime.now(UTC),
                     duration_ms=(time.monotonic() - started) * 1000,
                     outcome=AttemptOutcome.SUCCEEDED,
+                    schema_version=2,
+                    configured_deployment=deployment.ref,
                 )
             )
             self._record_attempt(attempts[-1])
+            if budget is not None and not budget.record_output_tokens(
+                adapter_result.usage.output_tokens
+            ):
+                budget_failure = WorkflowBudgetExceededFailure(
+                    context={
+                        "execution_attempts": tuple(attempts),
+                        "budget_output_tokens": budget.output_tokens,
+                    }
+                )
+                budget_failure.context["routing_decision"] = routing_decision
+                raise budget_failure
             return InferenceResult(
                 output=adapter_result.output,
                 finish_reason=adapter_result.finish_reason,
@@ -455,6 +494,8 @@ class InferenceRouter:
             outcome=AttemptOutcome.FAILED,
             failure_code=failure.code,
             retry_classification=failure.retry,
+            schema_version=2,
+            configured_deployment=deployment.ref,
         )
 
     @staticmethod

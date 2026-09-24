@@ -129,9 +129,7 @@ async def test_hosted_nim_uses_catalog_models_for_readiness_and_identity() -> No
             json={
                 "id": "hosted-response-1",
                 "model": "moonshotai/kimi-k3",
-                "choices": [
-                    {"message": {"content": "ready"}, "finish_reason": "stop"}
-                ],
+                "choices": [{"message": {"content": "ready"}, "finish_reason": "stop"}],
                 "usage": {"prompt_tokens": 2, "completion_tokens": 1},
             },
         )
@@ -186,6 +184,7 @@ async def test_hosted_nim_rejects_malformed_reasoning_without_leaking_it() -> No
         return httpx.Response(
             200,
             json={
+                "model": "moonshotai/kimi-k3",
                 "choices": [
                     {
                         "message": {
@@ -193,7 +192,7 @@ async def test_hosted_nim_rejects_malformed_reasoning_without_leaking_it() -> No
                             "reasoning_content": {"private": "not text"},
                         }
                     }
-                ]
+                ],
             },
         )
 

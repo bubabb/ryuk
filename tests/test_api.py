@@ -73,9 +73,7 @@ def configured_api_control(tmp_path, monkeypatch):
     store = SQLiteExecutionRecordStore(tmp_path / "api-records.db")
     control = APIControlPlane(
         {record.key_id: record},
-        AdmissionController(
-            {"tenant-test": QuotaPolicy(1_000, 10, 100_000_000)}
-        ),
+        AdmissionController({"tenant-test": QuotaPolicy(1_000, 10, 100_000_000)}),
         store,
     )
     monkeypatch.setattr(main_module, "api_control", control)
@@ -250,15 +248,11 @@ def test_matching_tenant_header_is_only_a_constraint() -> None:
 
 
 def test_audit_requires_operator_role(monkeypatch) -> None:
-    principal = Principal(
-        "inference-only", "tenant-test", frozenset({Role.INFERENCE})
-    )
+    principal = Principal("inference-only", "tenant-test", frozenset({Role.INFERENCE}))
     api_key, record = issue_api_key(principal)
     control = APIControlPlane(
         {record.key_id: record},
-        AdmissionController(
-            {"tenant-test": QuotaPolicy(10, 1, 1_000_000)}
-        ),
+        AdmissionController({"tenant-test": QuotaPolicy(10, 1, 1_000_000)}),
     )
     monkeypatch.setattr(main_module, "api_control", control)
 
@@ -284,9 +278,7 @@ def test_quota_rejection_does_not_contact_inference(monkeypatch) -> None:
         "api_control",
         APIControlPlane(
             {record.key_id: record},
-            AdmissionController(
-                {"tenant-limited": QuotaPolicy(10, 1, 1)}
-            ),
+            AdmissionController({"tenant-limited": QuotaPolicy(10, 1, 1)}),
         ),
     )
     generate = AsyncMock(side_effect=AssertionError("router must not be contacted"))
@@ -311,14 +303,10 @@ def test_inference_permit_is_released_after_failure(monkeypatch) -> None:
         "api_control",
         APIControlPlane(
             {record.key_id: record},
-            AdmissionController(
-                {"tenant-limited": QuotaPolicy(2, 1, 100_000)}
-            ),
+            AdmissionController({"tenant-limited": QuotaPolicy(2, 1, 100_000)}),
         ),
     )
-    generate = AsyncMock(
-        side_effect=[NoAvailableEngineError(), typed_result()]
-    )
+    generate = AsyncMock(side_effect=[NoAvailableEngineError(), typed_result()])
     monkeypatch.setattr(main_module.inference_router, "generate_task", generate)
     headers = {"Authorization": f"Bearer {api_key}"}
     payload = {"prompt": "hello", "model": "test-model", "max_tokens": 10}
@@ -343,9 +331,7 @@ def test_generate_persists_sanitized_terminal_record(configured_api_control) -> 
     )
 
     assert response.status_code == 200
-    record = configured_api_control["store"].get(
-        "tenant-test", "recorded-request"
-    )
+    record = configured_api_control["store"].get("tenant-test", "recorded-request")
     assert record is not None
     assert record.status == "accepted"
     assert record.payload == {
@@ -353,6 +339,8 @@ def test_generate_persists_sanitized_terminal_record(configured_api_control) -> 
         "deployment_id": "mock-development",
         "model_artifact_id": "ryuk/mock",
         "finish_reason": "stop",
+        "attempts": response.json()["attempts"],
+        "provenance": response.json()["provenance"],
     }
     serialized = json.dumps(record.payload).casefold()
     assert "private prompt" not in serialized
@@ -751,3 +739,157 @@ def test_versioned_chat_endpoint_rejects_blank_content() -> None:
     )
 
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("inference_fails", (False, True))
+def test_record_failure_is_safe_and_releases_permit(
+    monkeypatch, configured_api_control, caplog, inference_fails
+):
+    caplog.set_level(logging.INFO, logger="ryuk.control")
+    control = main_module.api_control
+    store = configured_api_control["store"]
+    original_put = store.put
+    writes = []
+
+    def fail_write(record):
+        writes.append(record)
+        raise RuntimeError("private database credentials")
+
+    monkeypatch.setattr(store, "put", fail_write)
+    generate = (
+        AsyncMock(side_effect=NoAvailableEngineError())
+        if inference_fails
+        else AsyncMock(return_value=typed_result())
+    )
+    monkeypatch.setattr(main_module.inference_router, "generate_task", generate)
+    response = client.post(
+        "/inference/generate", json={"prompt": "private prompt", "model": "test"}
+    )
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == (
+        "deployment_unavailable" if inference_fails else "record_unavailable"
+    )
+    assert len(writes) == 1
+    assert "private" not in response.text
+    assert "private database credentials" not in caplog.text
+    assert any(
+        getattr(record, "event_name", None) == "api.record.failed"
+        for record in caplog.records
+    )
+    monkeypatch.setattr(store, "put", original_put)
+    # Capacity was released even when record commit failed.
+    principal = configured_api_control["principal"]
+    permits = [control.admit(principal, 1) for _ in range(10)]
+    for permit in permits:
+        permit.release()
+
+
+def test_reused_correlation_id_keeps_both_api_terminal_records(configured_api_control):
+    store = configured_api_control["store"]
+    for _ in range(2):
+        response = client.post(
+            "/inference/generate",
+            headers={"x-request-id": "duplicate-id"},
+            json={"prompt": "hello", "model": "test", "preferred_engine": "mock"},
+        )
+        assert response.status_code == 200
+    # Correlation IDs are not idempotency keys: both executions are retained.
+    import sqlite3
+
+    with sqlite3.connect(store.path) as connection:
+        rows = connection.execute(
+            "SELECT payload_json FROM execution_records "
+            "WHERE request_id = ? AND tenant_id = ?",
+            ("duplicate-id", "tenant-test"),
+        ).fetchall()
+    assert len(rows) == 2
+    attempts = [json.loads(row[0])["attempts"][0]["attempt_id"] for row in rows]
+    assert len(set(attempts)) == 2
+
+
+@pytest.mark.asyncio
+async def test_production_startup_rejects_hosted_catalog_only_identity():
+    from backend.inference.engines.nim import NVIDIAHostedNIMEngine
+
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(
+            lambda _: httpx.Response(200, json={"data": [{"id": "moonshotai/kimi-k3"}]})
+        )
+    ) as http_client:
+        engine = NVIDIAHostedNIMEngine(
+            "https://offline.invalid", model="moonshotai/kimi-k3", client=http_client
+        )
+        registry = DeploymentRegistry()
+        registry.register(
+            RegisteredDeployment(
+                ref=DeploymentRef(
+                    "hosted", ModelRef("moonshotai/kimi-k3"), engine.name, "offline"
+                ),
+                engine=engine,
+                capabilities=DeploymentCapabilities(
+                    production_eligible=configured_claim(True, "test")
+                ),
+            )
+        )
+        config = main_module.Settings(
+            app_env=main_module.AppEnvironment.PRODUCTION,
+            mock_enabled=False,
+            sglang_enabled=False,
+            control_plane_config_path=Path("control.json"),
+            database_url="postgresql://db/ryuk",
+            redis_url="redis://redis/0",
+        )
+        with pytest.raises(RuntimeError, match="identity verification failed"):
+            await main_module.verify_production_deployments(config, registry)
+
+
+def test_failed_inference_persists_replayable_attempt_snapshot(
+    monkeypatch, configured_api_control
+):
+    from backend.inference.router import InferenceRouter
+    from tests.test_execution import ControlledEngine, registry
+
+    monkeypatch.setattr(
+        main_module,
+        "inference_router",
+        InferenceRouter(registry(ControlledEngine("failed-primary", failure=True))),
+    )
+    response = client.post(
+        "/inference/generate",
+        headers={"x-request-id": "failed-history"},
+        json={"prompt": "private payload", "model": "test"},
+    )
+    assert response.status_code == 502
+    saved = configured_api_control["store"].get("tenant-test", "failed-history")
+    assert saved.status == "failed"
+    snapshot = saved.payload["attempts"][0]["configured_deployment"]
+    assert snapshot["deployment_id"] == "failed-primary-deployment"
+    assert snapshot["model"]["artifact_id"] == "model/failed-primary"
+    assert "private payload" not in json.dumps(saved.payload)
+
+
+def test_record_commit_with_lost_ack_is_not_retried(
+    monkeypatch, configured_api_control
+):
+    store = configured_api_control["store"]
+    original_put = store.put
+    writes = []
+
+    def commit_then_fail(record):
+        writes.append(record)
+        original_put(record)
+        raise RuntimeError("lost acknowledgement")
+
+    monkeypatch.setattr(store, "put", commit_then_fail)
+    response = client.post(
+        "/inference/generate",
+        headers={"x-request-id": "uncertain-commit"},
+        json={"prompt": "hello", "model": "test", "preferred_engine": "mock"},
+    )
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "record_unavailable"
+    assert len(writes) == 1
+    saved = store.get("tenant-test", "uncertain-commit")
+    assert saved is not None
+    assert saved.status == "accepted"
+    assert len(saved.payload["attempts"]) == 1

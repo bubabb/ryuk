@@ -153,3 +153,60 @@ operations remain explicit deployment gates; see ADR-007 and ADR-008.
 
 Do not infer implemented behavior from roadmap documents. The code and passing
 tests are authoritative.
+
+## Offline Workflow API
+
+WF-008 adds tenant-authorized workflow management, disabled by default. Set
+`WORKFLOW_STORE_PATH` and `WORKFLOW_POLICY_CONFIG_PATH` together in development
+or test. Production rejects this offline SQLite configuration. Use only
+synthetic/public inputs. Before upgrading an existing database, stop writers and
+back it up; see [ADR-016](docs/adr/ADR-016-governed-workflow-api.md).
+
+The policy file maps server-assigned tenant IDs to authorized rules and budgets:
+
+```json
+{
+  "tenant-1": {
+    "version": "synthetic-v1",
+    "acceptance": {
+      "minimum_chars": 1,
+      "maximum_chars": 10000,
+      "required_sections": ["Answer"]
+    },
+    "budget": {
+      "deadline_seconds": 20.0,
+      "max_attempts": 2,
+      "max_output_tokens": 1024
+    }
+  }
+}
+```
+
+With an inference-role or admin API key for that tenant:
+
+```http
+POST /v1/workflows
+Authorization: Bearer <issued-api-key>
+Content-Type: application/json
+
+{
+  "idempotency_key": "synthetic-example-1",
+  "prompt": "Write an Answer section explaining addition.",
+  "model": "test-model",
+  "max_tokens": 128,
+  "temperature": 0.0
+}
+```
+
+Creation returns HTTP 202 and a workflow ID in `ready` state. It does not dispatch
+inference. Repeat the same key/body under the same policy to retrieve the same
+workflow; changed input or policy returns 409. The routes are:
+
+- `GET /v1/workflows/{id}` — state and bound policy version, without task content.
+- `POST /v1/workflows/{id}/cancel` — cancel eligible work; repeat safely.
+- `GET /v1/workflows/{id}/result` — accepted result and validation report; 409 until accepted.
+
+Internal offline callers dispatch through `WorkflowExecutor.execute(tenant, id,
+owner)` with the saved budget, then call `store.validate(tenant, id)` with the
+saved acceptance policy. No automatic scheduler or public execution/validation
+route is enabled. Unknown outcomes remain uncertain and are never auto-retried.

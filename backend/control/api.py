@@ -42,7 +42,7 @@ class AdmissionCoordinator(Protocol):
     def release(self, tenant_id: str) -> None: ...
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class ControlPlaneFailure(Exception):
     status_code: int
     code: str
@@ -114,9 +114,7 @@ class APIControlPlane:
         if not active_records:
             raise RuntimeError("Production requires at least one active API key.")
 
-        credential_tenants = {
-            record.principal.tenant_id for record in active_records
-        }
+        credential_tenants = {record.principal.tenant_id for record in active_records}
         missing_quotas = credential_tenants - self.admission.configured_tenants
         if missing_quotas:
             raise RuntimeError(
@@ -140,9 +138,7 @@ class APIControlPlane:
         if admission_health is None:
             raise RuntimeError("Production admission coordinator has no health check.")
         admission_status = admission_health()
-        if not admission_status.get("ready") or not admission_status.get(
-            "distributed"
-        ):
+        if not admission_status.get("ready") or not admission_status.get("distributed"):
             raise RuntimeError("Production admission coordinator is not ready.")
 
     def admit(self, principal: Principal, estimated_tokens: int) -> AdmissionPermit:
@@ -152,7 +148,21 @@ class APIControlPlane:
 
     def record(self, record: ExecutionRecord) -> None:
         if self.records is not None:
-            self.records.put(record)
+            try:
+                self.records.put(record)
+            except Exception:
+                self.emit(
+                    "api.record.failed",
+                    record.tenant_id,
+                    record.request_id,
+                    {"status": record.status, "failure_code": "record_unavailable"},
+                )
+                raise ControlPlaneFailure(
+                    503,
+                    "record_unavailable",
+                    "Execution history could not be committed; "
+                    "execution may have occurred.",
+                ) from None
 
     def emit(
         self,

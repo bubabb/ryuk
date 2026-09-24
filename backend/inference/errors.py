@@ -92,6 +92,11 @@ class DeadlineExceededFailure(InferenceFailure):
     retry = RetryClassification.OTHER_DEPLOYMENT
 
 
+class WorkflowBudgetExceededFailure(DeadlineExceededFailure):
+    code = "workflow_budget_exceeded"
+    public_message = "The workflow execution budget was exceeded."
+
+
 class UpstreamProtocolFailure(InferenceFailure):
     code = "upstream_protocol_failure"
     public_message = "The inference deployment returned an invalid response."
