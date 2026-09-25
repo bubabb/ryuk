@@ -1,9 +1,9 @@
 # Ryuk Action Tracker
 
 **Last updated:** 2026-09-25
-**Current milestone:** Offline Phase 3 exit review
+**Current milestone:** Offline Phase 4 context preparation
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** WF-009 Phase 3 exit review and remaining scope reconciliation; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
+**Next session starts with:** CTX-001 offline context-preparation design; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -84,7 +84,12 @@ blocked until Phase 2B passes.
 | WF-006 | DONE | Implement deterministic validation before task acceptance | WF-005 | ADR-014, artifact-bound durable decisions, replay/tenant/rollback/migration contracts; 316 offline tests pass; `docs/reports/workflow-validation-review-2026-09-23.md` |
 | WF-007 | DONE | Implement restart recovery and uncertain-call reconciliation | WF-005, WF-006 | ADR-015 dispatch/outcome journal, fenced recovery, crash/process-exit/concurrency/rollback/migration tests; 330 offline tests pass; `docs/reports/workflow-recovery-review-2026-09-24.md` |
 | WF-008 | DONE | Add create, status, cancel, and result APIs with tenant authorization | WF-005 through WF-007 | ADR-016, server-bound acceptance/budgets, four governed routes, replay/cancellation/isolation/quota/migration tests; 359 offline tests pass; `docs/reports/workflow-api-review-2026-09-24.md` |
-| WF-009 | READY | Record the offline Phase 3 exit review and reconcile remaining scheduler, startup recovery, cancellation propagation, and cost/task-budget scope against the phase plan | WF-001 through WF-008 | Explicit implemented/deferred evidence and stable follow-up IDs before Phase 4 advancement; no production or live certification implied |
+| WF-009 | DONE | Record the offline Phase 3 exit review and reconcile remaining scope against the phase plan | WF-001 through WF-008 | `docs/reports/phase-3-exit-review-2026-09-25.md`; offline single-task exit criterion met; operational gaps tracked as WF-010–WF-014; no production certification implied |
+| WF-010 | HOLD | Add a bounded local dispatcher/worker lifecycle for queued workflows | Separate approved execution scope | Explicit concurrency, shutdown and admission behavior; creation remains non-executing until authorized |
+| WF-011 | HOLD | Orchestrate expired-lease recovery and uncertain-outcome reconciliation at service startup | WF-010 | Startup recovery is observable and conservative; uncertain work is never blindly replayed |
+| WF-012 | HOLD | Add and verify provider cancellation propagation and late-result behavior | P2B-001 through P2B-004 | Per-provider cancellation evidence; no unsupported cancellation claim |
+| WF-013 | HOLD | Define durable usage/input-token accounting and monetary cost-budget enforcement | DEC-006 and verified provider usage/billing evidence | Durable counters and enforced policy with explicit unknown-usage behavior |
+| WF-014 | HOLD | Add task dependency-graph contracts if multi-step orchestration is approved | Later multi-step workflow scope | Versioned graph semantics, transitions and scheduling contracts |
 
 ## Evaluation and model allocation
 
@@ -108,7 +113,7 @@ blocked until Phase 2B passes.
 
 | ID | Status | Action | Dependency |
 | --- | --- | --- | --- |
-| CTX-001 | HOLD | Approve context-preparation ADR and implement candidate-specific token fitting | Phase 3 exit |
+| CTX-001 | READY | Approve context-preparation ADR and implement candidate-specific token fitting | Offline Phase 3 exit review; synthetic/public scope only |
 | TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Phase 4 exit |
 | COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Phase 2 and Phase 5 exits |
 | MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Phase 6 exit |

@@ -5,9 +5,12 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**WF-008 is complete. Next: WF-009, the offline Phase 3 exit review.** Compare
-implemented evidence with the broader phase plan before advancing to CTX-001.
-The model-allocation pilot v1 is saved but fails its quality gate; 87% remains
+**WF-009 is complete. Next: CTX-001, offline Phase 4 context-preparation
+design.** The Phase 3 review accepts the tested offline single-task exit while
+tracking scheduler, startup recovery, provider cancellation, usage/cost budgets
+and dependency graphs as deferred follow-ups. Review
+`docs/reports/phase-3-exit-review-2026-09-25.md` before expanding scope. The
+model-allocation pilot v1 is saved but fails its quality gate; 87% remains
 unverified. Review `evals/model_allocation/PROTOCOL.md` before proposing a
 corrected, preregistered v2. Live certification remains pending.
 
@@ -65,11 +68,11 @@ sandbox API stalls. No external tests, live services or GPU certification ran.
 Read docs/ACTION_ITEMS.md, ADR-011 through ADR-016, the workflow modules and
 `docs/reports/workflow-api-review-2026-09-24.md`.
 
-WF-009 should explicitly reconcile the offline milestone with the phase plan's
-broader scheduler, startup recovery, external cancellation and cost/task-budget
-requirements. Add stable follow-up IDs for implementation gaps or recorded
-scope deferrals. Do not equate WF-008 completion with full production Phase 3
-certification or silently unlock context/tool/memory phases.
+Start CTX-001 by reading the Phase 4 context-preparation objective and
+requirements in `RYUK_DEVELOPMENT_PHASE_PLAN.md`, then draft the context ADR
+within the offline synthetic/public scope. Keep the WF-010–WF-014 deferrals and
+the Phase 2B/live certification gates visible; do not treat the Phase 3 offline
+exit as production approval.
 
 No automatic scheduler or public execution/validation/recovery route exists.
 Internal execution remains explicitly invoked; deadlines start at dispatch.
@@ -81,12 +84,29 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 26 open tracker
-items have primary/support/review assignments. WF-009: GPT-6 Sol/high; use Astra
-only for unresolved exit/architecture claims. Luna is for bounded evidence and
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 30 current open
+tracker items have primary/support/review assignments. CTX-001:
+GPT-6 Astra/high for the ADR and boundary review, Sol/high for implementation,
+and Luna for bounded evidence/fixture work. Luna is for bounded evidence and
 documentation tasks. This does not change Ryuk's runtime models or enable agents.
 The requested 87% correctness target remains empirically unverified; the report
 records the completed static review and a proposed measurable acceptance gate.
+
+## WF-009 Phase 3 exit review (2026-09-25)
+
+- Offline single-task exit criterion met by restart, dispatch-journal,
+  reconciliation, fencing, validation-replay and API tests. This is not a
+  production or distributed durability claim.
+- Background dispatch and startup recovery remain absent; calls are explicit
+  internal operations. Cancellation fences Ryuk state but does not stop or
+  confirm provider execution. Budgets do not yet enforce durable input-token or
+  monetary cost ceilings.
+- WF-010–WF-014 track bounded dispatch, startup recovery, provider cancellation,
+  usage/cost accounting and a future dependency graph. CTX-001 is READY for
+  offline context-preparation design; Phase 2B and production gates stay closed.
+- Review: `docs/reports/phase-3-exit-review-2026-09-25.md`.
+- Verification: 367 offline tests passed, 8 external integrations deselected;
+  Ruff, targeted Mypy and `git diff --check` passed.
 
 ## Pilot v1 results (2026-09-25)
 

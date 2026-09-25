@@ -82,12 +82,16 @@ work. Effort levels are starting settings, not calibrated guarantees.
 | P2B-006 | BLOCKED | Sol / high | Luna summarizes per-attempt evidence | Astra reviews duplicate execution, budget continuity and provenance across real failover. |
 | P2B-007 | BLOCKED | Sol / high | Luna formats harness outputs and charts from saved data | Astra reviews methodology once, not every run; deterministic scripts calculate metrics; owner evaluates approved thresholds. |
 | P2B-008 | BLOCKED | Astra / high | Luna builds the evidence index | Astra synthesizes certification gaps; owner signs activation/rejection. A model cannot turn missing tests into certification. |
-| WF-009 | READY | Sol / high | Luna cross-references tracker/ADR/test evidence | Astra reviews only disputed exit claims, not the whole inventory. Owner resolves scope deferrals; review must distinguish the offline milestone from the broader phase plan. |
 | CP-005 | HOLD | Astra / high for lease/fence design; Sol / high for implementation | Luna documents settled invariants | Astra reviews concurrency/crash safety; fault tests must prove capacity cannot silently reopen. Whole-task Luna assignment is unsuitable. |
 | CP-006 | HOLD | Sol / high | Luna formats migration/restore evidence | Astra reviews destructive migration and recovery assumptions; real restore drills establish RPO/RTO. |
 | CP-007 | HOLD | Astra / high for failure model; Sol / high for harness | Luna organizes chaos-run evidence | Astra reviews partition/failover invariants; real multi-replica tests required. Reduce model use during deterministic test execution. |
 | SEC-001 | HOLD | Sol / high | Luna writes sanitized runbook text from approved steps | Astra reviews workload authority and rotation/revocation boundaries; operator conducts authorized drills. |
-| CTX-001 | HOLD | Astra / high for ADR; Sol / high for implementation | Luna creates explicit boundary fixtures | Astra reviews tokenizer/template provenance, reserve math and fallback preparation. Requires Phase 3 exit evidence first. |
+| WF-010 | HOLD | Sol / high | Luna documents settled execution and shutdown constraints | Astra reviews concurrency/admission boundaries before implementation; API creation must remain non-executing until explicitly authorized. |
+| WF-011 | HOLD | Sol / high | Luna indexes recovery evidence and operator-visible states | Astra reviews crash boundaries and no-replay semantics; depends on a bounded worker lifecycle. |
+| WF-012 | HOLD | Astra / high for cancellation contract; Sol / high for implementation | Luna tabulates per-provider cancellation observations | Requires Phase 2B provider contracts and real cancellation/late-result evidence; model review cannot replace provider tests. |
+| WF-013 | HOLD | Sol / high | Luna collates usage telemetry and billing terms from approved sources | Astra reviews budget/unknown-usage semantics; owner approves spend constraints; requires verified provider telemetry and billing terms. |
+| WF-014 | HOLD | Astra / high for graph semantics; Sol / high for implementation | Luna turns approved workflow examples into fixtures | Defer until multi-step orchestration is approved; keep single-task workflows simple. |
+| CTX-001 | READY | Astra / high for ADR; Sol / high for implementation | Luna creates explicit boundary fixtures | Astra reviews tokenizer/template provenance, reserve math and fallback preparation. Offline synthetic/public scope only. |
 | TOOL-001 | HOLD | Astra / high for threat model; Sol / high for implementation | Luna inventories approved commands and documents policy | Astra reviews authority/isolation/side effects; owner approves tool policy and adversarial sandbox tests must pass. |
 | COLLAB-001 | HOLD | Astra / high for bounded orchestration; Sol / high for implementation | Luna collates accepted task evidence | Astra reviews retry/review budget multiplication and generator-reviewer separation; Phase 2/5 gates remain mandatory. |
 | MEM-001 | HOLD | Astra / high for data/evidence/deletion design; Sol / high for implementation | Luna formats synthetic memory fixtures | Owner approves retention/sharing; Astra reviews tenant isolation, deletion propagation and source trust. |
@@ -102,8 +106,8 @@ subtasks inside those items, plus routine documentation after verification.
 ## Additional status-report work not yet separately tracked
 
 These are mappings of existing report gaps, not additional completed work or
-permission to bypass dependencies. WF-009 should reconcile workflow-related scope;
-new implementation slices need stable tracker IDs before starting.
+permission to bypass dependencies. WF-009 is complete; new implementation
+slices need stable tracker IDs before starting.
 
 | Work described in PROJECT_STATUS_REPORT.md | Suggested allocation |
 | --- | --- |
@@ -148,7 +152,7 @@ Review findings and resulting decisions:
 - SPEC-001/PROD-001 are too broad for a single confidence claim; split into
   measurable slices before using a lower-cost model as sole implementer.
 
-Mechanical coverage check: all 26 open tracker IDs occur exactly once in the main
+Mechanical coverage check: all 30 open tracker IDs occur exactly once in the main
 allocation table, with matching statuses. That proves coverage only, not 100%
 correctness or an 87% success rate. Pilot v1 is recorded in
 `evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one
@@ -184,10 +188,11 @@ usage savings. See `evals/model_allocation/PROTOCOL.md` and the saved run.
 
 ## How to apply this without wasting usage
 
-For the next item, WF-009, select `gpt-6-sol` with high reasoning and provide only
-AGENTS.md, ACTION_ITEMS.md, the handoff, Phase 3 plan, relevant ADRs and tests.
-Ask for an evidence/gap table, not a rewrite of the project. Escalate unresolved
-architecture/exit claims to Astra with that table and the relevant code excerpts.
+For CTX-001, use `gpt-6-astra` with high reasoning to draft/review the context
+ADR, and `gpt-6-sol` with high reasoning for a bounded implementation slice.
+Give each only the Phase 4 requirements, relevant inference contracts, and the
+Phase 3 exit review. Use Luna for bounded fixture/evidence collation. This is a
+starting allocation, not a measured savings claim.
 
 For later work, give the chosen model one bounded slice, acceptance tests,
 authorized paths and relevant contracts. Use deterministic commands for counting,

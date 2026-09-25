@@ -462,11 +462,14 @@ No test warning remains in the offline suite.
 ### Current offline continuation
 
 WF-008 is complete for the offline management API; see
-`docs/reports/workflow-api-review-2026-09-24.md`. The next tracked task is WF-009:
-review Phase 3 exit evidence against the broader phase plan before advancing to
-context preparation. Automatic scheduling/startup recovery, provider cancellation
-propagation, cost/task-budget expansion and distributed execution remain outside
-the implemented management API. Unknown external outcomes stay uncertain.
+`docs/reports/workflow-api-review-2026-09-24.md`. WF-009's offline Phase 3 exit
+review is recorded in `docs/reports/phase-3-exit-review-2026-09-25.md`. The
+tested offline single-task restart/reconciliation/validation boundary meets its
+exit criterion; this does not certify automatic scheduling or startup recovery,
+provider cancellation propagation, durable input-token/monetary budgets,
+distributed execution or production operation. WF-010–WF-014 track these
+deferred slices. CTX-001 is ready for offline context-preparation design; Phase
+2B and live certification remain pending.
 
 The next session should begin by reading:
 
