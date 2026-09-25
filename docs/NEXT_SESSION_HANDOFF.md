@@ -5,14 +5,15 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**WF-009 is complete. Next: CTX-001, offline Phase 4 context-preparation
-design.** The Phase 3 review accepts the tested offline single-task exit while
+**CTX-001 is complete. Next: CTX-002, the offline conversation/source-store
+vertical slice.** ADR-017 and `backend/context/` define and implement a
+candidate-specific fitting boundary, but it is not wired to dispatch and does
+not persist conversations or authorize source retrieval. Keep synthetic/public
+inputs only. The Phase 3 review accepts the offline single-task exit while
 tracking scheduler, startup recovery, provider cancellation, usage/cost budgets
-and dependency graphs as deferred follow-ups. Review
-`docs/reports/phase-3-exit-review-2026-09-25.md` before expanding scope. The
-model-allocation pilot v1 is saved but fails its quality gate; 87% remains
-unverified. Review `evals/model_allocation/PROTOCOL.md` before proposing a
-corrected, preregistered v2. Live certification remains pending.
+and dependency graphs as deferred follow-ups. The model-allocation pilot v1 is
+saved but fails its quality gate; 87% remains unverified. Live certification
+remains pending.
 
 ## User-approved scope
 
@@ -68,11 +69,12 @@ sandbox API stalls. No external tests, live services or GPU certification ran.
 Read docs/ACTION_ITEMS.md, ADR-011 through ADR-016, the workflow modules and
 `docs/reports/workflow-api-review-2026-09-24.md`.
 
-Start CTX-001 by reading the Phase 4 context-preparation objective and
-requirements in `RYUK_DEVELOPMENT_PHASE_PLAN.md`, then draft the context ADR
-within the offline synthetic/public scope. Keep the WF-010–WF-014 deferrals and
-the Phase 2B/live certification gates visible; do not treat the Phase 3 offline
-exit as production approval.
+Start CTX-002 by reading the Phase 4 requirements in
+`RYUK_DEVELOPMENT_PHASE_PLAN.md`, ADR-017, and the existing authorization and
+workflow-store contracts. Design the source/conversation persistence boundary
+before implementation; apply authorization before selecting context. Keep the
+WF-010–WF-014 and CTX-003/004 deferrals visible. Do not treat the Phase 3
+offline exit as production approval.
 
 No automatic scheduler or public execution/validation/recovery route exists.
 Internal execution remains explicitly invoked; deadlines start at dispatch.
@@ -84,13 +86,30 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 30 current open
-tracker items have primary/support/review assignments. CTX-001:
-GPT-6 Astra/high for the ADR and boundary review, Sol/high for implementation,
-and Luna for bounded evidence/fixture work. Luna is for bounded evidence and
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 32 current open
+tracker items have primary/support/review assignments. CTX-002: GPT-6 Sol/high
+for implementation, Luna for bounded fixture/evidence work, and Astra for
+authorization or retention boundary review. Luna is for bounded evidence and
 documentation tasks. This does not change Ryuk's runtime models or enable agents.
 The requested 87% correctness target remains empirically unverified; the report
 records the completed static review and a proposed measurable acceptance gate.
+
+## CTX-001 candidate-specific fitting (2026-09-25)
+
+- ADR-017, `backend/context/` and
+  `docs/reports/context-preparation-review-2026-09-25.md` define source trust,
+  candidate-specific token counters/templates, output reserve and safety
+  margin, deterministic optional fitting/deduplication, overflow behavior and
+  payload/source provenance.
+- The context library is not connected to API dispatch. Durable conversation
+  storage, source authorization/retrieval, compaction, retention, production
+  counters and exact candidate tokenizer/template integration remain open.
+- Ten focused tests cover boundaries, required overflow, fit order, duplicates,
+  fallback re-preparation, estimated counts, counter mismatch and trust roles.
+  Full suite: 377 offline tests passed, 8 integration tests deselected; Ruff,
+  Mypy across 102 sources, compileall and `git diff --check` passed.
+- Next: CTX-002, offline conversation/source storage and authorization-filtered
+  context building. CTX-003/004 retain deployment-evidence and evaluation gates.
 
 ## WF-009 Phase 3 exit review (2026-09-25)
 
@@ -102,8 +121,8 @@ records the completed static review and a proposed measurable acceptance gate.
   confirm provider execution. Budgets do not yet enforce durable input-token or
   monetary cost ceilings.
 - WF-010–WF-014 track bounded dispatch, startup recovery, provider cancellation,
-  usage/cost accounting and a future dependency graph. CTX-001 is READY for
-  offline context-preparation design; Phase 2B and production gates stay closed.
+  usage/cost accounting and a future dependency graph. CTX-001 now closes one
+  offline preparation slice; Phase 2B and production gates stay closed.
 - Review: `docs/reports/phase-3-exit-review-2026-09-25.md`.
 - Verification: 367 offline tests passed, 8 external integrations deselected;
   Ruff, targeted Mypy and `git diff --check` passed.

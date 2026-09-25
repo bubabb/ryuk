@@ -468,8 +468,10 @@ tested offline single-task restart/reconciliation/validation boundary meets its
 exit criterion; this does not certify automatic scheduling or startup recovery,
 provider cancellation propagation, durable input-token/monetary budgets,
 distributed execution or production operation. WF-010–WF-014 track these
-deferred slices. CTX-001 is ready for offline context-preparation design; Phase
-2B and live certification remain pending.
+deferred slices. CTX-001's candidate-specific fitting library and ADR-017 are
+complete for offline use; CTX-002 is ready for the conversation/source-store
+vertical slice. The Phase 4 exit gate, Phase 2B and live certification remain
+pending.
 
 The next session should begin by reading:
 

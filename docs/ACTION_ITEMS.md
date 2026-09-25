@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-25
 **Current milestone:** Offline Phase 4 context preparation
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** CTX-001 offline context-preparation design; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
+**Next session starts with:** CTX-002 offline conversation/source-store vertical slice; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -113,7 +113,10 @@ blocked until Phase 2B passes.
 
 | ID | Status | Action | Dependency |
 | --- | --- | --- | --- |
-| CTX-001 | READY | Approve context-preparation ADR and implement candidate-specific token fitting | Offline Phase 3 exit review; synthetic/public scope only |
+| CTX-001 | DONE | Define context-preparation boundary and implement candidate-specific token fitting | Offline Phase 3 exit review; evidence: ADR-017, `backend/context/`, `docs/reports/context-preparation-review-2026-09-25.md`, 10 focused tests; library only, not wired to dispatch |
+| CTX-002 | READY | Add tenant/project-scoped durable conversations, source records and an authorization-filtered context builder | CTX-001; approved synthetic/public scope; restart-safe source-linked messages; authorize before selection and prevent cross-scope material |
+| CTX-003 | HOLD | Bind verified candidate tokenizers/templates and capacity evidence to dispatch; account for structured/tool/media overhead | Verified candidate tokenizer/template and Phase 2B contract; reprepare after fallback and prove execution uses the exact counted payload/settings |
+| CTX-004 | HOLD | Add source correction/invalidation, checkpoint compaction and context-retention behavior; evaluate critical-fact placement | CTX-002 and CTX-003; approved retention scope; revision-bound invalidation/deletion and held-out evaluation for two candidates |
 | TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Phase 4 exit |
 | COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Phase 2 and Phase 5 exits |
 | MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Phase 6 exit |
