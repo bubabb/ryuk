@@ -1,0 +1,1 @@
+{"content":"def fits(input_tokens, output_tokens, safety_margin, capacity):\n    for value in (input_tokens, output_tokens, safety_margin, capacity):\n        if isinstance(value, bool) or not isinstance(value, int) or value < 0:\n            raise ValueError(\"arguments must be nonnegative integers\")\n    return input_tokens + output_tokens + safety_margin <= capacity"}

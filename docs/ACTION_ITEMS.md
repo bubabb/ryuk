@@ -97,6 +97,7 @@ blocked until Phase 2B passes.
 | --- | --- | --- | --- | --- |
 | EVAL-001 | DONE | Measure the preregistered 26-task model-allocation pilot v1 and record its decision | Model allocation plan | `docs/reports/model-allocation-pilot-2026-09-25.md`; 23/24 valid scored responses passed, with 1 critical failure, 1 invalid item, and 1 unrun response; gate failed and 87% remains unverified |
 | EVAL-002 | DONE | Preregister a corrected pilot v2 without executing model calls | EVAL-001 | Hash-bound `pilot-v2.json` overlay and `PROTOCOL-v2.md`; P02 types explicit, P20 missing/duplicate version-row checks added, infrastructure-only continuation enforced and tested |
+| EVAL-003 | DONE | Execute, grade and review the preregistered model-allocation pilot v2 | EVAL-002 | `docs/reports/model-allocation-pilot-v2-2026-09-25.md`; 26/26 passed, zero critical failures or retries; bounded gate passed, population reliability and savings remain unverified |
 
 ## Control-plane hardening
 

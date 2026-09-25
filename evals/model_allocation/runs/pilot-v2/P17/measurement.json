@@ -1,0 +1,18 @@
+{
+  "id": "P17",
+  "model_requested": "gpt-6-sol",
+  "model_served_verified": false,
+  "effort": "high",
+  "seconds": 11.575519303999954,
+  "prompt_sha256": "c178acf01886d446400e98bb85172f22dd34341b9ebfdf919254c249d46b54da",
+  "returncode": 0,
+  "usage": {
+    "input_tokens": 14252,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 316,
+    "reasoning_output_tokens": 220
+  },
+  "tool_items": [],
+  "status": "completed"
+}

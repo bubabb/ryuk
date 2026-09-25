@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+Tasks: A DONE; B READY depends A; C HOLD depends B; D BLOCKED depends owner_credentials; E READY depends A. No new owner decision exists. Return JSON startable_ids sorted, and blocked_or_held_ids sorted. Do not change statuses.

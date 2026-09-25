@@ -1,0 +1,1 @@
+{"content":"def choose_candidate(candidates, output_reserve, margin):\n    for candidate in candidates:\n        if not candidate[\"eligible\"]:\n            continue\n        prepared = candidate[\"prepared_input_tokens\"]\n        if prepared is not None and prepared + output_reserve + margin <= candidate[\"capacity\"]:\n            return candidate[\"id\"]\n    return None"}

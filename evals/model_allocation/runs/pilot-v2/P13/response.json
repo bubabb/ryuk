@@ -1,0 +1,1 @@
+{"content":"import hashlib\nimport json\n\n\ndef request_digest(packet, binding):\n    canonical = json.dumps(\n        {\"packet\": packet, \"binding\": binding},\n        sort_keys=True,\n        separators=(\",\", \":\"),\n        ensure_ascii=False,\n        allow_nan=False,\n    )\n    return hashlib.sha256(canonical.encode(\"utf-8\")).hexdigest()"}

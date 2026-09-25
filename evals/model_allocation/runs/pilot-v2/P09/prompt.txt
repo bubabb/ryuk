@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+Return only Python source defining authorize(principal, tenant, role). principal is a dict with tenant and roles(list of strings). Return True only when principal tenant equals target tenant AND role is present or admin is present. Admin cannot cross tenants. Missing/invalid principal, tenant, role or roles yields False. Tenant and role must be nonblank strings; roles must be a list of nonblank strings. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.

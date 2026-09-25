@@ -1,0 +1,511 @@
+{
+  "summary": {
+    "planned": 26,
+    "passed": 26,
+    "failed": 0,
+    "invalid_tasks": 0,
+    "unrun": 0,
+    "ungraded": 0,
+    "complete": true,
+    "critical_failures": 0,
+    "valid_scored_tasks": 26,
+    "observed_rate": 1.0,
+    "pilot_gate_passed": true,
+    "wilson_95_interval": [
+      0.8712710781407846,
+      1.0
+    ],
+    "lower_bound_exceeds_87_percent": true,
+    "population_claim_valid": false,
+    "limitation": "Small purposive synthetic sample; no population reliability or savings claim.",
+    "by_model": {
+      "gpt-6-astra": {
+        "planned": 6,
+        "passed": 6,
+        "failed": 0,
+        "ungraded": 0,
+        "observed_rate": 1.0,
+        "wilson_95_interval": [
+          0.6096657120978346,
+          1.0
+        ]
+      },
+      "gpt-6-luna": {
+        "planned": 8,
+        "passed": 8,
+        "failed": 0,
+        "ungraded": 0,
+        "observed_rate": 1.0,
+        "wilson_95_interval": [
+          0.6755924351161198,
+          1.0
+        ]
+      },
+      "gpt-6-sol": {
+        "planned": 12,
+        "passed": 12,
+        "failed": 0,
+        "ungraded": 0,
+        "observed_rate": 1.0,
+        "wilson_95_interval": [
+          0.7575059933447592,
+          1.0
+        ]
+      }
+    },
+    "candidate_usage": {
+      "input_tokens": 371315,
+      "cached_input_tokens": 60544,
+      "output_tokens": 9854,
+      "reasoning_output_tokens": 5351
+    },
+    "recorded_candidate_usage_by_model": {
+      "gpt-6-astra": {
+        "calls_planned": 6,
+        "calls_with_usage": 6,
+        "calls_usage_unknown": 0,
+        "input_tokens": 88030,
+        "cached_input_tokens": 12160,
+        "output_tokens": 2373,
+        "reasoning_output_tokens": 421
+      },
+      "gpt-6-luna": {
+        "calls_planned": 8,
+        "calls_with_usage": 8,
+        "calls_usage_unknown": 0,
+        "input_tokens": 112244,
+        "cached_input_tokens": 13056,
+        "output_tokens": 310,
+        "reasoning_output_tokens": 0
+      },
+      "gpt-6-sol": {
+        "calls_planned": 12,
+        "calls_with_usage": 12,
+        "calls_usage_unknown": 0,
+        "input_tokens": 171041,
+        "cached_input_tokens": 35328,
+        "output_tokens": 7171,
+        "reasoning_output_tokens": 4930
+      }
+    },
+    "setup_and_reviewer_usage": null
+  },
+  "tasks": [
+    {
+      "id": "P01",
+      "model": "gpt-6-luna",
+      "category": "inventory",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14014,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 52,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 6.913083951999852,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P02",
+      "model": "gpt-6-luna",
+      "category": "evidence",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14047,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 42,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.162423217999958,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P03",
+      "model": "gpt-6-luna",
+      "category": "identity",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14028,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 45,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.963589633000083,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P04",
+      "model": "gpt-6-luna",
+      "category": "redaction",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14045,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 29,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.059613880999905,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P05",
+      "model": "gpt-6-luna",
+      "category": "measurement",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14023,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 30,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 3.7655027779999273,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P06",
+      "model": "gpt-6-luna",
+      "category": "dependencies",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14030,
+        "cached_input_tokens": 13056,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 40,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 5.403851743000132,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P07",
+      "model": "gpt-6-luna",
+      "category": "source_priority",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14032,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 39,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.373249924999982,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P08",
+      "model": "gpt-6-luna",
+      "category": "budget_arithmetic",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14025,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 33,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 3.7926119270000527,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P09",
+      "model": "gpt-6-sol",
+      "category": "tenant_authorization",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14255,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 252,
+        "reasoning_output_tokens": 68
+      },
+      "seconds": 7.785400204000098,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P10",
+      "model": "gpt-6-sol",
+      "category": "lease_fencing",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14254,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 881,
+        "reasoning_output_tokens": 632
+      },
+      "seconds": 20.920868794999933,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P11",
+      "model": "gpt-6-sol",
+      "category": "token_fit",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14229,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 176,
+        "reasoning_output_tokens": 80
+      },
+      "seconds": 7.116793210999958,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P12",
+      "model": "gpt-6-sol",
+      "category": "budget",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14257,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 777,
+        "reasoning_output_tokens": 516
+      },
+      "seconds": 18.905562103000193,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P13",
+      "model": "gpt-6-sol",
+      "category": "idempotency",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14240,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 288,
+        "reasoning_output_tokens": 184
+      },
+      "seconds": 11.184573007999916,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P14",
+      "model": "gpt-6-sol",
+      "category": "event_redaction",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14233,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 202,
+        "reasoning_output_tokens": 80
+      },
+      "seconds": 7.331785485999944,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P15",
+      "model": "gpt-6-sol",
+      "category": "artifact_integrity",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14250,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1794,
+        "reasoning_output_tokens": 1346
+      },
+      "seconds": 37.63873952199992,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P16",
+      "model": "gpt-6-sol",
+      "category": "recovery",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14245,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 374,
+        "reasoning_output_tokens": 283
+      },
+      "seconds": 10.302378074999979,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P17",
+      "model": "gpt-6-sol",
+      "category": "context_fallback",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14252,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 316,
+        "reasoning_output_tokens": 220
+      },
+      "seconds": 11.575519303999954,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P18",
+      "model": "gpt-6-sol",
+      "category": "cache_scope",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14249,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 491,
+        "reasoning_output_tokens": 324
+      },
+      "seconds": 14.368251582000084,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P19",
+      "model": "gpt-6-sol",
+      "category": "statistics",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14236,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 345,
+        "reasoning_output_tokens": 220
+      },
+      "seconds": 10.102526054999998,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P20",
+      "model": "gpt-6-sol",
+      "category": "migration_atomicity",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14341,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1275,
+        "reasoning_output_tokens": 977
+      },
+      "seconds": 26.494272015999968,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P21",
+      "model": "gpt-6-astra",
+      "category": "uncertain_execution",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14672,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 380,
+        "reasoning_output_tokens": 49
+      },
+      "seconds": 18.08545871499996,
+      "reason": "Manual review: rejects automatic replay of uncertain external execution, preserves uncertainty, separates reconciliation from retry, fences stale writes, and requires restart/race evidence."
+    },
+    {
+      "id": "P22",
+      "model": "gpt-6-astra",
+      "category": "policy_binding",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14666,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 472,
+        "reasoning_output_tokens": 104
+      },
+      "seconds": 18.420862795999938,
+      "reason": "Manual review: binds a server-authorized versioned policy before execution, keeps generation pending validation, enforces tenant scope, and calls for atomic/idempotent transition evidence."
+    },
+    {
+      "id": "P23",
+      "model": "gpt-6-astra",
+      "category": "partition_admission",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14675,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 458,
+        "reasoning_output_tokens": 95
+      },
+      "seconds": 18.677944113999956,
+      "reason": "Manual review: rejects lease-count equivalence, keeps uncertain calls charged, requires global atomic admission and execution-side termination/fencing, and specifies partition/restart tests."
+    },
+    {
+      "id": "P24",
+      "model": "gpt-6-astra",
+      "category": "hosted_identity",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14664,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 274,
+        "reasoning_output_tokens": 53
+      },
+      "seconds": 12.194510803000185,
+      "reason": "Manual review: distinguishes catalog/API attribution from artifact verification, rejects production approval, and requires attested provenance plus live operational evidence."
+    },
+    {
+      "id": "P25",
+      "model": "gpt-6-astra",
+      "category": "evaluation_claim",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14687,
+        "cached_input_tokens": 12160,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 394,
+        "reasoning_output_tokens": 73
+      },
+      "seconds": 16.77516554099998,
+      "reason": "Manual review: rejects the first-pass/statistical/savings claims, treats cross-tenant leakage as a hard stop, and requires held-out representative tasks and complete matched costs."
+    },
+    {
+      "id": "P26",
+      "model": "gpt-6-astra",
+      "category": "sandbox_authority",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14666,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 395,
+        "reasoning_output_tokens": 47
+      },
+      "seconds": 17.450024929999927,
+      "reason": "Manual review: treats model text/review as untrusted, requires external authorization and ephemeral containment, limits resources and side effects, and requests adversarial enforcement evidence."
+    }
+  ]
+}

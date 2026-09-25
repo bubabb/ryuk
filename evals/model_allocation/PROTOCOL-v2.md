@@ -42,3 +42,13 @@ python scripts/evaluate_model_allocation.py \
   --manifest evals/model_allocation/pilot-v2.json \
   --output evals/model_allocation/runs/pilot-v2
 ```
+
+## Recorded outcome
+
+The owner subsequently authorized execution. On 2026-09-25 all 26 tasks
+completed on their first infrastructure attempt and passed exact, hidden-test
+and criterion review. No candidate used tools and no infrastructure continuation
+was needed. The preregistered gate passed with zero critical failures. See
+`docs/reports/model-allocation-pilot-v2-2026-09-25.md`. The sample limitations
+above remain in force; the result is not a population-reliability or savings
+claim.

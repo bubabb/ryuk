@@ -1,0 +1,8 @@
+{
+  "started_at": "2026-09-25T22:15:58.895666+00:00",
+  "baseline_commit": "27a9192",
+  "manifest_path": "evals/model_allocation/pilot-v2.json",
+  "manifest_sha256": "219858bb9511fa249753fa2bbfb50937c5f62a3233843d4b7f846b346a3be188",
+  "cli_version": "codex-cli 0.156.1",
+  "protocol": "single turn per task; no feedback/retry; no tools"
+}

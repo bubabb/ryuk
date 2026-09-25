@@ -5,7 +5,8 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**CTX-002 is complete. Next: check CTX-003's evidence gate** for verified
+**EVAL-003 is complete. Next: select an authorized unblocked task.** CTX-003's
+evidence gate still requires verified
 candidate tokenizer/template identities and Phase 2B generation contracts.
 CTX-003 remains HOLD until that evidence exists; do not treat estimates or
 synthetic counters as deployment evidence. ADR-017 and ADR-018 plus
@@ -13,16 +14,17 @@ synthetic counters as deployment evidence. ADR-017 and ADR-018 plus
 libraries, but neither is wired to API dispatch. Keep synthetic/public inputs
 only. The Phase 3 review accepts the offline single-task exit while
 tracking scheduler, startup recovery, provider cancellation, usage/cost budgets
-and dependency graphs as deferred follow-ups. The model-allocation pilot v1 is
-saved but fails its quality gate; 87% remains unverified. Live certification
-remains pending.
+and dependency graphs as deferred follow-ups. Model-allocation pilot v2 passed
+its bounded 26-task gate, but its purposive sample does not verify population
+reliability or savings. Live certification remains pending.
 
 ## User-approved scope
 
 - Offline implementation first, synthetic/public inputs only.
 - No private repositories or private/customer data.
 - Hosted catalog identity is observed, not artifact-verified.
-- No live provider calls, provisioning, spending or production activation.
+- No live Ryuk-provider calls, provisioning or production activation. The owner
+  separately authorized the recorded Codex model-allocation pilot v2 calls.
 
 ## Current checkpoint
 
@@ -56,15 +58,17 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 359 passed, 8 deselected
--m mypy backend tests scripts: success, 95 source files
+-m pytest -q -m 'not integration': 389 passed, 8 deselected
+-m mypy backend tests scripts: success, 106 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
 ```
 
 Offline pytest ran outside the sandbox under existing approval, due to prior
-sandbox API stalls. No external tests, live services or GPU certification ran.
+sandbox API stalls. No Ryuk external integration test, live inference service
+or GPU certification ran. Pilot v2's Codex candidate calls are recorded
+separately below and do not constitute Ryuk provider certification.
 
 ## Next actions and limits
 
@@ -161,6 +165,25 @@ records the completed static review and a proposed measurable acceptance gate.
   duplicate and conflicting schema-version rows without mutation.
 - `--resume` is restricted to one declared infrastructure retry, preserves the
   prior measurement, and never reruns a completed quality response.
-- Running v2 remains a separate opt-in action. Even a passing 26-task rerun
-  cannot establish the 87% population claim; larger independently curated and
-  matched-baseline evaluation remains necessary.
+- V2 was subsequently executed and reviewed under EVAL-003. All 26 responses
+  passed without a retry or critical failure. The report is
+  `docs/reports/model-allocation-pilot-v2-2026-09-25.md`.
+- The bounded gate passed, but the purposive corrected rerun cannot establish
+  the 87% population claim; larger independently curated and matched-baseline
+  evaluation remains necessary.
+
+## EVAL-003 pilot v2 review (2026-09-25)
+
+- The frozen manifest from commit `a251c5a` resolved to hash
+  `219858bb9511fa249753fa2bbfb50937c5f62a3233843d4b7f846b346a3be188`.
+- All 26 calls completed with no infrastructure continuation or tool use. Exact
+  outputs, isolated hidden assertions and response-hash-bound manual criteria
+  review all passed; zero critical failures were recorded.
+- Candidate usage: 371,315 input, 60,544 cached input, 9,854 output and 5,351
+  reasoning-output tokens. Setup and reviewer usage remain unknown; no billing
+  or savings claim is supported.
+- Overall Wilson 95% interval is 87.13–100%, but model strata are small and the
+  sample is purposive/synthetic. `population_claim_valid` remains false.
+- CTX-003 and Phase 2B remain blocked. No currently tracked implementation item
+  is READY; the next session needs owner selection/authorization rather than
+  silently starting a HOLD or BLOCKED production task.

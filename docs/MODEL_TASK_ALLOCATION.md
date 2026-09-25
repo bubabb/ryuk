@@ -180,12 +180,14 @@ To measure the requested target rather than invent it:
 - Compare total usage per accepted task, including input, output, retries and
   reviewer tokens. Until measured, these assignments remain provisional.
 
-The 87% empirical-quality target is **not yet verified**. Pilot v1 had 23/24
-valid responses pass (95.83% observed; Wilson 95% interval 79.76–99.26%), but
-also one critical failure, one invalid task and one infrastructure failure.
-Its preregistered gate therefore fails. The results are too small and purposive
-to estimate population reliability. They do not validate 87% correctness or
-usage savings. See `evals/model_allocation/PROTOCOL.md` and the saved run.
+Pilot v2 passed its bounded preregistered gate: 26/26 first-pass responses
+passed with no critical or infrastructure failure, and the overall Wilson 95%
+interval was 87.13–100%. The 87% **population-reliability target remains
+unverified** because the sample is small, purposive, synthetic and largely a
+corrected rerun of v1. Per-model lower bounds are substantially below 87%, and
+there is no representative sampling or matched baseline. No usage-savings claim
+is supported because setup/reviewer costs and applicable billing are absent.
+See `docs/reports/model-allocation-pilot-v2-2026-09-25.md`.
 
 ## How to apply this without wasting usage
 
