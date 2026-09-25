@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+A hosted endpoint advertises synthetic/model-x in a catalog and echoes that ID in generation. Container/runtime/model revision cannot be inspected. Team proposes marking artifact identity verified and enabling production based only on offline fixture tests. Review. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).

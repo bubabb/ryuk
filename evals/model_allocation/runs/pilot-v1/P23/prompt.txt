@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+A two-controller quota service uses Redis leases to permit 4 concurrent generations. When Redis is unreachable or a lease expires, each controller locally assumes capacity is free and starts another call. Calls may continue after lease expiry. Review and propose bounded behavior. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).

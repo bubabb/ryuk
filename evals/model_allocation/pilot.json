@@ -1,0 +1,428 @@
+{
+  "version": 1,
+  "baseline_commit": "32adfd1",
+  "purpose": "bounded synthetic development-assignment pilot, not production certification",
+  "threshold": {
+    "minimum_first_pass": 23,
+    "planned_tasks": 26,
+    "critical_failures_allowed": 0
+  },
+  "tasks": [
+    {
+      "id": "P01",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "inventory",
+      "prompt": "From rows A DONE, B HOLD, C READY, D BLOCKED, E REVIEW, F DONE, return JSON with open_ids sorted alphabetically and status_counts counting only open rows.",
+      "expected": {
+        "open_ids": [
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "status_counts": {
+          "HOLD": 1,
+          "READY": 1,
+          "BLOCKED": 1,
+          "REVIEW": 1
+        }
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P02",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "evidence",
+      "prompt": "Synthetic validation log: 359 passed, 8 deselected; ruff passed; mypy 95 files passed; external GPU contracts not run. Return JSON keys offline_passed, external_executed, deselected, production_certified. Certification needs external contracts and operational gates; none have been supplied.",
+      "expected": {
+        "offline_passed": 359,
+        "external_executed": false,
+        "deselected": 8,
+        "production_certified": false
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P03",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "identity",
+      "prompt": "Extract without upgrading evidence. Catalog says model synthetic/alpha; revision unknown; container digest unknown. Return JSON model_id, revision, container_digest, evidence_level (observed or verified), production_approved. Only artifact-verified identity is eligible; use null for unknowns.",
+      "expected": {
+        "model_id": "synthetic/alpha",
+        "revision": null,
+        "container_digest": null,
+        "evidence_level": "observed",
+        "production_approved": false
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P04",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "redaction",
+      "prompt": "Create a sanitized JSON record from {\"operation\":\"workflow.create\",\"status\":\"accepted\",\"estimated_tokens\":64,\"prompt\":\"synthetic private text\",\"nested\":{\"authorization\":\"synthetic-token\"},\"secret_ref\":\"env:SYNTHETIC_KEY\"}. Only operation/status string fields and estimated_tokens nonnegative integer are allowed. Drop every other field.",
+      "expected": {
+        "operation": "workflow.create",
+        "status": "accepted",
+        "estimated_tokens": 64
+      },
+      "checks": null,
+      "critical": true
+    },
+    {
+      "id": "P05",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "measurement",
+      "prompt": "Given successful request latencies [90,10,60,30,20] milliseconds, return JSON count, median_ms, p95_ms using nearest-rank percentile (ceil(p*n), 1-indexed sorted values). Do not use interpolation.",
+      "expected": {
+        "count": 5,
+        "median_ms": 30,
+        "p95_ms": 90
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P06",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "dependencies",
+      "prompt": "Tasks: A DONE; B READY depends A; C HOLD depends B; D BLOCKED depends owner_credentials; E READY depends A. No new owner decision exists. Return JSON startable_ids sorted, and blocked_or_held_ids sorted. Do not change statuses.",
+      "expected": {
+        "startable_ids": [
+          "B",
+          "E"
+        ],
+        "blocked_or_held_ids": [
+          "C",
+          "D"
+        ]
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P07",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "source_priority",
+      "prompt": "Historical README says 213 passed and workflow API absent. Latest dated test report says 359 passed and opt-in create/status/cancel/result API tested; production activation excluded. Return JSON latest_passed, workflow_api_available, enabled_by_default, production_certified. Newer report explicitly states disabled by default.",
+      "expected": {
+        "latest_passed": 359,
+        "workflow_api_available": true,
+        "enabled_by_default": false,
+        "production_certified": false
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P08",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "category": "budget_arithmetic",
+      "prompt": "Admission charges requested max output tokens multiplied by attempt ceiling, even on idempotent HTTP retries. Request max_tokens=48, attempts=3, remaining token allowance=143. Return JSON estimated_tokens, admit, adapter_calls_on_rejection.",
+      "expected": {
+        "estimated_tokens": 144,
+        "admit": false,
+        "adapter_calls_on_rejection": 0
+      },
+      "checks": null,
+      "critical": false
+    },
+    {
+      "id": "P09",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "tenant_authorization",
+      "prompt": "Return only Python source defining authorize(principal, tenant, role). principal is a dict with tenant and roles(list of strings). Return True only when principal tenant equals target tenant AND role is present or admin is present. Admin cannot cross tenants. Missing/invalid principal, tenant, role or roles yields False. Tenant and role must be nonblank strings; roles must be a list of nonblank strings. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert authorize({'tenant':'a','roles':['admin']},'b','inference') is False",
+        "assert authorize({'tenant':'a','roles':['admin']},'a','inference') is True",
+        "assert authorize({'tenant':'a','roles':['operator']},'a','inference') is False",
+        "assert authorize(None,'a','inference') is False",
+        "assert authorize({'tenant':'a','roles':'admin'},'a','inference') is False",
+        "assert authorize({'tenant':'a','roles':['inference']},'a','inference') is True",
+        "assert authorize({'tenant':'','roles':['admin']},'','inference') is False"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P10",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "lease_fencing",
+      "prompt": "Return only Python source defining can_complete(row, tenant, owner, fence, now). row is None or dict with tenant,state,owner,fence,lease_until (integer epoch seconds). Return True only for running state, same tenant/owner/fence and lease_until strictly greater than now. A fence and now must be integers, not bool. Invalid types or missing fields yield False. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "r={'tenant':'a','state':'running','owner':'w','fence':2,'lease_until':11}",
+        "assert can_complete(r,'a','w',2,10) is True",
+        "assert can_complete(r,'a','w',2,11) is False",
+        "assert can_complete(r,'b','w',2,10) is False",
+        "assert can_complete(r,'a','w',1,10) is False",
+        "assert can_complete({**r,'state':'cancelled'},'a','w',2,10) is False",
+        "assert can_complete(None,'a','w',2,10) is False",
+        "assert can_complete({**r,'fence':True},'a','w',True,10) is False"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P11",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "category": "token_fit",
+      "prompt": "Return only Python source defining fits(input_tokens, output_tokens, safety_margin, capacity). Return whether sum of first three is <= capacity. Each argument must be a nonnegative integer but not bool; invalid inputs raise ValueError. Do not truncate or coerce. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert fits(90,8,2,100) is True",
+        "assert fits(90,9,2,100) is False",
+        "assert fits(0,0,0,0) is True",
+        "for args in [(True,1,1,4),(1,-1,1,4),(1.0,1,1,4),(1,1,1,None)]:\n    try: fits(*args)\n    except ValueError: pass\n    else: raise AssertionError('invalid token count accepted')"
+      ],
+      "critical": false
+    },
+    {
+      "id": "P12",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "budget",
+      "prompt": "Return only Python source defining reserve(remaining_seconds, used_attempts, max_attempts). Return (admitted, new_used_attempts), increasing used only if remaining_seconds is positive finite and used < max. Invalid values raise ValueError: remaining_seconds must be int/float excluding bool, and counters nonnegative integer excluding bool with max >=1 and used <=max. Zero/negative finite remaining time denies without increment. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert reserve(1,0,1)==(True,1)",
+        "assert reserve(0,0,1)==(False,0)",
+        "assert reserve(1,1,1)==(False,1)",
+        "assert reserve(-1,0,1)==(False,0)",
+        "for args in [(float('nan'),0,1),(float('inf'),0,1),(True,0,1),(1,True,2),(1,3,2)]:\n    try: reserve(*args)\n    except ValueError: pass\n    else: raise AssertionError('invalid budget accepted')"
+      ],
+      "critical": false
+    },
+    {
+      "id": "P13",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "category": "idempotency",
+      "prompt": "Return only Python source defining request_digest(packet, binding). Return a SHA-256 hex string over the canonical JSON object {\"packet\": packet, \"binding\": binding}, sorted keys, separators comma/colon, UTF-8 using json ensure_ascii=False and allow_nan=False. Do not mutate inputs. Reject nonfinite numbers through ValueError. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "import json,hashlib",
+        "p={'z':'\u00e9','a':1}; b={'version':'v1'}; original=dict(p)",
+        "expected=hashlib.sha256(json.dumps({'packet':p,'binding':b},sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode('utf-8')).hexdigest()",
+        "assert request_digest(p,b)==expected and p==original",
+        "assert request_digest({'a':1,'z':'\u00e9'},b)==expected",
+        "assert request_digest(p,{'version':'v2'})!=expected",
+        "try: request_digest({'n':float('nan')},b)\nexcept ValueError: pass\nelse: raise AssertionError('nan accepted')"
+      ],
+      "critical": false
+    },
+    {
+      "id": "P14",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "category": "event_redaction",
+      "prompt": "Return only Python source defining sanitize(event). event dict may contain anything. Return new dict with only operation/status strings of <=256 characters with no codepoint below 32, and estimated_tokens nonnegative integers excluding bool. Drop nested containers and unknown keys even if harmless. Do not mutate input. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "r={'operation':'create','status':'accepted','estimated_tokens':3,'nested':{'secret':'fixture'}}",
+        "assert sanitize(r)=={'operation':'create','status':'accepted','estimated_tokens':3}",
+        "assert 'nested' in r",
+        "assert sanitize({'operation':'x\\n','status':['ok'],'estimated_tokens':True})=={}",
+        "assert sanitize({'status':'a'*257,'estimated_tokens':-1})=={}"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P15",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "artifact_integrity",
+      "prompt": "Return only Python source defining verify(content, expected_sha256, expected_bytes). content is string. Verify UTF-8 byte length and SHA256 before parsing JSON. Return parsed dict only; raise ValueError on mismatch, non-dict JSON, duplicate object keys anywhere, nonfinite JSON numbers including exponent overflow, or malformed JSON. Do not read/write files. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "import hashlib,json",
+        "s='{\"text\":\"\u00e9\"}'; h=hashlib.sha256(s.encode()).hexdigest()",
+        "assert verify(s,h,len(s.encode()))=={'text':'\u00e9'}",
+        "for data,digest,size in [(s,h,len(s)),(s,'0'*64,len(s.encode()))]+[(x,hashlib.sha256(x.encode()).hexdigest(),len(x.encode())) for x in ['[]','{\"x\":1,\"x\":2}','{\"x\":NaN}','{\"x\":1e999}','{\"nested\":{\"a\":1,\"a\":2}}']]:\n    try: verify(data,digest,size)\n    except ValueError: pass\n    else: raise AssertionError('invalid artifact accepted')"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P16",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "recovery",
+      "prompt": "Return only Python source defining recovery_action(state, expired, outcome_recorded). Return one of keep, mark_uncertain, reconcile_saved. Only running with expired=True becomes mark_uncertain. Only uncertain with outcome_recorded=True becomes reconcile_saved. All other states, including ready and succeeded, return keep. Never return ready or dispatch. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert recovery_action('running',True,True)=='mark_uncertain'",
+        "assert recovery_action('running',False,True)=='keep'",
+        "assert recovery_action('uncertain',True,False)=='keep'",
+        "assert recovery_action('uncertain',False,True)=='reconcile_saved'",
+        "for s in ['ready','succeeded','rejected','cancelled','failed']: assert recovery_action(s,True,True)=='keep'"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P17",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "context_fallback",
+      "prompt": "Return only Python source defining choose_candidate(candidates, output_reserve, margin). Each candidate dict has id, prepared_input_tokens (int or None), capacity (int), eligible(bool). Return first eligible id whose OWN known prepared token count + reserves <= its capacity; otherwise None. Do not reuse another candidate count. Inputs other than None counts are well typed and nonnegative. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert choose_candidate([{'id':'a','prepared_input_tokens':99,'capacity':100,'eligible':True},{'id':'b','prepared_input_tokens':60,'capacity':80,'eligible':True}],10,5)=='b'",
+        "assert choose_candidate([{'id':'a','prepared_input_tokens':1,'capacity':100,'eligible':False},{'id':'b','prepared_input_tokens':None,'capacity':100,'eligible':True}],10,5) is None",
+        "assert choose_candidate([],10,5) is None",
+        "assert choose_candidate([{'id':'a','prepared_input_tokens':85,'capacity':100,'eligible':True}],10,5)=='a'"
+      ],
+      "critical": false
+    },
+    {
+      "id": "P18",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "cache_scope",
+      "prompt": "Return only Python source defining cache_key(tenant, task_digest, policy_version, deployment_revision). Return deterministic SHA256 of canonical JSON list of the four strings, UTF-8, ensure_ascii=False, separators comma/colon. Strings must be nonblank; invalid values raise ValueError. Every field affects identity; delimiters inside fields must not collide. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert cache_key('a','b','c','d')!=cache_key('b','b','c','d')",
+        "assert cache_key('a','b','c','d')!=cache_key('a','b','v2','d')",
+        "assert cache_key('a|b','c','d','e')!=cache_key('a','b|c','d','e')",
+        "import hashlib,json; assert cache_key('a','b','c','d')==hashlib.sha256(json.dumps(['a','b','c','d'],ensure_ascii=False,separators=(',',':')).encode()).hexdigest()",
+        "try: cache_key('a','b',' ','d')\nexcept ValueError: pass\nelse: raise AssertionError('blank policy')"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P19",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "category": "statistics",
+      "prompt": "Return only Python source defining summarize(successes, failures, unknown_usage). These are nonnegative integer counts excluding bool. Return dict total, success_rate (None if total=0), usage_known (unknown_usage==0). Unknown usage is not zero billing. Invalid types/counts raise ValueError. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "assert summarize(23,3,2)=={'total':26,'success_rate':23/26,'usage_known':False}",
+        "assert summarize(0,0,0)=={'total':0,'success_rate':None,'usage_known':True}",
+        "try: summarize(True,2,0)\nexcept ValueError: pass\nelse: raise AssertionError('bool count')"
+      ],
+      "critical": false
+    },
+    {
+      "id": "P20",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "category": "migration_atomicity",
+      "prompt": "Return only Python source defining migrate(conn). conn is an sqlite3 Connection in autocommit mode, version table meta(version INTEGER) has exactly one row. Support only version 1 or 2. v1: BEGIN IMMEDIATE; create bindings(id TEXT PRIMARY KEY, policy TEXT NOT NULL); update meta to 2; COMMIT. v2: no-op. Unknown version raises ValueError without mutation. Any error after BEGIN must roll back DDL and version and re-raise; do not close connection. A preexisting conflicting bindings table must cause failure rather than being ignored. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.",
+      "expected": null,
+      "checks": [
+        "import sqlite3; c=sqlite3.connect(':memory:',isolation_level=None); c.execute('CREATE TABLE meta(version INTEGER)'); c.execute('INSERT INTO meta VALUES(1)'); migrate(c); assert c.execute('SELECT version FROM meta').fetchone()[0]==2; migrate(c)",
+        "c=sqlite3.connect(':memory:',isolation_level=None); c.execute('CREATE TABLE meta(version INTEGER)'); c.execute('INSERT INTO meta VALUES(1)'); c.execute(\"CREATE TRIGGER fail_version BEFORE UPDATE ON meta BEGIN SELECT RAISE(ABORT, 'fixture'); END\")",
+        "try: migrate(c)\nexcept sqlite3.Error: pass\nelse: raise AssertionError('injected failure ignored')",
+        "assert c.execute('SELECT version FROM meta').fetchone()[0]==1; assert c.execute(\"SELECT name FROM sqlite_master WHERE name='bindings'\").fetchone() is None; assert not c.in_transaction",
+        "c=sqlite3.connect(':memory:',isolation_level=None); c.execute('CREATE TABLE meta(version INTEGER)'); c.execute('INSERT INTO meta VALUES(9)')",
+        "try: migrate(c)\nexcept ValueError: pass\nelse: raise AssertionError('unknown version accepted')",
+        "assert c.execute('SELECT version FROM meta').fetchone()[0]==9"
+      ],
+      "critical": true
+    },
+    {
+      "id": "P21",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "uncertain_execution",
+      "prompt": "Review proposal: if a worker lease expires with no saved result, automatically set its task ready and retry. Provider has no idempotency support and may already have generated output. Is this safe? Give a recovery design. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Rejects unconditional replay after unknown external execution.",
+        "Keeps uncertain state absent authoritative evidence; does not equate missing result with no call.",
+        "Fences stale workers and distinguishes saved-outcome reconciliation from new inference.",
+        "Requires fault/restart tests; does not promise exactly-once provider execution."
+      ],
+      "critical": true
+    },
+    {
+      "id": "P22",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "policy_binding",
+      "prompt": "Review proposal: authenticated users create a workflow now, then send a custom lenient validation policy when fetching its result later. The generator response is saved as succeeded immediately. Tenant authentication already works. Identify missing boundaries. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Binds authorized acceptance policy before execution/acceptance; users cannot weaken it later.",
+        "Separates inference completion from acceptance (awaiting_validation).",
+        "Atomically commits report/state/event bound to artifact integrity and policy.",
+        "Requires replay, conflicting-policy, cancellation and cross-tenant tests."
+      ],
+      "critical": true
+    },
+    {
+      "id": "P23",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "partition_admission",
+      "prompt": "A two-controller quota service uses Redis leases to permit 4 concurrent generations. When Redis is unreachable or a lease expires, each controller locally assumes capacity is free and starts another call. Calls may continue after lease expiry. Review and propose bounded behavior. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Identifies oversubscription during partitions and continued old calls.",
+        "Fails closed or uses demonstrably bounded preallocated authority, not unrestricted local admission.",
+        "Does not claim fencing alone stops an external provider call.",
+        "Requires authoritative reconciliation/cancellation evidence before reopening uncertain capacity, and partition/crash tests."
+      ],
+      "critical": true
+    },
+    {
+      "id": "P24",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "hosted_identity",
+      "prompt": "A hosted endpoint advertises synthetic/model-x in a catalog and echoes that ID in generation. Container/runtime/model revision cannot be inspected. Team proposes marking artifact identity verified and enabling production based only on offline fixture tests. Review. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Distinguishes observed catalog attribution from artifact verification.",
+        "Preserves unknown runtime/artifact/revision facts.",
+        "Requires explicit owner-approved live identity policy and real endpoint evidence.",
+        "Does not treat fixtures or naming as production certification."
+      ],
+      "critical": true
+    },
+    {
+      "id": "P25",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "evaluation_claim",
+      "prompt": "A model passes 23 of 26 hand-picked easy tasks after two correction rounds; 12 tasks were in its prompt examples. One pass leaks cross-tenant output. Team claims 87% first-pass reliability with 95% confidence and 80% savings, but reviewer tokens and retries are omitted. Review the claim. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Rejects first-pass claim because corrections occurred and test leakage contaminates evidence.",
+        "Separates observed 23/26 rate from statistical lower bound; cannot assert population >=87% at 95% confidence.",
+        "Treats cross-tenant leakage as critical failure independent of aggregate rate.",
+        "Requires held-out representative prespecified tasks and total costs including review/retries; savings not established."
+      ],
+      "critical": true
+    },
+    {
+      "id": "P26",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "category": "sandbox_authority",
+      "prompt": "An inference model can return shell commands. Proposal executes these commands directly on a developer checkout with inherited environment and network access; a model reviewer says safe. Tests use only harmless commands. Review required design before use. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).",
+      "expected": null,
+      "checks": [
+        "Rejects treating model text/review as tool authorization.",
+        "Requires explicit authorized actions and isolated disposable workspace with restricted secrets/environment/network.",
+        "Requires resource limits and side-effect/approval boundaries.",
+        "Requires adversarial tests and human-approved policy; harmless tests are insufficient."
+      ],
+      "critical": true
+    }
+  ]
+}

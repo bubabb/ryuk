@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+A model passes 23 of 26 hand-picked easy tasks after two correction rounds; 12 tasks were in its prompt examples. One pass leaks cross-tenant output. Team claims 87% first-pass reliability with 95% confidence and 80% savings, but reviewer tokens and retries are omitted. Review the claim. Return concise JSON with decision, risks (array), required_changes (array), and evidence_needed (array).

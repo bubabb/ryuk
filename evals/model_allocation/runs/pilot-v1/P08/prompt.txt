@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+Admission charges requested max output tokens multiplied by attempt ceiling, even on idempotent HTTP retries. Request max_tokens=48, attempts=3, remaining token allowance=143. Return JSON estimated_tokens, admit, adapter_calls_on_rejection.

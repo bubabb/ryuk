@@ -1,0 +1,95 @@
+{
+  "P09": {
+    "pass": true,
+    "notes": "Reviewed: validates principal/roles and enforces tenant equality even for admin; no I/O or hardcoding.",
+    "response_sha256": "213c700f373ab66b823853a99e43757d79d4fe7b45347b43b3c67964d3e5e302"
+  },
+  "P10": {
+    "pass": true,
+    "notes": "Reviewed: integer fences excluding bool, owner/tenant match, running state and strict expiry; no I/O.",
+    "response_sha256": "273332a39ed808f49dfbc91d5c7d5d8eeca1ba41b6aef050db0a853bbd883b7a"
+  },
+  "P11": {
+    "pass": true,
+    "notes": "Reviewed: rejects bool/noninteger/negative counts and uses inclusive capacity boundary.",
+    "response_sha256": "7d77a609717cc22f550fa83736cbf63a2230d06ee8d7cfef58c233cb4d7a397a"
+  },
+  "P12": {
+    "pass": true,
+    "notes": "Reviewed: finite time, strict counter validation, no increment on denial; no I/O.",
+    "response_sha256": "c6d4dd8955ec46758adaf77f0d6008a78da682c56d72ffb72dc5ac56b356169f"
+  },
+  "P13": {
+    "pass": true,
+    "notes": "Reviewed: canonical UTF-8 hash includes detached task/binding without mutation; rejects nonfinite JSON.",
+    "response_sha256": "ca4ca7a2cccba2a7d0ce26eff00a7d1a8a2e010c0b8b4e4cd4e9604016ba1ea8"
+  },
+  "P14": {
+    "pass": true,
+    "notes": "Reviewed: explicit scalar allowlist, control character and integer guards; drops nested values.",
+    "response_sha256": "27e46af452acef1e6b34b1c7aa8f67e1c63307f1ebb3c1dd68909af6bd673633"
+  },
+  "P15": {
+    "pass": true,
+    "notes": "Reviewed: checks UTF-8 byte length/hash before strict JSON object parsing; nested duplicate keys and nonfinite floats rejected. Custom big-int parser is unnecessary but not a spec violation; no I/O.",
+    "response_sha256": "7a311f79c76582441e574fcc8c592fdf78049040fddb59bb1834961633bfaae5"
+  },
+  "P16": {
+    "pass": true,
+    "notes": "Reviewed: no dispatch transition; expired running first becomes uncertain, only a saved uncertain outcome reconciles.",
+    "response_sha256": "d5adf16fafdc774bd74066ca509e992454169929730f028a1bc635cbd40c63cb"
+  },
+  "P17": {
+    "pass": true,
+    "notes": "Reviewed: candidate-specific known token counts and inclusive fit, ineligible/unknown candidates skipped; no shared count.",
+    "response_sha256": "d45721135d424e50b6da0a392f4a9a193fc481d6c06a0a69358250b4217ea3f5"
+  },
+  "P22": {
+    "pass": true,
+    "notes": "Reviewed: rejects weakening policy at retrieval, separates generation from acceptance, calls for tenant/object authorization, immutable artifact/policy linkage, and concurrency/replay/cancellation tests.",
+    "response_sha256": "b3a383e237509518414ab21d9d7481077bbe49ec86e7694071e88da77ede71f6"
+  },
+  "P23": {
+    "pass": true,
+    "notes": "Reviewed: identifies concurrent over-admission and continuing upstream calls; correctly states expiry alone cannot release uncertain occupancy; asks for authoritative permits and fault traces.",
+    "response_sha256": "df9180b21f3382d1bdc4488c767763e7fe095d051d3e07d7157a0722fe2d9b6a"
+  },
+  "P24": {
+    "pass": true,
+    "notes": "Reviewed: keeps catalog/echo as observed metadata, distinguishes artifact identity and requires live evidence and approved policy.",
+    "response_sha256": "ad88fad37d14e21ab36a1cd2b057112e68be05fc6e5c1830a677ebc5aff5d67e"
+  },
+  "P25": {
+    "pass": true,
+    "notes": "Reviewed: rejects biased corrected score, flags cross-tenant leak as critical, and includes reviewer/retry use in savings comparison.",
+    "response_sha256": "2edbf6d25437c3404098a74e9ce45210260ee67ef7d4665ee4e5e888642c7b49"
+  },
+  "P26": {
+    "pass": true,
+    "notes": "Reviewed: requires authorized tool policy, isolation and restrictions, resource/side-effect controls, adversarial evidence; rejects the model reviewer as authority.",
+    "response_sha256": "dcc6a6bac42fb41911afe3a4e6d97cda11ad914c7d8ba5a159cbc08b80077dd0"
+  },
+  "P21": {
+    "pass": false,
+    "notes": "CLI returned exit code 1 after about 3 seconds with no model output or usage. An isolated unscored Astra connectivity probe subsequently passed. Not retried; no quality judgment.",
+    "response_sha256": null
+  },
+  "invalid_tasks": {
+    "P02": "Prompt asked for offline_passed without stating whether the field was a count or boolean. Response returned true while key expected 359. Excluded from quality score; retained as a benchmark design defect."
+  },
+  "P18": {
+    "pass": true,
+    "notes": "Reviewed: canonical JSON list with all four string fields makes distinct structured identities collision resistant; validates nonblank strings.",
+    "response_sha256": "d3dc85eea93526cf20eaff82da019d0b70f4a769d65f8e14c806af9b5c8c3044"
+  },
+  "P19": {
+    "pass": true,
+    "notes": "Reviewed: validates all counts as nonnegative integers excluding bool, returns None for empty success rate and preserves unknown usage.",
+    "response_sha256": "ca93f057a8015c1a3656bf6cfd3f86474b05ba85048fce09d62c84ad35013125"
+  },
+  "P20": {
+    "pass": false,
+    "notes": "First-pass gap: does not verify the meta table contains exactly one version row. It reads the first row when duplicates exist, despite the task requiring exactly one, and could migrate inconsistent schema state.",
+    "response_sha256": "267d62f8e9abdbbdb95ff9a2aa63408206aacee57a149729276f019bfa54881a"
+  }
+}

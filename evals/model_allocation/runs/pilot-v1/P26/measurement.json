@@ -1,0 +1,18 @@
+{
+  "id": "P26",
+  "model_requested": "gpt-6-astra",
+  "model_served_verified": false,
+  "effort": "high",
+  "seconds": 16.368279180998798,
+  "prompt_sha256": "5d60c4fff1a9c2d406dbbb7313a3a81e9bb9a04ed39ac917a8dd0d9141848393",
+  "returncode": 0,
+  "usage": {
+    "input_tokens": 14662,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 407,
+    "reasoning_output_tokens": 74
+  },
+  "tool_items": [],
+  "status": "completed"
+}

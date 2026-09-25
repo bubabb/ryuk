@@ -1,6 +1,6 @@
 # Ryuk Action Tracker
 
-**Last updated:** 2026-09-24
+**Last updated:** 2026-09-25
 **Current milestone:** Offline Phase 3 exit review
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
 **Next session starts with:** WF-009 Phase 3 exit review and remaining scope reconciliation; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
@@ -85,6 +85,12 @@ blocked until Phase 2B passes.
 | WF-007 | DONE | Implement restart recovery and uncertain-call reconciliation | WF-005, WF-006 | ADR-015 dispatch/outcome journal, fenced recovery, crash/process-exit/concurrency/rollback/migration tests; 330 offline tests pass; `docs/reports/workflow-recovery-review-2026-09-24.md` |
 | WF-008 | DONE | Add create, status, cancel, and result APIs with tenant authorization | WF-005 through WF-007 | ADR-016, server-bound acceptance/budgets, four governed routes, replay/cancellation/isolation/quota/migration tests; 359 offline tests pass; `docs/reports/workflow-api-review-2026-09-24.md` |
 | WF-009 | READY | Record the offline Phase 3 exit review and reconcile remaining scheduler, startup recovery, cancellation propagation, and cost/task-budget scope against the phase plan | WF-001 through WF-008 | Explicit implemented/deferred evidence and stable follow-up IDs before Phase 4 advancement; no production or live certification implied |
+
+## Evaluation and model allocation
+
+| ID | Status | Action | Dependency | Completion evidence |
+| --- | --- | --- | --- | --- |
+| EVAL-001 | DONE | Measure the preregistered 26-task model-allocation pilot v1 and record its decision | Model allocation plan | `docs/reports/model-allocation-pilot-2026-09-25.md`; 23/24 valid scored responses passed, with 1 critical failure, 1 invalid item, and 1 unrun response; gate failed and 87% remains unverified |
 
 ## Control-plane hardening
 

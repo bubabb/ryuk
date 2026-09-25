@@ -1,0 +1,18 @@
+{
+  "id": "P12",
+  "model_requested": "gpt-6-sol",
+  "model_served_verified": false,
+  "effort": "high",
+  "seconds": 13.317930565000097,
+  "prompt_sha256": "b9d57117457088e0848c94a946e5520cfff26ed0ad1bdb68e8aa54f80b446732",
+  "returncode": 0,
+  "usage": {
+    "input_tokens": 14259,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 510,
+    "reasoning_output_tokens": 255
+  },
+  "tool_items": [],
+  "status": "completed"
+}

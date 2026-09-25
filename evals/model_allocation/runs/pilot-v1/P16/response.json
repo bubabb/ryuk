@@ -1,0 +1,1 @@
+{"content":"def recovery_action(state, expired, outcome_recorded):\n    if state == \"running\" and expired is True:\n        return \"mark_uncertain\"\n    if state == \"uncertain\" and outcome_recorded is True:\n        return \"reconcile_saved\"\n    return \"keep\""}

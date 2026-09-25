@@ -150,8 +150,10 @@ Review findings and resulting decisions:
 
 Mechanical coverage check: all 26 open tracker IDs occur exactly once in the main
 allocation table, with matching statuses. That proves coverage only, not 100%
-correctness or an 87% success rate. No multi-model paid trials were run, no
-subagents were launched, and no live provider was contacted for evaluation.
+correctness or an 87% success rate. Pilot v1 is recorded in
+`evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one
+critical first-pass failure and one infrastructure failure. No subagents were
+launched and no live provider was contacted for this evaluation.
 
 To measure the requested target rather than invent it:
 
@@ -173,8 +175,12 @@ To measure the requested target rather than invent it:
 - Compare total usage per accepted task, including input, output, retries and
   reviewer tokens. Until measured, these assignments remain provisional.
 
-The 87% empirical-quality target is **not yet verified**. The static allocation
-review and coverage check are complete; no numeric reliability claim is made.
+The 87% empirical-quality target is **not yet verified**. Pilot v1 had 23/24
+valid responses pass (95.83% observed; Wilson 95% interval 79.76–99.26%), but
+also one critical failure, one invalid task and one infrastructure failure.
+Its preregistered gate therefore fails. The results are too small and purposive
+to estimate population reliability. They do not validate 87% correctness or
+usage savings. See `evals/model_allocation/PROTOCOL.md` and the saved run.
 
 ## How to apply this without wasting usage
 

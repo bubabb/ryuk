@@ -718,5 +718,10 @@ The owner requested usage-conscious model assignments and a saved checkpoint.
 approval/live-certification gates, and recommends Sol for most implementation,
 Luna for bounded support, and Astra for difficult design or risk review. The
 mapping received a static second-pass review and a mechanical coverage check.
-An 87% empirical success target is proposed but has not been measured; no model
-benchmark, automatic delegation or runtime deployment change was performed.
+The owner approved a 26-task synthetic pilot. Its preregistered v1 returned 23
+passes among 24 gradeable valid tasks (95.83% observed; Wilson 95% interval
+79.76–99.26%), but the run has one critical first-pass failure, one ambiguous
+prompt excluded from scoring and one Astra infrastructure failure. The pilot
+gate fails and does not verify 87%. Successful-turn token totals and limitations
+are recorded under `evals/model_allocation/`; they do not establish usage
+savings or account billing. A corrected, newly preregistered pilot is needed.

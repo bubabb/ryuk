@@ -1,13 +1,15 @@
 # Ryuk next-session handoff
 
-Date: 2026-09-24
+Date: 2026-09-25
 Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
 **WF-008 is complete. Next: WF-009, the offline Phase 3 exit review.** Compare
 implemented evidence with the broader phase plan before advancing to CTX-001.
-Live certification remains pending.
+The model-allocation pilot v1 is saved but fails its quality gate; 87% remains
+unverified. Review `evals/model_allocation/PROTOCOL.md` before proposing a
+corrected, preregistered v2. Live certification remains pending.
 
 ## User-approved scope
 
@@ -85,3 +87,21 @@ only for unresolved exit/architecture claims. Luna is for bounded evidence and
 documentation tasks. This does not change Ryuk's runtime models or enable agents.
 The requested 87% correctness target remains empirically unverified; the report
 records the completed static review and a proposed measurable acceptance gate.
+
+## Pilot v1 results (2026-09-25)
+
+- 26 planned tasks; 23 passed, 1 critical failure (Sol migration cardinality),
+  1 invalid task (Luna field type ambiguous), and 1 Astra infrastructure error.
+- 23/24 valid, gradeable responses passed (95.83%); Wilson 95% interval
+  79.76–99.26%. The pilot gate fails due to the critical failure and incomplete
+  sample. This does not verify the 87% target.
+- Per model among valid, gradeable tasks: Luna 7/7, Sol 11/12, Astra 5/5.
+  Samples are small and purposive; no population or cost claim is supported.
+- Astra connectivity passed on a separate unscored probe. P21 remains unrun and
+  was not retried. The failed request's token use is unknown.
+- Successful-turn usage is in `evals/model_allocation/PROTOCOL.md`; setup and
+  reviewer usage are incomplete, and billing cannot be calculated.
+- Pilot scripts and tests: `scripts/evaluate_model_allocation.py`,
+  `scripts/grade_model_allocation.py`, and `tests/test_model_allocation_pilot.py`.
+- Next: fix P02's output type, add a missing/duplicate schema-version-row
+  migration assertion, and preregister a new version. Preserve v1 unchanged.

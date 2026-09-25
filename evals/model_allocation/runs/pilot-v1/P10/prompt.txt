@@ -1,0 +1,4 @@
+You are completing one first-pass development evaluation task. Use only this prompt. Do not use tools, read files, browse, delegate, or modify anything. No test answers or feedback will be provided. Return a JSON object with one string field, content. That string must contain your requested deliverable, without Markdown fences. All data is synthetic.
+
+Task:
+Return only Python source defining can_complete(row, tenant, owner, fence, now). row is None or dict with tenant,state,owner,fence,lease_until (integer epoch seconds). Return True only for running state, same tenant/owner/fence and lease_until strictly greater than now. A fence and now must be integers, not bool. Invalid types or missing fields yield False. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries and invalid inputs.

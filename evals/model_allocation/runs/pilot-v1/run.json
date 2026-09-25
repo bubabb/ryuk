@@ -1,0 +1,7 @@
+{
+  "started_at": "2026-09-24T23:10:11.175831+00:00",
+  "baseline_commit": "32adfd1",
+  "manifest_sha256": "027adcb8f781f003c128fbd73398ba5c387a0a9370aabb2f6e13a728644db81e",
+  "cli_version": "codex-cli 0.156.1",
+  "protocol": "single turn per task; no feedback/retry; no tools"
+}

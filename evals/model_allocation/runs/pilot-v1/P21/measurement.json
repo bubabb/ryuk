@@ -1,0 +1,12 @@
+{
+  "id": "P21",
+  "model_requested": "gpt-6-astra",
+  "model_served_verified": false,
+  "effort": "high",
+  "seconds": 3.0026551159999144,
+  "prompt_sha256": "8bc75c3bb0ff0feb78747b8b01783c5e06a44773e5924a515c5b638770f17891",
+  "returncode": 1,
+  "usage": null,
+  "tool_items": [],
+  "status": "infrastructure_error"
+}

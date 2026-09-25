@@ -1,0 +1,505 @@
+{
+  "summary": {
+    "planned": 26,
+    "passed": 23,
+    "failed": 1,
+    "invalid_tasks": 1,
+    "unrun": 1,
+    "ungraded": 2,
+    "complete": false,
+    "critical_failures": 1,
+    "valid_scored_tasks": 24,
+    "observed_rate": 0.9583333333333334,
+    "pilot_gate_passed": false,
+    "wilson_95_interval": [
+      0.7975819352134406,
+      0.9926065438344942
+    ],
+    "lower_bound_exceeds_87_percent": false,
+    "population_claim_valid": false,
+    "limitation": "Small purposive synthetic sample; no population reliability or savings claim.",
+    "by_model": {
+      "gpt-6-astra": {
+        "planned": 6,
+        "passed": 5,
+        "failed": 0,
+        "ungraded": 1,
+        "observed_rate": 1.0,
+        "wilson_95_interval": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "gpt-6-luna": {
+        "planned": 8,
+        "passed": 7,
+        "failed": 0,
+        "ungraded": 1,
+        "observed_rate": 1.0,
+        "wilson_95_interval": [
+          0.6456695649333126,
+          1.0
+        ]
+      },
+      "gpt-6-sol": {
+        "planned": 12,
+        "passed": 11,
+        "failed": 1,
+        "ungraded": 0,
+        "observed_rate": 0.9166666666666666,
+        "wilson_95_interval": [
+          0.646120088858883,
+          0.9851349055950829
+        ]
+      }
+    },
+    "candidate_usage": {
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "reasoning_output_tokens": null
+    },
+    "recorded_candidate_usage_by_model": {
+      "gpt-6-astra": {
+        "calls_planned": 6,
+        "calls_with_usage": 5,
+        "calls_usage_unknown": 1,
+        "input_tokens": 73354,
+        "cached_input_tokens": 0,
+        "output_tokens": 1895,
+        "reasoning_output_tokens": 351
+      },
+      "gpt-6-luna": {
+        "calls_planned": 8,
+        "calls_with_usage": 8,
+        "calls_usage_unknown": 0,
+        "input_tokens": 112240,
+        "cached_input_tokens": 39168,
+        "output_tokens": 366,
+        "reasoning_output_tokens": 56
+      },
+      "gpt-6-sol": {
+        "calls_planned": 12,
+        "calls_with_usage": 12,
+        "calls_usage_unknown": 0,
+        "input_tokens": 170994,
+        "cached_input_tokens": 47104,
+        "output_tokens": 6688,
+        "reasoning_output_tokens": 4578
+      }
+    },
+    "setup_and_reviewer_usage": null
+  },
+  "tasks": [
+    {
+      "id": "P01",
+      "model": "gpt-6-luna",
+      "category": "inventory",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14012,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 52,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.942142829999739,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P02",
+      "model": "gpt-6-luna",
+      "category": "evidence",
+      "critical_task": false,
+      "grade": "invalid_task",
+      "usage": {
+        "input_tokens": 14039,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 40,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 5.294471049999629,
+      "reason": "Prompt asked for offline_passed without stating whether the field was a count or boolean. Response returned true while key expected 359. Excluded from quality score; retained as a benchmark design defect."
+    },
+    {
+      "id": "P03",
+      "model": "gpt-6-luna",
+      "category": "identity",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14032,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 45,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.727324653999858,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P04",
+      "model": "gpt-6-luna",
+      "category": "redaction",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14043,
+        "cached_input_tokens": 13056,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 29,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.213401719000103,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P05",
+      "model": "gpt-6-luna",
+      "category": "measurement",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14027,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 30,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.5772377479997886,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P06",
+      "model": "gpt-6-luna",
+      "category": "dependencies",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14028,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 40,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 6.381057915000383,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P07",
+      "model": "gpt-6-luna",
+      "category": "source_priority",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14038,
+        "cached_input_tokens": 13056,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 39,
+        "reasoning_output_tokens": 0
+      },
+      "seconds": 4.312144943000021,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P08",
+      "model": "gpt-6-luna",
+      "category": "budget_arithmetic",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14021,
+        "cached_input_tokens": 13056,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 91,
+        "reasoning_output_tokens": 56
+      },
+      "seconds": 5.5561574560001645,
+      "reason": "exact_json"
+    },
+    {
+      "id": "P09",
+      "model": "gpt-6-sol",
+      "category": "tenant_authorization",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14259,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 267,
+        "reasoning_output_tokens": 88
+      },
+      "seconds": 8.904603679000047,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P10",
+      "model": "gpt-6-sol",
+      "category": "lease_fencing",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14256,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1148,
+        "reasoning_output_tokens": 854
+      },
+      "seconds": 24.734090387999913,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P11",
+      "model": "gpt-6-sol",
+      "category": "token_fit",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14227,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 193,
+        "reasoning_output_tokens": 88
+      },
+      "seconds": 8.746476837000046,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P12",
+      "model": "gpt-6-sol",
+      "category": "budget",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14259,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 510,
+        "reasoning_output_tokens": 255
+      },
+      "seconds": 13.317930565000097,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P13",
+      "model": "gpt-6-sol",
+      "category": "idempotency",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14240,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 173,
+        "reasoning_output_tokens": 69
+      },
+      "seconds": 8.174521093000294,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P14",
+      "model": "gpt-6-sol",
+      "category": "event_redaction",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14233,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 458,
+        "reasoning_output_tokens": 312
+      },
+      "seconds": 13.169675687999643,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P15",
+      "model": "gpt-6-sol",
+      "category": "artifact_integrity",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14248,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1985,
+        "reasoning_output_tokens": 1552
+      },
+      "seconds": 45.21580924199998,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P16",
+      "model": "gpt-6-sol",
+      "category": "recovery",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14245,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 176,
+        "reasoning_output_tokens": 97
+      },
+      "seconds": 7.017194183999891,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P17",
+      "model": "gpt-6-sol",
+      "category": "context_fallback",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14248,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 256,
+        "reasoning_output_tokens": 155
+      },
+      "seconds": 8.475398670000232,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P18",
+      "model": "gpt-6-sol",
+      "category": "cache_scope",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14247,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 217,
+        "reasoning_output_tokens": 87
+      },
+      "seconds": 8.854263142000036,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P19",
+      "model": "gpt-6-sol",
+      "category": "statistics",
+      "critical_task": false,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14240,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 421,
+        "reasoning_output_tokens": 296
+      },
+      "seconds": 12.001876066000023,
+      "reason": "hidden_assertions_and_review"
+    },
+    {
+      "id": "P20",
+      "model": "gpt-6-sol",
+      "category": "migration_atomicity",
+      "critical_task": true,
+      "grade": "fail",
+      "usage": {
+        "input_tokens": 14292,
+        "cached_input_tokens": 11776,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 884,
+        "reasoning_output_tokens": 725
+      },
+      "seconds": 21.30715269800021,
+      "reason": "First-pass gap: does not verify the meta table contains exactly one version row. It reads the first row when duplicates exist, despite the task requiring exactly one, and could migrate inconsistent schema state."
+    },
+    {
+      "id": "P21",
+      "model": "gpt-6-astra",
+      "category": "uncertain_execution",
+      "critical_task": true,
+      "grade": "unrun",
+      "usage": null,
+      "seconds": 3.0026551159999144,
+      "reason": "infrastructure_error"
+    },
+    {
+      "id": "P22",
+      "model": "gpt-6-astra",
+      "category": "policy_binding",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14666,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 392,
+        "reasoning_output_tokens": 67
+      },
+      "seconds": 16.101907437998307,
+      "reason": "Reviewed: rejects weakening policy at retrieval, separates generation from acceptance, calls for tenant/object authorization, immutable artifact/policy linkage, and concurrency/replay/cancellation tests."
+    },
+    {
+      "id": "P23",
+      "model": "gpt-6-astra",
+      "category": "partition_admission",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14673,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 403,
+        "reasoning_output_tokens": 91
+      },
+      "seconds": 15.901506550002523,
+      "reason": "Reviewed: identifies concurrent over-admission and continuing upstream calls; correctly states expiry alone cannot release uncertain occupancy; asks for authoritative permits and fault traces."
+    },
+    {
+      "id": "P24",
+      "model": "gpt-6-astra",
+      "category": "hosted_identity",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14666,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 298,
+        "reasoning_output_tokens": 47
+      },
+      "seconds": 12.667618689003575,
+      "reason": "Reviewed: keeps catalog/echo as observed metadata, distinguishes artifact identity and requires live evidence and approved policy."
+    },
+    {
+      "id": "P25",
+      "model": "gpt-6-astra",
+      "category": "evaluation_claim",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14687,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 395,
+        "reasoning_output_tokens": 72
+      },
+      "seconds": 15.894754615001148,
+      "reason": "Reviewed: rejects biased corrected score, flags cross-tenant leak as critical, and includes reviewer/retry use in savings comparison."
+    },
+    {
+      "id": "P26",
+      "model": "gpt-6-astra",
+      "category": "sandbox_authority",
+      "critical_task": true,
+      "grade": "pass",
+      "usage": {
+        "input_tokens": 14662,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 407,
+        "reasoning_output_tokens": 74
+      },
+      "seconds": 16.368279180998798,
+      "reason": "Reviewed: requires authorized tool policy, isolation and restrictions, resource/side-effect controls, adversarial evidence; rejects the model reviewer as authority."
+    }
+  ]
+}
