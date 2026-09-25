@@ -3,12 +3,18 @@ import json
 
 import pytest
 
-from scripts.evaluate_model_allocation import PILOT, prompt_for
+from scripts.evaluate_model_allocation import (
+    PILOT,
+    prepare_infrastructure_retry,
+    prompt_for,
+)
 from scripts.grade_model_allocation import grade_task, summarize, wilson
+from scripts.model_allocation_manifest import load_manifest
 
 
 def test_manifest_is_complete_and_candidate_prompt_hides_grading():
-    manifest = json.loads(PILOT.read_text())
+    manifest, digest = load_manifest(PILOT)
+    assert digest == hashlib.sha256(PILOT.read_bytes()).hexdigest()
     tasks = manifest["tasks"]
     assert len({task["id"] for task in tasks}) == len(tasks) == 26
     assert sum(task["model"] == "gpt-6-luna" for task in tasks) == 8
@@ -20,6 +26,69 @@ def test_manifest_is_complete_and_candidate_prompt_hides_grading():
         assert prompt_for(hidden) == prompt
         assert "assert " not in prompt
         assert task["prompt"] in prompt
+
+
+def test_v2_manifest_resolves_typed_evidence_and_migration_cardinality():
+    manifest, digest = load_manifest(PILOT.with_name("pilot-v2.json"))
+    tasks = {task["id"]: task for task in manifest["tasks"]}
+    assert manifest["version"] == 2
+    assert len(tasks) == 26
+    assert len(digest) == 64
+    assert tasks["P02"]["expected"]["offline_passed_count"] == 359
+    assert type(tasks["P02"]["expected"]["offline_passed_count"]) is int
+    assert "(integer)" in tasks["P02"]["prompt"]
+    p20_checks = "\n".join(tasks["P20"]["checks"])
+    assert "rows in [[], [(1,), (1,)], [(1,), (2,)]]" in p20_checks
+    assert manifest["resume_policy"] == {
+        "retry_statuses": ["infrastructure_error", "infrastructure_timeout"],
+        "maximum_infrastructure_attempts_per_task": 2,
+        "quality_failures_retryable": False,
+    }
+
+
+def test_manifest_digest_changes_when_base_or_overlay_changes(tmp_path):
+    base = tmp_path / "base.json"
+    overlay = tmp_path / "v2.json"
+    base.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "threshold": {},
+                "tasks": [{"id": "P01", "prompt": "a", "checks": []}],
+            }
+        )
+    )
+    overlay.write_text(
+        json.dumps({"version": 2, "base_manifest": "base.json"})
+    )
+    _, first = load_manifest(overlay)
+    base.write_text(base.read_text().replace('"a"', '"b"'))
+    _, second = load_manifest(overlay)
+    assert first != second
+
+
+def test_resume_archives_only_one_declared_infrastructure_failure(tmp_path):
+    folder = tmp_path / "P21"
+    folder.mkdir()
+    measurement = folder / "measurement.json"
+    policy = {
+        "retry_statuses": ["infrastructure_error", "infrastructure_timeout"],
+        "maximum_infrastructure_attempts_per_task": 2,
+    }
+    measurement.write_text(json.dumps({"status": "infrastructure_error"}))
+    prepare_infrastructure_retry(measurement, policy)
+    assert json.loads(
+        (folder / "infrastructure_attempts/001.json").read_text()
+    ) == {"status": "infrastructure_error"}
+    with pytest.raises(ValueError, match="retry limit"):
+        prepare_infrastructure_retry(measurement, policy)
+
+    completed = tmp_path / "P22"
+    completed.mkdir()
+    completed_measurement = completed / "measurement.json"
+    completed_measurement.write_text(json.dumps({"status": "completed"}))
+    with pytest.raises(ValueError, match="only for declared infrastructure"):
+        prepare_infrastructure_retry(completed_measurement, policy)
 
 
 def rows(passed=26):

@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "base_manifest": "pilot.json",
+  "baseline_commit": "27a9192",
+  "purpose": "corrected bounded synthetic development-assignment pilot; not production certification",
+  "threshold": {
+    "minimum_first_pass": 23,
+    "planned_tasks": 26,
+    "critical_failures_allowed": 0
+  },
+  "resume_policy": {
+    "retry_statuses": [
+      "infrastructure_error",
+      "infrastructure_timeout"
+    ],
+    "maximum_infrastructure_attempts_per_task": 2,
+    "quality_failures_retryable": false
+  },
+  "task_overrides": {
+    "P02": {
+      "prompt": "Synthetic validation log: 359 passed, 8 deselected; ruff passed; mypy 95 files passed; external GPU contracts not run. Return JSON keys offline_passed_count (integer), external_executed (boolean), deselected_count (integer), production_certified (boolean). Certification needs external contracts and operational gates; none have been supplied.",
+      "expected": {
+        "offline_passed_count": 359,
+        "external_executed": false,
+        "deselected_count": 8,
+        "production_certified": false
+      }
+    },
+    "P20": {
+      "prompt": "Return only Python source defining migrate(conn). conn is an sqlite3 Connection in autocommit mode with table meta(version INTEGER). Before any mutation, require meta to contain exactly one row whose version is an integer excluding bool; zero, duplicate, null, text, or extra rows raise ValueError without mutation. Support only version 1 or 2. v1: BEGIN IMMEDIATE; create bindings(id TEXT PRIMARY KEY, policy TEXT NOT NULL); update exactly that meta row to 2 and require exactly one changed row; COMMIT. v2: no-op. Unknown version raises ValueError without mutation. Any error after BEGIN must roll back DDL and version and re-raise; do not close connection. A preexisting conflicting bindings table must cause failure rather than being ignored. No I/O, tool calls, external dependencies, or top-level examples. Hidden tests check boundaries, invalid inputs, and schema-version cardinality.",
+      "checks_append": [
+        "for rows in [[], [(1,), (1,)], [(1,), (2,)]]:\n    c=sqlite3.connect(':memory:',isolation_level=None); c.execute('CREATE TABLE meta(version INTEGER)'); c.executemany('INSERT INTO meta VALUES(?)', rows)\n    try: migrate(c)\n    except ValueError: pass\n    else: raise AssertionError('invalid schema-version cardinality accepted')\n    assert c.execute('SELECT version FROM meta ORDER BY rowid').fetchall()==rows; assert c.execute(\"SELECT name FROM sqlite_master WHERE name='bindings'\").fetchone() is None; assert not c.in_transaction"
+      ]
+    }
+  }
+}

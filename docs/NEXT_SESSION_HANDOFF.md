@@ -149,5 +149,18 @@ records the completed static review and a proposed measurable acceptance gate.
   reviewer usage are incomplete, and billing cannot be calculated.
 - Pilot scripts and tests: `scripts/evaluate_model_allocation.py`,
   `scripts/grade_model_allocation.py`, and `tests/test_model_allocation_pilot.py`.
-- Next: fix P02's output type, add a missing/duplicate schema-version-row
-  migration assertion, and preregister a new version. Preserve v1 unchanged.
+- The P02 type, schema-version cardinality and v2 preregistration follow-up is
+  completed below; v1 remains unchanged.
+
+## Pilot v2 preregistration (2026-09-25)
+
+- EVAL-002 is complete without model/provider calls. `pilot-v2.json` is a
+  hash-bound overlay over the unchanged v1 manifest; `PROTOCOL-v2.md` records
+  the corrected measurement and continuation rules.
+- P02 now requires explicit integer count fields. P20 rejects missing,
+  duplicate and conflicting schema-version rows without mutation.
+- `--resume` is restricted to one declared infrastructure retry, preserves the
+  prior measurement, and never reruns a completed quality response.
+- Running v2 remains a separate opt-in action. Even a passing 26-task rerun
+  cannot establish the 87% population claim; larger independently curated and
+  matched-baseline evaluation remains necessary.

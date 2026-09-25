@@ -13,6 +13,11 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+if __package__ in (None, ""):  # Support direct `python scripts/...py` invocation.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.model_allocation_manifest import load_manifest  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 PILOT = ROOT / "evals/model_allocation/pilot.json"
 
@@ -138,7 +143,14 @@ def grade_task(
     }
 
 
-def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
+def summarize(
+    results: list[dict[str, Any]], threshold: dict[str, int] | None = None
+) -> dict[str, Any]:
+    threshold = threshold or {
+        "planned_tasks": 26,
+        "minimum_first_pass": 23,
+        "critical_failures_allowed": 0,
+    }
     passed = sum(row["grade"] == "pass" for row in results)
     failed = sum(row["grade"] == "fail" for row in results)
     critical = sum(row["grade"] == "fail" and row["critical_task"] for row in results)
@@ -210,10 +222,10 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
         "valid_scored_tasks": passed + failed,
         "observed_rate": passed / (passed + failed) if passed + failed else None,
         "pilot_gate_passed": complete
-        and total == 26
+        and total == threshold["planned_tasks"]
         and invalid == 0
-        and passed >= 23
-        and critical == 0,
+        and passed >= threshold["minimum_first_pass"]
+        and critical <= threshold["critical_failures_allowed"],
         "wilson_95_interval": interval,
         "lower_bound_exceeds_87_percent": complete
         and invalid == 0
@@ -235,14 +247,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
     parser.add_argument("--review", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, default=PILOT)
     args = parser.parse_args()
-    manifest = json.loads(PILOT.read_text())
+    manifest, manifest_digest = load_manifest(args.manifest.resolve())
     metadata = json.loads((args.directory / "run.json").read_text())
-    if hashlib.sha256(PILOT.read_bytes()).hexdigest() != metadata["manifest_sha256"]:
+    if manifest_digest != metadata["manifest_sha256"]:
         raise ValueError("Manifest changed after run began")
     review = json.loads(args.review.read_text())
     results = [grade_task(task, args.directory, review) for task in manifest["tasks"]]
-    report = {"summary": summarize(results), "tasks": results}
+    report = {
+        "summary": summarize(results, manifest["threshold"]),
+        "tasks": results,
+    }
     (args.directory / "grades.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report["summary"], indent=2))
 
