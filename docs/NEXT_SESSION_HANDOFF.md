@@ -5,10 +5,11 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**WF-010 is complete. Next: review WF-011's separate startup-recovery scope.**
-The local dispatcher is explicit and bounded; it is not wired to API creation
-or application startup. WF-011 remains HOLD until separately authorized and
-must preserve the no-automatic-replay rule. CTX-003's
+**WF-011 is complete. Next: select a separately authorized, unblocked task.**
+Startup recovery is bounded, tenant-visible and conservative; it never replays
+inference or starts the local dispatcher. WF-012 still depends on live Phase 2B
+provider cancellation evidence, WF-013 on DEC-006 usage/billing evidence, and
+WF-014 on approved multi-step scope. CTX-003's
 evidence gate still requires verified
 candidate tokenizer/template identities and Phase 2B generation contracts.
 CTX-003 remains HOLD until that evidence exists; do not treat estimates or
@@ -61,8 +62,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 393 passed, 8 deselected
--m mypy backend tests scripts: success, 108 source files
+-m pytest -q -m 'not integration': 400 passed, 8 deselected
+-m mypy backend tests scripts: success, 110 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -206,5 +207,25 @@ records the completed static review and a proposed measurable acceptance gate.
   admission or production scheduling. There is no lease renewal, forced stop,
   provider cancellation, startup activation or automatic recovery.
 - Review: `docs/reports/workflow-dispatcher-review-2026-09-25.md`. Next, WF-011
-  requires a separate decision about startup orchestration and operator-visible
-  unresolved outcomes; it must not replay uncertain provider execution.
+  was separately authorized and completed as recorded below.
+
+## WF-011 conservative startup recovery (2026-09-25)
+
+- ADR-020 runs one bounded SQLite recovery transaction during lifespan, before
+  runtime-state collection, only when the opt-in offline workflow store exists.
+- Expired running work is fenced to `uncertain`. Valid hash/fence-bound saved
+  outcomes become `awaiting_validation` or `failed`; missing/corrupt evidence
+  remains uncertain and never triggers inference.
+- `WORKFLOW_RECOVERY_SCAN_LIMIT` defaults to 1000. Overflow rolls back and fails
+  startup. A failed lifespan clears stale in-process recovery status and closes
+  initialized resources.
+- `GET /v1/workflows/recovery` requires operator/admin authority, normal
+  admission/terminal recording, and returns only the authenticated tenant's
+  workflow IDs, states and stable reason codes. No prompt/result/provider data
+  or cross-tenant count is exposed.
+- Review: `docs/reports/workflow-startup-recovery-review-2026-09-25.md`. No
+  provider call, dispatcher auto-start, automatic validation or replay was
+  added. Remaining WF-012–WF-014 items retain their external/product gates.
+- Final verification: 400 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 110 sources, compileall, `git diff --check` and
+  a repository scan for pasted API-key patterns passed.

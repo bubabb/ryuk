@@ -576,6 +576,95 @@ class SQLiteWorkflowStore:
                 self._event(tenant, row["id"], "uncertain", fence)
             return len(rows)
 
+    def recover_startup(
+        self, *, limit: int, now: datetime | None = None
+    ) -> dict[str, Any]:
+        """Recover and reconcile a bounded snapshot without replaying inference."""
+        if type(limit) is not int or not 1 <= limit <= 100_000:
+            raise ValueError("Recovery scan limit must be between 1 and 100000")
+        with self._transaction():
+            current = self._now(now).isoformat()
+            candidates = self._db.execute(
+                "SELECT id, tenant, state, fence FROM workflows WHERE "
+                "state='uncertain' OR (state='running' AND lease_until<=?) "
+                "ORDER BY rowid LIMIT ?",
+                (current, limit + 1),
+            ).fetchall()
+            if len(candidates) > limit:
+                raise WorkflowConflict("Startup recovery scan limit exceeded")
+            expired = [row for row in candidates if row["state"] == "running"]
+            for row in expired:
+                fence = row["fence"] + 1
+                self._db.execute(
+                    "UPDATE workflows SET state='uncertain', fence=?, owner=NULL, "
+                    "lease_until=NULL WHERE tenant=? AND id=?",
+                    (fence, row["tenant"], row["id"]),
+                )
+                self._event(row["tenant"], row["id"], "uncertain", fence)
+
+            reconciled: list[dict[str, str]] = []
+            unresolved: list[dict[str, str]] = []
+            for candidate in candidates:
+                tenant, workflow_id = candidate["tenant"], candidate["id"]
+                row = self._db.execute(
+                    "SELECT fence FROM workflows WHERE tenant=? AND id=?",
+                    (tenant, workflow_id),
+                ).fetchone()
+                journal = self._db.execute(
+                    "SELECT * FROM workflow_dispatches "
+                    "WHERE tenant=? AND workflow_id=?",
+                    (tenant, workflow_id),
+                ).fetchone()
+                if journal is None or journal["outcome_json"] is None:
+                    unresolved.append(
+                        {
+                            "tenant": tenant,
+                            "workflow_id": workflow_id,
+                            "reason": "outcome_unknown",
+                        }
+                    )
+                    continue
+                encoded = journal["outcome_json"]
+                try:
+                    valid = (
+                        journal["fence"] + 1 == row["fence"]
+                        and hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+                        == journal["outcome_sha256"]
+                        and journal["succeeded"] in (0, 1)
+                        and isinstance(json.loads(encoded), dict)
+                    )
+                except (AttributeError, TypeError, ValueError):
+                    valid = False
+                if not valid:
+                    unresolved.append(
+                        {
+                            "tenant": tenant,
+                            "workflow_id": workflow_id,
+                            "reason": "invalid_outcome_evidence",
+                        }
+                    )
+                    continue
+                succeeded = bool(journal["succeeded"])
+                self._commit_result(
+                    tenant, workflow_id, row["fence"], encoded, succeeded
+                )
+                reconciled.append(
+                    {
+                        "tenant": tenant,
+                        "workflow_id": workflow_id,
+                        "state": "awaiting_validation" if succeeded else "failed",
+                    }
+                )
+            return {
+                "scanned": len(candidates),
+                "expired": [
+                    {"tenant": row["tenant"], "workflow_id": row["id"]}
+                    for row in expired
+                ],
+                "reconciled": reconciled,
+                "unresolved": unresolved,
+            }
+
     def events(self, tenant: str, workflow_id: str) -> list[dict[str, Any]]:
         with self._lock:
             return [

@@ -16,6 +16,12 @@ from backend.inference.router import InferenceRouter
 from backend.workflows.budget import WorkflowBudget
 from backend.workflows.executor import WorkflowExecutor
 from backend.workflows.governance import WorkflowPolicy, load_workflow_policies
+from backend.workflows.recovery import (
+    ExpiredWorkflow,
+    ReconciledWorkflow,
+    StartupRecoveryReport,
+    UnresolvedWorkflow,
+)
 from backend.workflows.store import SQLiteWorkflowStore, WorkflowConflict
 from tests.test_api import ASGITestClient
 from tests.test_execution import ControlledEngine, registry
@@ -93,6 +99,39 @@ def test_every_route_requires_authentication_and_role(env, credentials, expected
     for method, path, kwargs in requests_for(workflow):
         assert client.request(method, path, **kwargs).status_code == expected
     assert env[0].get("a", workflow)["state"] == "ready"
+
+
+def test_operator_can_inspect_only_own_startup_recovery_report(env, monkeypatch):
+    monkeypatch.setattr(
+        main,
+        "workflow_recovery_report",
+        StartupRecoveryReport(
+            scanned=4,
+            expired=(ExpiredWorkflow("a", "expired-a"),),
+            reconciled=(
+                ReconciledWorkflow("a", "saved-a", "awaiting_validation"),
+                ReconciledWorkflow("b", "saved-b", "failed"),
+            ),
+            unresolved=(UnresolvedWorkflow("a", "unknown-a", "outcome_unknown"),),
+        ),
+    )
+    assert env[1]["a"].get("/v1/workflows/recovery").status_code == 403
+    response = env[1]["operator"].get("/v1/workflows/recovery")
+    assert response.status_code == 200
+    assert response.json() == {
+        "scanned": 3,
+        "expired": 1,
+        "reconciled": [{"workflow_id": "saved-a", "state": "awaiting_validation"}],
+        "unresolved": [{"workflow_id": "unknown-a", "reason": "outcome_unknown"}],
+    }
+    assert "saved-b" not in response.text
+
+
+def test_recovery_status_fails_closed_without_startup_report(env, monkeypatch):
+    monkeypatch.setattr(main, "workflow_recovery_report", None)
+    response = env[1]["operator"].get("/v1/workflows/recovery")
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "workflow_recovery_unavailable"
 
 
 def test_revoked_and_expired_keys_fail_closed(env):

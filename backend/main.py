@@ -40,17 +40,30 @@ from backend.inference.runtime import DeploymentRuntimeState, RuntimeStateCollec
 from backend.middleware import RequestBodyLimitMiddleware, RequestContextMiddleware
 from backend.workflows.api import build_workflow_router
 from backend.workflows.governance import load_workflow_policies
+from backend.workflows.recovery import (
+    StartupRecoveryReport,
+    recover_workflows_at_startup,
+)
 from backend.workflows.store import SQLiteWorkflowStore
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    global workflow_recovery_report
     del app
+    workflow_recovery_report = None
     runtime_started = False
     try:
         if settings.app_env is AppEnvironment.PRODUCTION:
             api_control.verify_production_ready()
         await verify_production_deployments(settings, deployment_registry)
+        workflow_recovery_report = (
+            recover_workflows_at_startup(
+                workflow_store, limit=settings.workflow_recovery_scan_limit
+            )
+            if workflow_store is not None
+            else None
+        )
         await runtime_collector.start()
         runtime_started = True
         yield
@@ -140,6 +153,7 @@ workflow_store = (
     if settings.workflow_store_path is not None
     else None
 )
+workflow_recovery_report: StartupRecoveryReport | None = None
 
 
 def require_role(role: Role):
@@ -734,6 +748,59 @@ def _audit_validate(payload: AuditValidationRequest) -> dict[str, object]:
             "iteration": decision.iteration,
         },
     }
+
+
+@app.get("/v1/workflows/recovery")
+async def workflow_recovery_status(
+    request: Request,
+    principal: OperatorPrincipal,
+) -> dict[str, object]:
+    operation = "workflow.recovery.status"
+    permit = admit_request(request, principal, operation, 0)
+    status = "failed"
+    try:
+        if workflow_store is None or workflow_recovery_report is None:
+            raise ControlPlaneFailure(
+                503,
+                "workflow_recovery_unavailable",
+                "Workflow startup recovery is not available.",
+            )
+        tenant = principal.tenant_id
+        status = "accepted"
+        scanned_ids = {
+            item.workflow_id
+            for item in workflow_recovery_report.expired
+            if item.tenant == tenant
+        }
+        scanned_ids.update(
+            item.workflow_id
+            for item in workflow_recovery_report.reconciled
+            if item.tenant == tenant
+        )
+        scanned_ids.update(
+            item.workflow_id
+            for item in workflow_recovery_report.unresolved
+            if item.tenant == tenant
+        )
+        return {
+            "scanned": len(scanned_ids),
+            "expired": sum(
+                item.tenant == tenant for item in workflow_recovery_report.expired
+            ),
+            "reconciled": [
+                {"workflow_id": item.workflow_id, "state": item.state}
+                for item in workflow_recovery_report.reconciled
+                if item.tenant == tenant
+            ],
+            "unresolved": [
+                {"workflow_id": item.workflow_id, "reason": item.reason}
+                for item in workflow_recovery_report.unresolved
+                if item.tenant == tenant
+            ],
+        }
+    finally:
+        permit.release()
+        record_terminal(request, principal, operation, status)
 
 
 app.include_router(

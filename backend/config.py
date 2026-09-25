@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     workflow_store_path: Path | None = None
     workflow_policy_config_path: Path | None = None
+    workflow_recovery_scan_limit: int = Field(default=1000, ge=1, le=100_000)
 
     # Existing model/provider settings
 
