@@ -469,20 +469,28 @@ exit criterion; this does not certify automatic scheduling or startup recovery,
 provider cancellation propagation, durable input-token/monetary budgets,
 distributed execution or production operation. WF-010–WF-014 track these
 deferred slices. CTX-001's candidate-specific fitting library and ADR-017 are
-complete for offline use; CTX-002 is ready for the conversation/source-store
-vertical slice. The Phase 4 exit gate, Phase 2B and live certification remain
+complete for offline use, as is CTX-002's scoped SQLite conversation/source
+store and authorization-filtered context builder (ADR-018). Neither library is
+integrated with dispatch. CTX-003 remains held for verified tokenizer/template
+and Phase 2B evidence; the Phase 4 exit gate and live certification remain
 pending.
+
+The CTX-002 implementation review records 386 offline tests passed with eight
+external integrations deselected; Ruff, Mypy across 105 sources, compileall and
+`git diff --check` passed. See
+`docs/reports/conversation-source-store-review-2026-09-25.md`.
 
 The next session should begin by reading:
 
 - `docs/NEXT_SESSION_HANDOFF.md`;
 - `docs/ACTION_ITEMS.md`;
-- `backend/workflows/contracts.py`, `store.py`, `budget.py`, and `executor.py`;
-- `docs/adr/ADR-011-offline-durable-workflows.md` through ADR-016.
+- `RYUK_DEVELOPMENT_PHASE_PLAN.md` Phase 4;
+- `backend/context/` and `docs/adr/ADR-017-candidate-specific-context-preparation.md` through ADR-018;
+- the offline deployment profiles and CTX-003 completion evidence.
 
-Run `python -m pytest -q -m 'not integration'` before modifying the workflow
-boundary. Keep all inputs synthetic/public, do not use private repositories,
-and leave live certification pending.
+Keep all inputs synthetic/public, do not use private repositories, and leave
+live certification pending. Do not claim Phase 4 completion until its actual
+candidate fallback, retention and two-candidate context evaluation gates pass.
 
 ### P0 — Required Before Any Production Traffic
 

@@ -91,7 +91,6 @@ work. Effort levels are starting settings, not calibrated guarantees.
 | WF-012 | HOLD | Astra / high for cancellation contract; Sol / high for implementation | Luna tabulates per-provider cancellation observations | Requires Phase 2B provider contracts and real cancellation/late-result evidence; model review cannot replace provider tests. |
 | WF-013 | HOLD | Sol / high | Luna collates usage telemetry and billing terms from approved sources | Astra reviews budget/unknown-usage semantics; owner approves spend constraints; requires verified provider telemetry and billing terms. |
 | WF-014 | HOLD | Astra / high for graph semantics; Sol / high for implementation | Luna turns approved workflow examples into fixtures | Defer until multi-step orchestration is approved; keep single-task workflows simple. |
-| CTX-002 | READY | Sol / high | Luna creates source-selection and isolation fixtures | Astra reviews authorization-before-selection, trust labels and retention boundaries; use only approved synthetic/public sources. |
 | CTX-003 | HOLD | Sol / high | Luna collates exact tokenizer/template evidence | Requires verified candidate artifacts and Phase 2B contract evidence; Astra reviews count/execution binding and fallback safety. |
 | CTX-004 | HOLD | Astra / high for compaction and evaluation design; Sol / high for implementation | Luna prepares labeled critical-fact fixtures | Requires source-bound invalidation, two candidate contexts and approved retention rules; measure rather than infer context quality. |
 | TOOL-001 | HOLD | Astra / high for threat model; Sol / high for implementation | Luna inventories approved commands and documents policy | Astra reviews authority/isolation/side effects; owner approves tool policy and adversarial sandbox tests must pass. |
@@ -154,7 +153,7 @@ Review findings and resulting decisions:
 - SPEC-001/PROD-001 are too broad for a single confidence claim; split into
   measurable slices before using a lower-cost model as sole implementer.
 
-Mechanical coverage check: all 32 open tracker IDs occur exactly once in the main
+Mechanical coverage check: all 31 open tracker IDs occur exactly once in the main
 allocation table, with matching statuses. That proves coverage only, not 100%
 correctness or an 87% success rate. Pilot v1 is recorded in
 `evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one
@@ -190,11 +189,12 @@ usage savings. See `evals/model_allocation/PROTOCOL.md` and the saved run.
 
 ## How to apply this without wasting usage
 
-For CTX-002, use `gpt-6-sol` with high reasoning for a bounded implementation
-slice. Give it the Phase 4 requirements, ADR-017, the Phase 3 exit review, and
-the relevant authorization/store contracts. Use Luna for bounded fixture and
-evidence collation; escalate authorization or retention design to Astra. This
-is a starting allocation, not a measured savings claim.
+For CTX-003, first verify whether candidate tokenizer/template identities and
+capacity evidence can be established within the offline scope. Keep the item on
+HOLD until its Phase 2B contract prerequisites are met; do not treat estimates
+or synthetic counters as deployment evidence. Sol/high can implement a bounded
+adapter slice after the evidence is available, with Astra reviewing count to
+execution binding. This is a starting allocation, not a measured savings claim.
 
 For later work, give the chosen model one bounded slice, acceptance tests,
 authorized paths and relevant contracts. Use deterministic commands for counting,

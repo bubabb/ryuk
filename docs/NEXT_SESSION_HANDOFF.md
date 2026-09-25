@@ -5,11 +5,13 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**CTX-001 is complete. Next: CTX-002, the offline conversation/source-store
-vertical slice.** ADR-017 and `backend/context/` define and implement a
-candidate-specific fitting boundary, but it is not wired to dispatch and does
-not persist conversations or authorize source retrieval. Keep synthetic/public
-inputs only. The Phase 3 review accepts the offline single-task exit while
+**CTX-002 is complete. Next: check CTX-003's evidence gate** for verified
+candidate tokenizer/template identities and Phase 2B generation contracts.
+CTX-003 remains HOLD until that evidence exists; do not treat estimates or
+synthetic counters as deployment evidence. ADR-017 and ADR-018 plus
+`backend/context/` provide offline fitting and scoped conversation/source
+libraries, but neither is wired to API dispatch. Keep synthetic/public inputs
+only. The Phase 3 review accepts the offline single-task exit while
 tracking scheduler, startup recovery, provider cancellation, usage/cost budgets
 and dependency graphs as deferred follow-ups. The model-allocation pilot v1 is
 saved but fails its quality gate; 87% remains unverified. Live certification
@@ -66,15 +68,17 @@ sandbox API stalls. No external tests, live services or GPU certification ran.
 
 ## Next actions and limits
 
-Read docs/ACTION_ITEMS.md, ADR-011 through ADR-016, the workflow modules and
-`docs/reports/workflow-api-review-2026-09-24.md`.
+Read `docs/ACTION_ITEMS.md`, the Phase 4 requirements in
+`RYUK_DEVELOPMENT_PHASE_PLAN.md`, ADR-017/018, `backend/context/`, and the
+offline deployment profiles before considering CTX-003.
 
-Start CTX-002 by reading the Phase 4 requirements in
-`RYUK_DEVELOPMENT_PHASE_PLAN.md`, ADR-017, and the existing authorization and
-workflow-store contracts. Design the source/conversation persistence boundary
-before implementation; apply authorization before selecting context. Keep the
-WF-010–WF-014 and CTX-003/004 deferrals visible. Do not treat the Phase 3
-offline exit as production approval.
+Start by reviewing the CTX-003 prerequisites in `docs/ACTION_ITEMS.md`,
+`RYUK_DEVELOPMENT_PHASE_PLAN.md` and the offline deployment profiles. Any
+offline-only evidence gathering must preserve unknown tokenizer/template or
+capacity claims; no provider calls, artifact downloads or production activation
+are authorized by this handoff. If the Phase 2B contract prerequisites remain
+unmet, keep CTX-003/004 on HOLD and identify a separately approved READY task.
+Do not treat the Phase 3 offline exit as production approval.
 
 No automatic scheduler or public execution/validation/recovery route exists.
 Internal execution remains explicitly invoked; deadlines start at dispatch.
@@ -86,30 +90,33 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 32 current open
-tracker items have primary/support/review assignments. CTX-002: GPT-6 Sol/high
-for implementation, Luna for bounded fixture/evidence work, and Astra for
-authorization or retention boundary review. Luna is for bounded evidence and
-documentation tasks. This does not change Ryuk's runtime models or enable agents.
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 31 current open
+tracker items have primary/support/review assignments. CTX-003: hold pending
+verified deployment evidence; Sol/high implementation and Astra/high review
+only after the gate. Luna can collate bounded evidence. Luna is for bounded
+evidence and documentation tasks. This does not change Ryuk's runtime models or
+enable agents.
 The requested 87% correctness target remains empirically unverified; the report
 records the completed static review and a proposed measurable acceptance gate.
 
-## CTX-001 candidate-specific fitting (2026-09-25)
+## CTX-002 conversations and source-filtered context (2026-09-25)
 
-- ADR-017, `backend/context/` and
-  `docs/reports/context-preparation-review-2026-09-25.md` define source trust,
-  candidate-specific token counters/templates, output reserve and safety
-  margin, deterministic optional fitting/deduplication, overflow behavior and
-  payload/source provenance.
-- The context library is not connected to API dispatch. Durable conversation
-  storage, source authorization/retrieval, compaction, retention, production
-  counters and exact candidate tokenizer/template integration remain open.
-- Ten focused tests cover boundaries, required overflow, fit order, duplicates,
-  fallback re-preparation, estimated counts, counter mismatch and trust roles.
-  Full suite: 377 offline tests passed, 8 integration tests deselected; Ruff,
-  Mypy across 102 sources, compileall and `git diff --check` passed.
-- Next: CTX-002, offline conversation/source storage and authorization-filtered
-  context building. CTX-003/004 retain deployment-evidence and evaluation gates.
+- ADR-018 adds `SQLiteContextStore` for tenant/project/user-scoped conversations
+  and immutable source revisions. `ContextBuilder` applies server-owned policy,
+  checks conversation and source permissions before loading content, and fails
+  closed instead of returning partial context. CTX-001's fitting function then
+  consumes the returned source-linked segments.
+- Project membership comes from a trusted `ContextPrincipal`; the context
+  package does not authenticate users or resolve project membership itself.
+  SQLite and this builder are offline libraries, not a public API or production
+  data store. Correction/deletion, retention and dispatch integration remain
+  open.
+- Ten preparation tests and nine conversation/source tests passed. Full suite:
+  386 offline tests passed, 8 integration tests deselected; Ruff, Mypy across
+  105 sources, compileall and `git diff --check` passed.
+- Next: qualify CTX-003's verified-tokenizer/template and Phase 2B evidence gate;
+  keep it HOLD if the evidence is unavailable. CTX-004 remains held for source
+  correction, compaction and two-candidate context evaluation.
 
 ## WF-009 Phase 3 exit review (2026-09-25)
 

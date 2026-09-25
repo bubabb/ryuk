@@ -21,6 +21,62 @@ class ContextTrust(StrEnum):
     ASSISTANT_HISTORY = "assistant_history"
 
 
+class ContextScope(StrEnum):
+    USER = "user"
+    PROJECT = "project"
+
+
+@dataclass(frozen=True, slots=True)
+class ContextPrincipal:
+    """Trusted identity/scope resolved by the application authorization layer."""
+
+    tenant_id: str
+    user_id: str
+    project_ids: frozenset[str]
+
+    def __post_init__(self) -> None:
+        _identifier(self.tenant_id, "tenant_id")
+        _identifier(self.user_id, "user_id")
+        if not isinstance(self.project_ids, frozenset):
+            raise ValueError("Project memberships must be an immutable set.")
+        for project_id in self.project_ids:
+            _identifier(project_id, "project_id")
+
+
+@dataclass(frozen=True, slots=True)
+class ConversationRecord:
+    conversation_id: str
+    tenant_id: str
+    project_id: str
+    owner_id: str
+    scope: ContextScope
+    created_at: str
+
+
+@dataclass(frozen=True, slots=True)
+class ContextSourceRef:
+    source_id: str
+    revision: str
+    required: bool
+    priority: int = 0
+
+    def __post_init__(self) -> None:
+        _identifier(self.source_id, "source_id")
+        _identifier(self.revision, "revision")
+        if type(self.required) is not bool or type(self.priority) is not int:
+            raise ValueError("Source selection required and priority are invalid.")
+        if type(self.required) is not bool or type(self.priority) is not int:
+            raise ValueError("Source selection required and priority are invalid.")
+
+
+@dataclass(frozen=True, slots=True)
+class BuiltContext:
+    conversation_id: str
+    tenant_id: str
+    project_id: str
+    segments: tuple[ContextSegment, ...]
+
+
 class TokenCountMethod(StrEnum):
     EXACT = "exact"
     ESTIMATED = "estimated"
@@ -51,6 +107,10 @@ class ContextSegment:
     def __post_init__(self) -> None:
         _identifier(self.source_id, "source_id")
         _identifier(self.source_revision, "source_revision")
+        if not isinstance(self.role, ChatRole) or not isinstance(
+            self.trust, ContextTrust
+        ):
+            raise ValueError("Context role and trust must use Ryuk-owned enums.")
         if not self.content or not self.content.strip():
             raise ValueError("Context content must contain non-whitespace text.")
         if self.role is ChatRole.SYSTEM and self.trust is not ContextTrust.POLICY:
@@ -64,6 +124,8 @@ class ContextSegment:
                 raise ValueError("Assistant history must use the assistant role.")
         elif self.trust is not ContextTrust.POLICY and self.role is not ChatRole.USER:
             raise ValueError("Non-policy context must use the user role.")
+        if type(self.required) is not bool or type(self.priority) is not int:
+            raise ValueError("Context required and priority fields have invalid types.")
 
 
 @dataclass(frozen=True, slots=True)
