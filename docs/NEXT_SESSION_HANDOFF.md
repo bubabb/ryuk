@@ -5,7 +5,10 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-003 is complete. Next: select an authorized unblocked task.** CTX-003's
+**WF-010 is complete. Next: review WF-011's separate startup-recovery scope.**
+The local dispatcher is explicit and bounded; it is not wired to API creation
+or application startup. WF-011 remains HOLD until separately authorized and
+must preserve the no-automatic-replay rule. CTX-003's
 evidence gate still requires verified
 candidate tokenizer/template identities and Phase 2B generation contracts.
 CTX-003 remains HOLD until that evidence exists; do not treat estimates or
@@ -58,8 +61,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 389 passed, 8 deselected
--m mypy backend tests scripts: success, 106 source files
+-m pytest -q -m 'not integration': 393 passed, 8 deselected
+-m mypy backend tests scripts: success, 108 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -185,5 +188,23 @@ records the completed static review and a proposed measurable acceptance gate.
 - Overall Wilson 95% interval is 87.13–100%, but model strata are small and the
   sample is purposive/synthetic. `population_claim_valid` remains false.
 - CTX-003 and Phase 2B remain blocked. No currently tracked implementation item
-  is READY; the next session needs owner selection/authorization rather than
-  silently starting a HOLD or BLOCKED production task.
+  was READY at that checkpoint; the owner subsequently authorized WF-010.
+
+## WF-010 bounded local dispatcher (2026-09-25)
+
+- ADR-019 adds an explicitly started, one-shot local dispatcher with a bounded
+  concurrency ceiling and graceful stop: intake closes before active calls are
+  drained. Construction, workflow creation and application startup do not start
+  execution.
+- SQLite ready listing is advisory and capped; the existing atomic tenant claim,
+  owner, lease and fence remain authoritative. Successful inference still stops
+  at `awaiting_validation`.
+- Conflicts and unexpected failures are isolated and reported with counters plus
+  at most 100 sanitized tenant/workflow/code records. Unexpected post-claim
+  failure remains conservative durable state for recovery, never silent replay.
+- This is offline single-controller reference behavior, not distributed
+  admission or production scheduling. There is no lease renewal, forced stop,
+  provider cancellation, startup activation or automatic recovery.
+- Review: `docs/reports/workflow-dispatcher-review-2026-09-25.md`. Next, WF-011
+  requires a separate decision about startup orchestration and operator-visible
+  unresolved outcomes; it must not replay uncertain provider execution.

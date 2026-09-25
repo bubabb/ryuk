@@ -232,6 +232,20 @@ class SQLiteWorkflowStore:
             return None
         return TaskPacket.from_dict(workflow["packet"])
 
+    def list_ready(self, limit: int) -> list[tuple[str, str]]:
+        """Return a bounded local snapshot; claiming remains the authority."""
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("Ready workflow limit must be between 1 and 1000")
+        with self._lock:
+            return [
+                (row["tenant"], row["id"])
+                for row in self._db.execute(
+                    "SELECT tenant, id FROM workflows WHERE state='ready' "
+                    "ORDER BY rowid LIMIT ?",
+                    (limit,),
+                )
+            ]
+
     def get_artifact(
         self,
         tenant: str,
