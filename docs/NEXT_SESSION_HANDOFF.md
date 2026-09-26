@@ -6,8 +6,9 @@ Repository: `/home/sudosu/projects/ryuk`
 ## Resume objective
 
 **EVAL-009 is complete. The owner deferred EVAL-010 and all evaluation execution
-until the offline build-completion gate. Next: resolve DEC-001 and then the
-remaining owner decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
+until the offline build-completion gate. DEC-001 is approved hosted-first. Next:
+resolve DEC-002 and then the remaining owner decisions in
+`docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -104,7 +105,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 30 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 29 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded

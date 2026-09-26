@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Resolve DEC-001, then the remaining owner decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; evaluation execution is deferred until the build-completion gate
+**Next session starts with:** Resolve DEC-002, then the remaining owner decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; evaluation execution is deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -48,7 +48,7 @@ the existence of configuration fields or integration tests.
 
 | ID | Status | Decision needed | Required record |
 | --- | --- | --- | --- |
-| DEC-001 | HOLD | Choose hosted-first or self-hosted-first | Decision, rationale, date, and approved deployment environments |
+| DEC-001 | DONE | Choose hosted-first or self-hosted-first | Owner approved hosted-first on 2026-09-26: self-managed Ryuk controller with explicitly authorized hosted NVIDIA inference endpoints; `docs/decisions/DEC-001-hosted-first-initial-release.md` |
 | DEC-002 | HOLD | Approve exact initial models or substitutes | Exact model names and acceptable revisions |
 | DEC-003 | REVIEW | Define data classification, residency, retention, and provider-disclosure constraints | Synthetic/public-only inputs and no private repositories approved; live residency/provider/retention requirements remain pending |
 | DEC-004 | HOLD | Approve credentials, secret mechanism, hardware, and budget | Authorized access path; no credential values committed |

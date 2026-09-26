@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: owner sequencing selected; individual policy decisions remain pending
+Status: owner sequencing and DEC-001 selected; remaining policy decisions pending
 
 ## Selected delivery sequence
 
@@ -23,7 +23,8 @@ not the final hands-on acceptance phase and must not be replaced by assumptions.
 
 Resolve these before implementation branches diverge:
 
-1. DEC-001: first deployment mode and authorized environment.
+1. DEC-001 — DONE: hosted-first; self-managed Ryuk controller with authorized
+   hosted NVIDIA inference endpoints.
 2. DEC-002: exact initial model/profile revisions.
 3. DEC-003: live data classification, residency, retention and disclosure.
 4. DEC-004: secret mechanism, hardware/access path and spending ceiling.
@@ -73,6 +74,7 @@ claim.
 
 ## Current count
 
-Thirty tracker items remain non-DONE: 21 HOLD (including deferred EVAL-010), 8
-BLOCKED and 1 REVIEW. Several broad items must be split after scope decisions,
-so 30 is a lower bound on implementation change sets, not a schedule estimate.
+Twenty-nine tracker items remain non-DONE: 20 HOLD (including deferred
+EVAL-010), 8 BLOCKED and 1 REVIEW. Several broad items must be split after scope
+decisions, so 29 is a lower bound on implementation change sets, not a schedule
+estimate.

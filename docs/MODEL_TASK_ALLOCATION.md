@@ -68,7 +68,7 @@ work. Effort levels are starting settings, not calibrated guarantees.
 
 | ID | Status | Primary model / effort | Cheaper bounded work | Required review or decision and rationale |
 | --- | --- | --- | --- | --- |
-| DEC-001 | HOLD | Sol / medium | Luna summarizes approved environment options | Owner chooses hosted vs self-hosted; Sol can compare a defined shortlist without an Astra pass unless architectural constraints conflict. |
+| DEC-001 | DONE | Sol / medium | Luna summarizes approved environment options | Owner approved hosted-first on 2026-09-26; exact models, data rules, credentials/budget and live identity remain separate gates. |
 | DEC-002 | HOLD | Sol / medium | Luna extracts exact model IDs from verified sources | Owner approves models/revisions; verify current publisher/engine compatibility, never infer availability from a name. |
 | DEC-003 | REVIEW | Sol / high | Luna inventories existing data flows | Owner defines classification/residency/retention/disclosure; Astra reviews conflicting data boundaries. A model cannot supply legal or organizational approval. |
 | DEC-004 | HOLD | Sol / medium | Luna formats a secret-free access/budget checklist | Owner authorizes credentials, hardware and spend. Astra only for unresolved secret-boundary design; no credentials in prompts or reports. |
@@ -154,7 +154,7 @@ Review findings and resulting decisions:
 - SPEC-001/PROD-001 are too broad for a single confidence claim; split into
   measurable slices before using a lower-cost model as sole implementer.
 
-Mechanical coverage check: all 30 open tracker IDs occur exactly once in the main
+Mechanical coverage check: all 29 open tracker IDs occur exactly once in the main
 allocation table, with matching statuses. That proves coverage only, not 100%
 correctness or an 87% success rate. Pilot v1 is recorded in
 `evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one
