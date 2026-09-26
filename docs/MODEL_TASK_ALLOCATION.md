@@ -99,6 +99,7 @@ work. Effort levels are starting settings, not calibrated guarantees.
 | SPEC-001 | HOLD | Sol / high for one approved modality slice | Luna curates synthetic fixtures with explicit labels | Astra reviews only the new modality's trust/architecture boundary; real modality evaluation required. Split this broad item before implementation. |
 | CACHE-001 | HOLD | Sol / high | Luna documents cache keys and invalidation cases | Astra reviews tenant/policy/provenance isolation and stale-result acceptance; deterministic invalidation tests required. |
 | PROD-001 | HOLD | Sol / high for harnesses/runbooks; Astra / high for final evidence review | Luna indexes measured load/soak/restore reports | Owner approves rollout. Models cannot certify unrun chaos, restore, incident-response or production gates. Split into separately measurable gates. |
+| EVAL-010 | HOLD | Astra / high for adversarial protocol review; Sol / high for deterministic fixes | Luna indexes contract/version evidence | Owner deferred evaluation work until the offline build-completion gate; do not run models or fabricate external receipts. |
 
 No entire open item is assigned to Luna alone: this backlog consists of policy,
 certification, or architectural work. The intended Luna savings come from bounded
@@ -153,7 +154,7 @@ Review findings and resulting decisions:
 - SPEC-001/PROD-001 are too broad for a single confidence claim; split into
   measurable slices before using a lower-cost model as sole implementer.
 
-Mechanical coverage check: all 31 open tracker IDs occur exactly once in the main
+Mechanical coverage check: all 30 open tracker IDs occur exactly once in the main
 allocation table, with matching statuses. That proves coverage only, not 100%
 correctness or an 87% success rate. Pilot v1 is recorded in
 `evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one

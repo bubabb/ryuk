@@ -1,9 +1,9 @@
 # Ryuk Action Tracker
 
-**Last updated:** 2026-09-25
-**Current milestone:** Offline Phase 4 context preparation
+**Last updated:** 2026-09-26
+**Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Check CTX-003's evidence gate for verified candidate tokenizers/templates and Phase 2B contracts; see `docs/NEXT_SESSION_HANDOFF.md`; live certification remains pending by owner instruction
+**Next session starts with:** Resolve DEC-001, then the remaining owner decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; evaluation execution is deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -100,7 +100,11 @@ blocked until Phase 2B passes.
 | EVAL-003 | DONE | Execute, grade and review the preregistered model-allocation pilot v2 | EVAL-002 | `docs/reports/model-allocation-pilot-v2-2026-09-25.md`; 26/26 passed, zero critical failures or retries; bounded gate passed, population reliability and savings remain unverified |
 | EVAL-004 | DONE | Add v3 harness contracts for matched comparison arms, independent-review declarations and non-candidate usage | EVAL-003 | `docs/evaluations/model-allocation-v3-harness.md` and `docs/reports/model-allocation-v3-harness-review-2026-09-25.md`; 15 focused tests; no model calls or v3 benchmark claim |
 | EVAL-005 | DONE | Define a blocked-by-default v3 matched-evaluation governance and readiness protocol | EVAL-004 | `v3-governance.json`, fail-closed runner authorization, `docs/evaluations/model-allocation-v3-governance.md`, and review report; no model calls |
-| EVAL-006 | READY | Implement and test the preregistered Newcombe paired noninferiority metric | EVAL-005 | Reviewed implementation hash and deterministic boundary/reference tests; no model calls required |
+| EVAL-006 | DONE | Implement and test the preregistered Newcombe paired noninferiority metric | EVAL-005 | `scripts/model_allocation_statistics.py`, reviewed implementation hash, deterministic published-reference/boundary tests, and `docs/reports/model-allocation-paired-metric-review-2026-09-25.md` |
+| EVAL-007 | DONE | Define the sealed held-out case curation contract | EVAL-006 | Case schema, validator/compiler, curation packet, matched grading fixes, and `docs/reports/model-allocation-v3-curation-contract-review-2026-09-26.md`; no cases or calls |
+| EVAL-008 | DONE | Define blinded-review and all-in savings evidence contracts | EVAL-007 | Hash-bound review/savings schemas and validators, grader integration, and `docs/reports/model-allocation-v3-review-savings-contract-review-2026-09-26.md`; no external evidence or calls |
+| EVAL-009 | DONE | Add unified pre/post-run readiness-bundle validation | EVAL-008 | Bundle/access/approval schemas, cross-bound preflight, runner enforcement, one-attempt ceiling, and `docs/reports/model-allocation-v3-readiness-preflight-review-2026-09-26.md` |
+| EVAL-010 | HOLD | Adversarially audit and freeze the offline v3 evaluation protocol | Offline build-completion gate selected by owner on 2026-09-26 | Versioned protocol freeze and trust-chain review; no evaluation execution before the build-completion gate |
 
 ## Control-plane hardening
 
