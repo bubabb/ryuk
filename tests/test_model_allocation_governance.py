@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 
 import pytest
@@ -20,11 +21,22 @@ def governance_path():
 
 def test_governance_is_valid_but_blocked_by_named_readiness_evidence():
     document, blockers = load_governance(governance_path())
-    assert blockers == tuple(document["readiness"])
+    assert blockers == tuple(
+        field for field, value in document["readiness"].items() if value is None
+    )
     assert document["status"] == "blocked"
     assert minimum_passes(100, 0.87) == 94
     assert wilson_lower(94, 100) > 0.87
     assert wilson_lower(93, 100) < 0.87
+
+
+def test_governance_metric_hash_matches_reviewed_implementation():
+    document, _ = load_governance(governance_path())
+    implementation = (
+        governance_path().parents[2] / "scripts/model_allocation_statistics.py"
+    )
+    digest = hashlib.sha256(implementation.read_bytes()).hexdigest()
+    assert document["readiness"]["paired_metric_implementation_sha256"] == digest
 
 
 @pytest.mark.parametrize(
@@ -85,3 +97,11 @@ def test_ready_governance_requires_distinct_roles_and_real_hashes():
     ready["readiness"]["paired_metric_implementation_sha256"] = "b" * 64
     with pytest.raises(ValueError, match="must differ"):
         validate_governance(ready)
+
+
+def test_recorded_metric_hash_must_be_a_real_hash_while_blocked():
+    document, _ = load_governance(governance_path())
+    changed = copy.deepcopy(document)
+    changed["readiness"]["paired_metric_implementation_sha256"] = "recorded"
+    with pytest.raises(ValueError, match="metric hash"):
+        validate_governance(changed)

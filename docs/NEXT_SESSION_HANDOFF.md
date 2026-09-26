@@ -5,10 +5,11 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-005 is complete. Next: EVAL-006, the offline paired-metric
-implementation.** The v3 governance record is valid but blocked. No case
+**EVAL-006 is complete. Next: EVAL-007, prepare the v3 held-out case-manifest
+schema and curation packet without authoring or running cases.** The v3
+governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
-billing, model-access evidence, an implementation hash, and explicit run
+billing, model-access evidence, and explicit run
 approval are recorded. WF-011 startup recovery is bounded, tenant-visible and
 conservative; it never replays
 inference or starts the local dispatcher. WF-012 still depends on live Phase 2B
@@ -66,8 +67,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 413 passed, 8 deselected
--m mypy backend tests scripts: success, 112 source files
+-m pytest -q -m 'not integration': 432 passed, 8 deselected
+-m mypy backend tests scripts: success, 114 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -271,4 +272,24 @@ records the completed static review and a proposed measurable acceptance gate.
   credential use, spending or runtime-routing change occurred.
 - Final verification: 413 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 112 sources, compileall, `git diff --check` and
+  the repository credential-pattern scan passed.
+
+## EVAL-006 paired noninferiority metric (2026-09-25)
+
+- `scripts/model_allocation_statistics.py` implements Newcombe method 10 for
+  allocation-minus-baseline paired proportions and a strict lower-bound
+  noninferiority decision.
+- The grader emits the paired gate only for complete pairs and gets its
+  three-point margin from ready, manifest-bound governance. V3 grading now
+  rejects absent, incomplete, or mismatched governance.
+- Six published Table III examples serve as deterministic reference vectors;
+  boundary and invalid-input tests fail closed.
+- Governance records the reviewed implementation SHA-256. Six unrelated
+  readiness fields remain absent, so v3 is still blocked and no run is
+  authorized.
+- Review: `docs/reports/model-allocation-paired-metric-review-2026-09-25.md`.
+  No model call, credential use, spending, case authoring or runtime-routing
+  change occurred.
+- Final verification: 432 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 114 sources, compileall, `git diff --check` and
   the repository credential-pattern scan passed.

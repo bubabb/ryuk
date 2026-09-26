@@ -302,6 +302,37 @@ def test_matched_summary_reports_pairs_and_incomplete_results():
     }
 
 
+def test_complete_matched_summary_applies_paired_noninferiority_gate():
+    results = []
+    outcomes = [("pass", "pass")] * 90 + [("pass", "fail")] * 5 + [
+        ("fail", "pass")
+    ] * 3 + [("fail", "fail")] * 2
+    for index, (allocation_grade, baseline_grade) in enumerate(outcomes):
+        for arm, grade in (
+            ("allocation", allocation_grade),
+            ("all_astra_baseline", baseline_grade),
+        ):
+            results.append(
+                {
+                    "id": f"C{index:03}-{arm}",
+                    "case_id": f"C{index:03}",
+                    "arm": arm,
+                    "model": "test",
+                    "critical_task": False,
+                    "grade": grade,
+                    "usage": None,
+                }
+            )
+    summary = summarize(
+        results,
+        comparison={"arms": ["allocation", "all_astra_baseline"]},
+        noninferiority_margin=0.03,
+    )
+    gate = summary["matched_comparison"]["noninferiority"]
+    assert gate["interval"]["difference"] == pytest.approx(0.02)
+    assert gate["passed"] is False
+
+
 def test_independent_review_declaration_is_enforced():
     manifest = {"review": {"require_independent": True}}
     valid = {

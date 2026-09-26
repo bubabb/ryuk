@@ -104,6 +104,15 @@ def validate_governance(document: dict[str, Any]) -> tuple[str, ...]:
     ):
         raise ValueError("Unique hard-stop failures are required")
     blockers = readiness_blockers(document)
+    implementation_hash = document["readiness"].get(
+        "paired_metric_implementation_sha256"
+    )
+    if implementation_hash is not None and (
+        not isinstance(implementation_hash, str)
+        or len(implementation_hash) != 64
+        or any(character not in "0123456789abcdef" for character in implementation_hash)
+    ):
+        raise ValueError("Paired metric hash must be a lowercase SHA-256 value")
     expected_status = "blocked" if blockers else "ready"
     if document["status"] != expected_status:
         raise ValueError("Governance status disagrees with readiness evidence")

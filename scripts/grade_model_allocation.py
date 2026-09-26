@@ -16,7 +16,12 @@ from typing import Any
 if __package__ in (None, ""):  # Support direct `python scripts/...py` invocation.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.model_allocation_governance import load_governance  # noqa: E402
 from scripts.model_allocation_manifest import load_manifest  # noqa: E402
+from scripts.model_allocation_statistics import (  # noqa: E402
+    newcombe_paired_interval,
+    paired_noninferiority,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT = ROOT / "evals/model_allocation/pilot.json"
@@ -151,6 +156,7 @@ def summarize(
     threshold: dict[str, int] | None = None,
     comparison: dict[str, Any] | None = None,
     overhead: dict[str, Any] | None = None,
+    noninferiority_margin: float | None = None,
 ) -> dict[str, Any]:
     threshold = threshold or {
         "planned_tasks": 26,
@@ -298,6 +304,18 @@ def summarize(
             key = "/".join(f"{arm}:{rows[arm]['grade']}" for arm in arms)
             paired["outcomes"][key] = paired["outcomes"].get(key, 0) + 1
         summary["matched_comparison"] = paired
+        if paired["incomplete_pairs"] == 0 and noninferiority_margin is not None:
+            allocation, baseline = arms
+            outcome = paired["outcomes"]
+            paired_interval = newcombe_paired_interval(
+                outcome.get(f"{allocation}:pass/{baseline}:pass", 0),
+                outcome.get(f"{allocation}:pass/{baseline}:fail", 0),
+                outcome.get(f"{allocation}:fail/{baseline}:pass", 0),
+                outcome.get(f"{allocation}:fail/{baseline}:fail", 0),
+            )
+            paired["noninferiority"] = paired_noninferiority(
+                paired_interval, margin=noninferiority_margin
+            )
     return summary
 
 
@@ -361,8 +379,24 @@ def main() -> None:
     parser.add_argument("--review", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, default=PILOT)
     parser.add_argument("--overhead", type=Path)
+    parser.add_argument("--governance", type=Path)
     args = parser.parse_args()
     manifest, manifest_digest = load_manifest(args.manifest.resolve())
+    noninferiority_margin = None
+    if manifest.get("version") == 3:
+        if args.governance is None:
+            raise ValueError("Version 3 grading requires a governance record")
+        governance, blockers = load_governance(args.governance.resolve())
+        if blockers:
+            raise ValueError(
+                "Version 3 grading requires complete governance; missing: "
+                + ", ".join(blockers)
+            )
+        if governance["readiness"]["case_manifest_sha256"] != manifest_digest:
+            raise ValueError("Governance is not bound to this manifest")
+        noninferiority_margin = governance["quality_gate"][
+            "noninferiority_margin"
+        ]
     metadata = json.loads((args.directory / "run.json").read_text())
     if manifest_digest != metadata["manifest_sha256"]:
         raise ValueError("Manifest changed after run began")
@@ -376,6 +410,7 @@ def main() -> None:
             manifest["threshold"],
             manifest.get("comparison"),
             overhead,
+            noninferiority_margin,
         ),
         "tasks": results,
     }

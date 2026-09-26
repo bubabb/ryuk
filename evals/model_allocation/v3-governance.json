@@ -54,7 +54,7 @@
     "reviewer_id": null,
     "billing_snapshot_id": null,
     "model_access_probe_id": null,
-    "paired_metric_implementation_sha256": null,
+    "paired_metric_implementation_sha256": "c9a6a122505a8475c7633a9f46ee9ec48dfe61c4224ebfb37a1d2f2339f9c94b",
     "owner_run_approval_id": null
   }
 }
