@@ -9,10 +9,11 @@ Repository: `/home/sudosu/projects/ryuk`
 until the offline build-completion gate. DEC-001 is approved hosted-first and
 DEC-002 approves the exact initial catalog targets `moonshotai/kimi-k3` and
 `deepseek-ai/deepseek-v4-flash-0731`, without claiming live availability or
-served revisions. DEC-003 now approves all data classifications as intended
-product scope, but current use remains synthetic/public-only until its
-residency, retention, provider-use/disclosure and class-specific controls are
-approved. Next: finish DEC-003 and then the remaining owner decisions in
+served revisions. DEC-003 approves all data classifications, global regions
+subject to tenant/legal constraints, mandatory class-specific retention and
+deletion, no provider training, and explicit provider/model disclosure. Current
+use remains synthetic/public-only until those controls and applicable evidence
+are implemented and verified. Next: resolve DEC-004 and the remaining owner decisions in
 `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
@@ -40,7 +41,8 @@ reliability or savings. Live certification remains pending.
   customer, confidential and regulated data.
 - Current offline development and provider checks remain synthetic/public-only.
 - No private repositories or private/customer data may be used until DEC-003's
-  remaining governance rules and required controls are approved and verified.
+  approved governance controls are implemented and the applicable evidence is
+  verified.
 - Hosted catalog identity is observed, not artifact-verified.
 - No live Ryuk-provider calls, provisioning or production activation. The owner
   separately authorized the recorded Codex model-allocation pilot v2 calls.
@@ -113,7 +115,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 28 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 27 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded

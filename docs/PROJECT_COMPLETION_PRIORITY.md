@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: owner sequencing and DEC-001/DEC-002 selected; remaining policy decisions pending
+Status: owner sequencing and DEC-001 through DEC-003 selected; remaining policy decisions pending
 
 ## Selected delivery sequence
 
@@ -28,9 +28,9 @@ Resolve these before implementation branches diverge:
 2. DEC-002 — DONE: exact initial hosted catalog targets are
    `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731`; served
    revisions and availability remain live evidence gates.
-3. DEC-003 — REVIEW: all data classifications are approved as intended product
-   scope; decide live residency, retention, provider use/disclosure and the
-   controls required to activate each non-public class.
+3. DEC-003 — DONE: all-class product scope; global regions subject to tenant and
+   legal requirements; mandatory class-specific retention/deletion; no provider
+   training; explicit provider/model disclosure. Activation remains evidence-gated.
 4. DEC-004: secret mechanism, hardware/access path and spending ceiling.
 5. DEC-006: benchmark corpus, thresholds and evaluation owner.
 6. DEC-007: identity evidence required for live activation.
@@ -78,7 +78,7 @@ claim.
 
 ## Current count
 
-Twenty-eight tracker items remain non-DONE: 19 HOLD (including deferred
-EVAL-010), 8 BLOCKED and 1 REVIEW. Several broad items must be split after scope
-decisions, so 28 is a lower bound on implementation change sets, not a schedule
+Twenty-seven tracker items remain non-DONE: 19 HOLD (including deferred
+EVAL-010) and 8 BLOCKED. Several broad items must be split after scope
+decisions, so 27 is a lower bound on implementation change sets, not a schedule
 estimate.
