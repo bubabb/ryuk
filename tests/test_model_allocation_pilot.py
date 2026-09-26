@@ -190,6 +190,58 @@ def test_review_is_required_and_bound_to_response_hash(tmp_path):
     assert grade_task(task, tmp_path, review)["grade"] == "pending_review"
 
 
+def test_declared_review_criteria_do_not_treat_non_code_as_python(tmp_path):
+    task = {
+        "id": "V3-C001--allocation",
+        "model": "gpt-6-sol",
+        "category": "architecture",
+        "critical": False,
+        "expected": None,
+        "checks": None,
+        "review_criteria": ["The recommendation preserves unknown evidence."],
+    }
+    folder = tmp_path / task["id"]
+    folder.mkdir()
+    (folder / "measurement.json").write_text(json.dumps({"status": "completed"}))
+    response = folder / "response.json"
+    response.write_text(json.dumps({"content": "A prose recommendation."}))
+    review = {
+        "V3-C001--allocation": {
+            "pass": True,
+            "notes": "criterion satisfied",
+            "response_sha256": hashlib.sha256(response.read_bytes()).hexdigest(),
+        }
+    }
+    assert grade_task(task, tmp_path, review)["grade"] == "pass"
+
+
+def test_v3_astra_baseline_runs_the_same_declared_code_checks(tmp_path):
+    task = {
+        "id": "V3-C001--all_astra_baseline",
+        "model": "gpt-6-astra",
+        "category": "implementation",
+        "critical": False,
+        "expected": None,
+        "checks": ["assert value == 2"],
+        "review_criteria": None,
+    }
+    folder = tmp_path / task["id"]
+    folder.mkdir()
+    (folder / "measurement.json").write_text(json.dumps({"status": "completed"}))
+    response = folder / "response.json"
+    response.write_text(json.dumps({"content": "value = 1"}))
+    review = {
+        "V3-C001--all_astra_baseline": {
+            "pass": True,
+            "notes": "response format reviewed",
+            "response_sha256": hashlib.sha256(response.read_bytes()).hexdigest(),
+        }
+    }
+    result = grade_task(task, tmp_path, review)
+    assert result["grade"] == "fail"
+    assert result["reason"] == "hidden_assertions_and_review"
+
+
 def test_exact_grading_rejects_boolean_integer_confusion(tmp_path):
     task = {
         "id": "P01",
@@ -252,6 +304,10 @@ def test_matched_manifest_requires_identical_complete_arms():
     with pytest.raises(ValueError, match="differs across arms"):
         validate_manifest(manifest)
     manifest = matched_manifest()
+    manifest["tasks"][0]["source"] = {"kind": "synthetic"}
+    with pytest.raises(ValueError, match="differs across arms"):
+        validate_manifest(manifest)
+    manifest = matched_manifest()
     manifest["comparison"]["arms"] = ["allocation", {}]
     with pytest.raises(ValueError, match="unique nonblank"):
         validate_manifest(manifest)
@@ -300,13 +356,24 @@ def test_matched_summary_reports_pairs_and_incomplete_results():
         "incomplete_pairs": 1,
         "outcomes": {"allocation:pass/baseline:fail": 1},
     }
+    governed = summarize(
+        results,
+        {
+            "planned_tasks": 4,
+            "minimum_first_pass": 2,
+            "critical_failures_allowed": 0,
+        },
+        comparison,
+        noninferiority_margin=0.03,
+        minimum_allocation_passes=2,
+    )
+    assert governed["matched_quality_gate_passed"] is False
+    assert governed["pilot_gate_passed"] is False
+    assert "noninferiority" not in governed["matched_comparison"]
 
 
-def test_complete_matched_summary_applies_paired_noninferiority_gate():
+def matched_results(outcomes):
     results = []
-    outcomes = [("pass", "pass")] * 90 + [("pass", "fail")] * 5 + [
-        ("fail", "pass")
-    ] * 3 + [("fail", "fail")] * 2
     for index, (allocation_grade, baseline_grade) in enumerate(outcomes):
         for arm, grade in (
             ("allocation", allocation_grade),
@@ -323,14 +390,46 @@ def test_complete_matched_summary_applies_paired_noninferiority_gate():
                     "usage": None,
                 }
             )
+    return results
+
+
+def test_complete_matched_summary_applies_paired_noninferiority_gate():
+    outcomes = [("pass", "pass")] * 90 + [("pass", "fail")] * 5 + [
+        ("fail", "pass")
+    ] * 3 + [("fail", "fail")] * 2
     summary = summarize(
-        results,
+        matched_results(outcomes),
         comparison={"arms": ["allocation", "all_astra_baseline"]},
         noninferiority_margin=0.03,
+        minimum_allocation_passes=94,
     )
     gate = summary["matched_comparison"]["noninferiority"]
     assert gate["interval"]["difference"] == pytest.approx(0.02)
     assert gate["passed"] is False
+    assert summary["matched_quality_gate_passed"] is False
+
+
+def test_matched_quality_gate_requires_all_preregistered_conditions():
+    outcomes = (
+        [("pass", "pass")] * 90
+        + [("pass", "fail")] * 4
+        + [("fail", "fail")] * 6
+    )
+    summary = summarize(
+        matched_results(outcomes),
+        threshold={
+            "planned_tasks": 200,
+            "minimum_first_pass": 94,
+            "critical_failures_allowed": 0,
+        },
+        comparison={"arms": ["allocation", "all_astra_baseline"]},
+        noninferiority_margin=0.03,
+        minimum_allocation_passes=94,
+    )
+    assert summary["by_arm"]["allocation"]["passed"] == 94
+    assert summary["matched_comparison"]["noninferiority"]["passed"] is True
+    assert summary["matched_quality_gate_passed"] is True
+    assert summary["pilot_gate_passed"] is True
 
 
 def test_independent_review_declaration_is_enforced():

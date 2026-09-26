@@ -46,7 +46,16 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             raise ValueError(f"Case {case_id} must occur exactly once in every arm")
         reference = tasks[0]
         for task in tasks[1:]:
-            for field in ("prompt", "expected", "checks", "critical", "category"):
+            for field in (
+                "prompt",
+                "expected",
+                "checks",
+                "review_criteria",
+                "critical",
+                "category",
+                "stratum",
+                "source",
+            ):
                 if task.get(field) != reference.get(field):
                     raise ValueError(
                         f"Case {case_id} differs across arms for field {field}"

@@ -1,12 +1,13 @@
 # Ryuk next-session handoff
 
-Date: 2026-09-25
+Date: 2026-09-26
 Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-006 is complete. Next: EVAL-007, prepare the v3 held-out case-manifest
-schema and curation packet without authoring or running cases.** The v3
+**EVAL-007 is complete. Next bounded offline task: EVAL-008, define the v3
+blinded-review ledger and all-in savings-evidence contracts without recording
+identities, billing evidence, or model responses.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -67,8 +68,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 432 passed, 8 deselected
--m mypy backend tests scripts: success, 114 source files
+-m pytest -q -m 'not integration': 444 passed, 8 deselected
+-m mypy backend tests scripts: success, 116 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -292,4 +293,24 @@ records the completed static review and a proposed measurable acceptance gate.
   change occurred.
 - Final verification: 432 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 114 sources, compileall, `git diff --check` and
+  the repository credential-pattern scan passed.
+
+## EVAL-007 v3 held-out curation contract (2026-09-26)
+
+- `v3-case-manifest.schema.json` and `V3_CURATION_PACKET.md` define a sealed,
+  case-centric process with exact preregistered strata, synthetic/public source
+  provenance, holdout attestations, one hidden grading mode, and frozen
+  allocation assignments.
+- `scripts/model_allocation_curation.py` rejects protocol drift and deterministically
+  expands 100 accepted cases into 200 identical matched tasks with an
+  all-Astra/high baseline. It performs no writes or model calls by default.
+- Matched-arm validation now covers provenance, strata and review criteria.
+  Prose-review cases no longer enter the Python-check path, and the v3 overall
+  gate requires all quality conditions together.
+- Review:
+  `docs/reports/model-allocation-v3-curation-contract-review-2026-09-26.md`.
+  No real cases, identities, private data, credentials, billing records, model
+  responses, spending, provider calls, or runtime changes were introduced.
+- Final verification: 444 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 116 sources, compileall, `git diff --check` and
   the repository credential-pattern scan passed.

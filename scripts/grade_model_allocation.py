@@ -124,7 +124,9 @@ def grade_task(
         return {**result, "grade": "pending_review", "reason": "review_hash_mismatch"}
     if not inspected["pass"]:
         return {**result, "grade": "fail", "reason": inspected["notes"]}
-    if task["model"] == "gpt-6-astra":
+    if task.get("review_criteria") is not None or (
+        "review_criteria" not in task and task["model"] == "gpt-6-astra"
+    ):
         return {**result, "grade": "pass", "reason": inspected["notes"]}
     try:
         safe_source(source)
@@ -157,6 +159,7 @@ def summarize(
     comparison: dict[str, Any] | None = None,
     overhead: dict[str, Any] | None = None,
     noninferiority_margin: float | None = None,
+    minimum_allocation_passes: int | None = None,
 ) -> dict[str, Any]:
     threshold = threshold or {
         "planned_tasks": 26,
@@ -304,7 +307,14 @@ def summarize(
             key = "/".join(f"{arm}:{rows[arm]['grade']}" for arm in arms)
             paired["outcomes"][key] = paired["outcomes"].get(key, 0) + 1
         summary["matched_comparison"] = paired
-        if paired["incomplete_pairs"] == 0 and noninferiority_margin is not None:
+        if noninferiority_margin is not None:
+            summary["matched_quality_gate_passed"] = False
+            summary["pilot_gate_passed"] = False
+        if (
+            paired["incomplete_pairs"] == 0
+            and paired["complete_pairs"] > 0
+            and noninferiority_margin is not None
+        ):
             allocation, baseline = arms
             outcome = paired["outcomes"]
             paired_interval = newcombe_paired_interval(
@@ -316,6 +326,21 @@ def summarize(
             paired["noninferiority"] = paired_noninferiority(
                 paired_interval, margin=noninferiority_margin
             )
+            if minimum_allocation_passes is None:
+                raise ValueError(
+                    "A matched minimum pass count is required with a margin"
+                )
+            matched_gate = (
+                complete
+                and total == threshold["planned_tasks"]
+                and invalid == 0
+                and critical <= threshold["critical_failures_allowed"]
+                and paired["incomplete_pairs"] == 0
+                and by_arm[allocation]["passed"] >= minimum_allocation_passes
+                and paired["noninferiority"]["passed"]
+            )
+            summary["matched_quality_gate_passed"] = matched_gate
+            summary["pilot_gate_passed"] = matched_gate
     return summary
 
 
@@ -383,6 +408,7 @@ def main() -> None:
     args = parser.parse_args()
     manifest, manifest_digest = load_manifest(args.manifest.resolve())
     noninferiority_margin = None
+    minimum_allocation_passes = None
     if manifest.get("version") == 3:
         if args.governance is None:
             raise ValueError("Version 3 grading requires a governance record")
@@ -396,6 +422,9 @@ def main() -> None:
             raise ValueError("Governance is not bound to this manifest")
         noninferiority_margin = governance["quality_gate"][
             "noninferiority_margin"
+        ]
+        minimum_allocation_passes = governance["quality_gate"][
+            "minimum_allocation_passes"
         ]
     metadata = json.loads((args.directory / "run.json").read_text())
     if manifest_digest != metadata["manifest_sha256"]:
@@ -411,6 +440,7 @@ def main() -> None:
             manifest.get("comparison"),
             overhead,
             noninferiority_margin,
+            minimum_allocation_passes,
         ),
         "tasks": results,
     }

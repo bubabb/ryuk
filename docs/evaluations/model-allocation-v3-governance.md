@@ -39,5 +39,14 @@ case-manifest hash to equal the resolved manifest hash. Dry-run inspection
 remains possible while blocked. Declarations do not independently prove actual
 identity, access or billing.
 
-EVAL-006 may implement and test the paired metric without model calls. Case
-curation, reviewer assignment, billing and run approval remain external gates.
+EVAL-006 implemented and tested the paired metric without model calls. EVAL-007
+adds the sealed case schema, validator, deterministic two-arm compiler and
+curation checklist. It contains no real cases or identities and does not fill
+any remaining readiness field. Case curation, reviewer assignment, billing,
+access verification and run approval remain external gates.
+
+The future curator must use `evals/model_allocation/V3_CURATION_PACKET.md` and
+`v3-case-manifest.schema.json`. `scripts/model_allocation_curation.py` enforces
+the 100-case stratum distribution and expands a valid sealed record into 200
+matched tasks without making model calls. The resulting resolved manifest hash,
+not the template or a draft curation hash, is the value governance must bind.
