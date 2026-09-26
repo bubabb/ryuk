@@ -22,8 +22,9 @@ provider-attested live identity from exact configuration and
 response agreement plus independent catalog/dashboard mapping; mismatches fail
 closed and model weights remain unverified. DEC-008 includes multi-step
 workflows, governed tools, persistent memory and caching in the initial release;
-collaboration, specialist modalities and HA are post-release. Next: implement
-WF-014 as the bounded READY offline task.** The v3
+collaboration, specialist modalities and HA are post-release. WF-014 now defines
+the bounded dependency-graph and scheduler-state contracts. Next: implement
+WF-015 durable graph/node persistence and atomic readiness.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -126,7 +127,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 26 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 28 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded

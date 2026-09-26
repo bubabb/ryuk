@@ -57,10 +57,13 @@ behavior. They are not final acceptance or production rollout.
 
 1. CTX-003, then CTX-004.
 2. WF-012 and WF-013.
-3. WF-014 — scope approved; this is the next READY offline task.
-4. TOOL-001 after its phase gate.
-5. MEM-001.
-6. CACHE-001 after accepted-result and provenance policies are stable.
+3. WF-014 — DONE: bounded dependency-graph and scheduler-state contracts.
+4. WF-015 — next READY task: durable graph/node state and atomic readiness.
+5. WF-016, then WF-017: graph execution/artifact binding, followed by governed
+   APIs and recovery.
+6. TOOL-001 after its phase gate.
+7. MEM-001.
+8. CACHE-001 after accepted-result and provenance policies are stable.
 
 COLLAB-001 and SPEC-001 are post-initial-release work under DEC-008.
 
@@ -86,7 +89,7 @@ claim.
 
 ## Current count
 
-Twenty-six tracker items remain non-DONE: 16 HOLD (including deferred
+Twenty-eight tracker items remain non-DONE: 18 HOLD (including deferred
 EVAL-010), 8 BLOCKED, 1 REVIEW and 1 READY. Several broad items must be split after scope
-decisions, so 26 is a lower bound on implementation change sets, not a schedule
+decisions, so 28 is a lower bound on implementation change sets, not a schedule
 estimate.
