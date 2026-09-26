@@ -28,7 +28,9 @@ Resolve these before implementation branches diverge:
 2. DEC-002 — DONE: exact initial hosted catalog targets are
    `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731`; served
    revisions and availability remain live evidence gates.
-3. DEC-003: live data classification, residency, retention and disclosure.
+3. DEC-003 — REVIEW: all data classifications are approved as intended product
+   scope; decide live residency, retention, provider use/disclosure and the
+   controls required to activate each non-public class.
 4. DEC-004: secret mechanism, hardware/access path and spending ceiling.
 5. DEC-006: benchmark corpus, thresholds and evaluation owner.
 6. DEC-007: identity evidence required for live activation.

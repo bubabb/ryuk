@@ -9,7 +9,10 @@ Repository: `/home/sudosu/projects/ryuk`
 until the offline build-completion gate. DEC-001 is approved hosted-first and
 DEC-002 approves the exact initial catalog targets `moonshotai/kimi-k3` and
 `deepseek-ai/deepseek-v4-flash-0731`, without claiming live availability or
-served revisions. Next: resolve DEC-003 and then the remaining owner decisions in
+served revisions. DEC-003 now approves all data classifications as intended
+product scope, but current use remains synthetic/public-only until its
+residency, retention, provider-use/disclosure and class-specific controls are
+approved. Next: finish DEC-003 and then the remaining owner decisions in
 `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
@@ -31,10 +34,13 @@ and dependency graphs as deferred follow-ups. Model-allocation pilot v2 passed
 its bounded 26-task gate, but its purposive sample does not verify population
 reliability or savings. Live certification remains pending.
 
-## User-approved scope
+## User-approved scope and current activation boundary
 
-- Offline implementation first, synthetic/public inputs only.
-- No private repositories or private/customer data.
+- The intended product supports all data classifications, including private,
+  customer, confidential and regulated data.
+- Current offline development and provider checks remain synthetic/public-only.
+- No private repositories or private/customer data may be used until DEC-003's
+  remaining governance rules and required controls are approved and verified.
 - Hosted catalog identity is observed, not artifact-verified.
 - No live Ryuk-provider calls, provisioning or production activation. The owner
   separately authorized the recorded Codex model-allocation pilot v2 calls.
