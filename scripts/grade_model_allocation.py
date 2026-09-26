@@ -75,6 +75,9 @@ def grade_task(
         "critical_task": task["critical"],
         "grade": "unrun",
     }
+    if "case_id" in task:
+        result["case_id"] = task["case_id"]
+        result["arm"] = task["arm"]
     if not (folder / "measurement.json").exists():
         return result
     measurement = json.loads((folder / "measurement.json").read_text())
@@ -144,7 +147,10 @@ def grade_task(
 
 
 def summarize(
-    results: list[dict[str, Any]], threshold: dict[str, int] | None = None
+    results: list[dict[str, Any]],
+    threshold: dict[str, int] | None = None,
+    comparison: dict[str, Any] | None = None,
+    overhead: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     threshold = threshold or {
         "planned_tasks": 26,
@@ -210,7 +216,7 @@ def summarize(
                 )
             },
         }
-    return {
+    summary = {
         "planned": total,
         "passed": passed,
         "failed": failed,
@@ -239,8 +245,114 @@ def summarize(
         "by_model": strata,
         "candidate_usage": usage,
         "recorded_candidate_usage_by_model": by_model_usage,
-        "setup_and_reviewer_usage": None,
+        "setup_and_reviewer_usage": overhead,
     }
+    usage_fields = (
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_output_tokens",
+    )
+    total_usage: dict[str, int | None]
+    if overhead is None:
+        total_usage = {field: None for field in usage_fields}
+    else:
+        total_usage = {}
+        for field in usage_fields:
+            values = [usage[field], *(item[field] for item in overhead.values())]
+            total_usage[field] = (
+                sum(item for item in values if type(item) is int)
+                if all(type(item) is int for item in values)
+                else None
+            )
+    summary["total_recorded_usage"] = total_usage
+    summary["usage_complete"] = all(
+        type(total_usage[field]) is int for field in usage_fields
+    )
+    if comparison is not None:
+        arms = comparison["arms"]
+        by_arm = {}
+        for arm in arms:
+            subset = [row for row in results if row["arm"] == arm]
+            by_arm[arm] = {
+                "planned": len(subset),
+                "passed": sum(row["grade"] == "pass" for row in subset),
+                "failed": sum(row["grade"] == "fail" for row in subset),
+                "ungraded": sum(row["grade"] not in ("pass", "fail") for row in subset),
+            }
+        summary["by_arm"] = by_arm
+        paired: dict[str, Any] = {
+            "complete_pairs": 0,
+            "incomplete_pairs": 0,
+            "outcomes": {},
+        }
+        cases = sorted({row["case_id"] for row in results})
+        for case_id in cases:
+            rows = {row["arm"]: row for row in results if row["case_id"] == case_id}
+            if set(rows) != set(arms) or any(
+                rows[arm]["grade"] not in ("pass", "fail") for arm in arms
+            ):
+                paired["incomplete_pairs"] += 1
+                continue
+            paired["complete_pairs"] += 1
+            key = "/".join(f"{arm}:{rows[arm]['grade']}" for arm in arms)
+            paired["outcomes"][key] = paired["outcomes"].get(key, 0) + 1
+        summary["matched_comparison"] = paired
+    return summary
+
+
+def validate_review_declaration(
+    manifest: dict[str, Any], review: dict[str, Any]
+) -> None:
+    policy = manifest.get("review") or {}
+    if not isinstance(policy, dict):
+        raise ValueError("Review policy must be an object")
+    if not policy.get("require_independent"):
+        return
+    metadata = review.get("_meta")
+    if not isinstance(metadata, dict):
+        raise ValueError("Independent review metadata is required")
+    reviewer = metadata.get("reviewer_id")
+    authors = metadata.get("candidate_author_ids")
+    if (
+        metadata.get("independent") is not True
+        or not isinstance(reviewer, str)
+        or not reviewer.strip()
+        or not isinstance(authors, list)
+        or not authors
+        or any(not isinstance(author, str) or not author.strip() for author in authors)
+        or reviewer in authors
+    ):
+        raise ValueError("Independent review declaration is invalid")
+
+
+def load_overhead(path: Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    value = json.loads(path.read_text())
+    fields = {
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_output_tokens",
+    }
+    if not isinstance(value, dict) or not value:
+        raise ValueError("Overhead ledger must contain named categories")
+    for category, usage in value.items():
+        if (
+            not isinstance(category, str)
+            or not category.strip()
+            or not isinstance(usage, dict)
+        ):
+            raise ValueError("Invalid overhead category")
+        if set(usage) != fields or any(
+            item is not None and (type(item) is not int or item < 0)
+            for item in usage.values()
+        ):
+            raise ValueError(
+                "Overhead usage fields must be nonnegative integers or null"
+            )
+    return value
 
 
 def main() -> None:
@@ -248,15 +360,23 @@ def main() -> None:
     parser.add_argument("directory", type=Path)
     parser.add_argument("--review", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, default=PILOT)
+    parser.add_argument("--overhead", type=Path)
     args = parser.parse_args()
     manifest, manifest_digest = load_manifest(args.manifest.resolve())
     metadata = json.loads((args.directory / "run.json").read_text())
     if manifest_digest != metadata["manifest_sha256"]:
         raise ValueError("Manifest changed after run began")
     review = json.loads(args.review.read_text())
+    validate_review_declaration(manifest, review)
+    overhead = load_overhead(args.overhead)
     results = [grade_task(task, args.directory, review) for task in manifest["tasks"]]
     report = {
-        "summary": summarize(results, manifest["threshold"]),
+        "summary": summarize(
+            results,
+            manifest["threshold"],
+            manifest.get("comparison"),
+            overhead,
+        ),
         "tasks": results,
     }
     (args.directory / "grades.json").write_text(json.dumps(report, indent=2) + "\n")

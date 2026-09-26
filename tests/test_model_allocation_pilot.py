@@ -8,8 +8,14 @@ from scripts.evaluate_model_allocation import (
     prepare_infrastructure_retry,
     prompt_for,
 )
-from scripts.grade_model_allocation import grade_task, summarize, wilson
-from scripts.model_allocation_manifest import load_manifest
+from scripts.grade_model_allocation import (
+    grade_task,
+    load_overhead,
+    summarize,
+    validate_review_declaration,
+    wilson,
+)
+from scripts.model_allocation_manifest import load_manifest, validate_manifest
 
 
 def test_manifest_is_complete_and_candidate_prompt_hides_grading():
@@ -58,9 +64,7 @@ def test_manifest_digest_changes_when_base_or_overlay_changes(tmp_path):
             }
         )
     )
-    overlay.write_text(
-        json.dumps({"version": 2, "base_manifest": "base.json"})
-    )
+    overlay.write_text(json.dumps({"version": 2, "base_manifest": "base.json"}))
     _, first = load_manifest(overlay)
     base.write_text(base.read_text().replace('"a"', '"b"'))
     _, second = load_manifest(overlay)
@@ -77,9 +81,9 @@ def test_resume_archives_only_one_declared_infrastructure_failure(tmp_path):
     }
     measurement.write_text(json.dumps({"status": "infrastructure_error"}))
     prepare_infrastructure_retry(measurement, policy)
-    assert json.loads(
-        (folder / "infrastructure_attempts/001.json").read_text()
-    ) == {"status": "infrastructure_error"}
+    assert json.loads((folder / "infrastructure_attempts/001.json").read_text()) == {
+        "status": "infrastructure_error"
+    }
     with pytest.raises(ValueError, match="retry limit"):
         prepare_infrastructure_retry(measurement, policy)
 
@@ -207,3 +211,161 @@ def test_grader_rejects_dangerous_source():
     for source in ("import os", "open('file')", "().__class__", "eval('1')"):
         with pytest.raises(ValueError):
             safe_source(source)
+
+
+def matched_manifest():
+    shared = {
+        "category": "matched",
+        "prompt": "Return synthetic output",
+        "expected": {"ok": True},
+        "checks": None,
+        "critical": False,
+    }
+    return {
+        "comparison": {
+            "arms": ["allocation", "baseline"],
+            "baseline_arm": "baseline",
+            "require_complete_pairs": True,
+        },
+        "tasks": [
+            {
+                **shared,
+                "id": f"{case}-{arm}",
+                "case_id": case,
+                "arm": arm,
+                "model": "test",
+            }
+            for case in ("C01", "C02")
+            for arm in ("allocation", "baseline")
+        ],
+    }
+
+
+def test_matched_manifest_requires_identical_complete_arms():
+    manifest = matched_manifest()
+    validate_manifest(manifest)
+    manifest["tasks"].pop()
+    with pytest.raises(ValueError, match="exactly once"):
+        validate_manifest(manifest)
+    manifest = matched_manifest()
+    manifest["tasks"][1]["prompt"] = "different"
+    with pytest.raises(ValueError, match="differs across arms"):
+        validate_manifest(manifest)
+    manifest = matched_manifest()
+    manifest["comparison"]["arms"] = ["allocation", {}]
+    with pytest.raises(ValueError, match="unique nonblank"):
+        validate_manifest(manifest)
+    manifest = matched_manifest()
+    manifest["comparison"]["require_complete_pairs"] = False
+    with pytest.raises(ValueError, match="complete pairs"):
+        validate_manifest(manifest)
+
+
+def test_matched_summary_reports_pairs_and_incomplete_results():
+    results = [
+        {
+            "id": f"{case}-{arm}",
+            "case_id": case,
+            "arm": arm,
+            "model": "test",
+            "critical_task": False,
+            "grade": grade,
+            "usage": None,
+        }
+        for case, arm, grade in (
+            ("C01", "allocation", "pass"),
+            ("C01", "baseline", "fail"),
+            ("C02", "allocation", "pass"),
+            ("C02", "baseline", "unrun"),
+        )
+    ]
+    comparison = matched_manifest()["comparison"]
+    summary = summarize(
+        results,
+        {
+            "planned_tasks": 4,
+            "minimum_first_pass": 4,
+            "critical_failures_allowed": 0,
+        },
+        comparison,
+    )
+    assert summary["by_arm"]["allocation"] == {
+        "planned": 2,
+        "passed": 2,
+        "failed": 0,
+        "ungraded": 0,
+    }
+    assert summary["matched_comparison"] == {
+        "complete_pairs": 1,
+        "incomplete_pairs": 1,
+        "outcomes": {"allocation:pass/baseline:fail": 1},
+    }
+
+
+def test_independent_review_declaration_is_enforced():
+    manifest = {"review": {"require_independent": True}}
+    valid = {
+        "_meta": {
+            "reviewer_id": "reviewer-a",
+            "candidate_author_ids": ["candidate-a", "candidate-b"],
+            "independent": True,
+        }
+    }
+    validate_review_declaration(manifest, valid)
+    for invalid in (
+        {},
+        {
+            "_meta": {
+                "reviewer_id": "same",
+                "candidate_author_ids": ["same"],
+                "independent": True,
+            }
+        },
+        {
+            "_meta": {
+                "reviewer_id": "reviewer",
+                "candidate_author_ids": ["candidate"],
+                "independent": False,
+            }
+        },
+    ):
+        with pytest.raises(ValueError, match="Independent review"):
+            validate_review_declaration(manifest, invalid)
+
+
+def test_overhead_ledger_preserves_unknown_usage(tmp_path):
+    path = tmp_path / "overhead.json"
+    path.write_text(
+        json.dumps(
+            {
+                "review": {
+                    "input_tokens": 10,
+                    "cached_input_tokens": 2,
+                    "output_tokens": 3,
+                    "reasoning_output_tokens": None,
+                }
+            }
+        )
+    )
+    loaded = load_overhead(path)
+    assert loaded is not None
+    assert loaded["review"]["reasoning_output_tokens"] is None
+    results = rows()
+    for row in results:
+        row["usage"] = {
+            "input_tokens": 1,
+            "cached_input_tokens": 0,
+            "output_tokens": 1,
+            "reasoning_output_tokens": 0,
+        }
+    summary = summarize(results, overhead=loaded)
+    assert summary["total_recorded_usage"] == {
+        "input_tokens": 36,
+        "cached_input_tokens": 2,
+        "output_tokens": 29,
+        "reasoning_output_tokens": None,
+    }
+    assert not summary["usage_complete"]
+    path.write_text(json.dumps({"review": {"input_tokens": -1}}))
+    with pytest.raises(ValueError, match="Overhead usage"):
+        load_overhead(path)

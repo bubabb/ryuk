@@ -5,8 +5,12 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**WF-011 is complete. Next: select a separately authorized, unblocked task.**
-Startup recovery is bounded, tenant-visible and conservative; it never replays
+**EVAL-004 is complete. Next: define v3 evaluation governance or select another
+separately authorized, unblocked task.** No v3 benchmark is preregistered; an
+evaluation owner must choose representative case sources, a matched baseline,
+sample size, quality gate, independent reviewer identity, and usage/billing
+terms before a run. WF-011 startup recovery is bounded, tenant-visible and
+conservative; it never replays
 inference or starts the local dispatcher. WF-012 still depends on live Phase 2B
 provider cancellation evidence, WF-013 on DEC-006 usage/billing evidence, and
 WF-014 on approved multi-step scope. CTX-003's
@@ -62,7 +66,7 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 400 passed, 8 deselected
+-m pytest -q -m 'not integration': 404 passed, 8 deselected
 -m mypy backend tests scripts: success, 110 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
@@ -229,3 +233,23 @@ records the completed static review and a proposed measurable acceptance gate.
 - Final verification: 400 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 110 sources, compileall, `git diff --check` and
   a repository scan for pasted API-key patterns passed.
+
+## EVAL-004 v3 evaluation harness (2026-09-25)
+
+- Optional comparison contracts require every case exactly once in every arm
+  and identical prompt/grading semantics across arms. Reports include per-arm
+  results and matched pair outcomes; incomplete pairs remain explicit.
+- Manifests may require a reviewer declaration distinct from all candidate
+  authors. This is mechanically enforced but is not external proof of identity
+  or independence.
+- `--overhead` records setup/grading/review token counters. All-in totals become
+  unknown when any contributor is unknown, so missing review cost is never
+  treated as zero.
+- Review: `docs/reports/model-allocation-v3-harness-review-2026-09-25.md`.
+  No model call, v3 preregistration, reliability/savings claim or runtime routing
+  change occurred.
+- Final verification: 404 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 110 sources, compileall, `git diff --check` and
+  the repository credential-pattern scan passed. A copied v2 run regraded 26/26
+  with its original gate intact; absent overhead correctly leaves all-in usage
+  incomplete.

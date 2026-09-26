@@ -189,6 +189,12 @@ there is no representative sampling or matched baseline. No usage-savings claim
 is supported because setup/reviewer costs and applicable billing are absent.
 See `docs/reports/model-allocation-pilot-v2-2026-09-25.md`.
 
+EVAL-004 adds the offline harness contracts needed for a future matched v3
+design: identical paired cases across allocation/baseline arms, explicit
+independent-review declarations, and all-in usage that stays unknown when setup
+or reviewer counters are missing. It does not preregister or authorize a v3 run.
+See `docs/evaluations/model-allocation-v3-harness.md`.
+
 ## How to apply this without wasting usage
 
 For CTX-003, first verify whether candidate tokenizer/template identities and
