@@ -18,6 +18,7 @@ from backend.workflows.contracts import (
     TaskPacket,
     canonical_json,
 )
+from backend.workflows.graph import GraphState, NodeState, WorkflowGraph
 from backend.workflows.validation import policy_snapshot, validate_artifact
 
 
@@ -26,9 +27,9 @@ class WorkflowConflict(ValueError):
 
 
 class SQLiteWorkflowStore:
-    """Offline single-task store. Expired execution is uncertain, never replayed."""
+    """Offline workflow store. Expired execution is uncertain, never replayed."""
 
-    schema_version = 5
+    schema_version = 6
 
     def __init__(self, path: Path) -> None:
         self._lock = RLock()
@@ -46,8 +47,8 @@ class SQLiteWorkflowStore:
                     "SELECT version FROM workflow_schema"
                 ).fetchall()
                 if not versions:
-                    self._db.execute("INSERT INTO workflow_schema VALUES (5)")
-                elif len(versions) != 1 or versions[0][0] not in (1, 2, 3, 4, 5):
+                    self._db.execute("INSERT INTO workflow_schema VALUES (6)")
+                elif len(versions) != 1 or versions[0][0] not in (1, 2, 3, 4, 5, 6):
                     raise ValueError("Unsupported workflow schema version")
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflows (
                     id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
@@ -89,6 +90,21 @@ class SQLiteWorkflowStore:
                     workflow_id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
                     binding_json TEXT NOT NULL,
                     FOREIGN KEY(workflow_id) REFERENCES workflows(id))""")
+                self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graphs (
+                    id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
+                    idempotency_key TEXT NOT NULL, request_hash TEXT NOT NULL,
+                    graph_json TEXT NOT NULL,
+                    UNIQUE(tenant, idempotency_key))""")
+                self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_nodes (
+                    graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
+                    tenant TEXT NOT NULL, state TEXT NOT NULL,
+                    PRIMARY KEY(graph_id, node_id),
+                    FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
+                self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_events (
+                    sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                    graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
+                    tenant TEXT NOT NULL, state TEXT NOT NULL,
+                    FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
                 if versions and versions[0][0] < 3:
                     legacy = self._db.execute(
                         "SELECT id, tenant, fence FROM workflows "
@@ -106,7 +122,7 @@ class SQLiteWorkflowStore:
                             "awaiting_validation",
                             row["fence"],
                         )
-                self._db.execute("UPDATE workflow_schema SET version=5")
+                self._db.execute("UPDATE workflow_schema SET version=6")
         except Exception:
             self._db.close()
             raise
@@ -231,6 +247,163 @@ class SQLiteWorkflowStore:
         if workflow is None:
             return None
         return TaskPacket.from_dict(workflow["packet"])
+
+    def create_graph(self, tenant: str, key: str, graph: WorkflowGraph) -> str:
+        """Persist a canonical graph and its initial scheduler state atomically."""
+        self._identifier(tenant)
+        self._identifier(key)
+        if not isinstance(graph, WorkflowGraph):
+            raise ValueError("Graph creation requires a WorkflowGraph")
+        validated = WorkflowGraph.from_dict(graph.to_dict())
+        encoded = canonical_json(validated.to_dict())
+        digest = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        initial = validated.initial_state()
+        with self._transaction():
+            row = self._db.execute(
+                "SELECT id, request_hash FROM workflow_graphs WHERE tenant=? AND "
+                "idempotency_key=?",
+                (tenant, key),
+            ).fetchone()
+            if row is not None:
+                if row["request_hash"] != digest:
+                    raise WorkflowConflict(
+                        "Graph idempotency key conflicts with existing input"
+                    )
+                return row["id"]
+            graph_id = str(uuid4())
+            self._db.execute(
+                "INSERT INTO workflow_graphs VALUES (?, ?, ?, ?, ?)",
+                (graph_id, tenant, key, digest, encoded),
+            )
+            for node_id, state in initial.node_states:
+                self._db.execute(
+                    "INSERT INTO workflow_graph_nodes VALUES (?, ?, ?, ?)",
+                    (graph_id, node_id, tenant, state.value),
+                )
+                self._graph_event(tenant, graph_id, node_id, state)
+            return graph_id
+
+    def _graph_event(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        state: NodeState,
+    ) -> None:
+        self._db.execute(
+            "INSERT INTO workflow_graph_events(graph_id, node_id, tenant, state) "
+            "VALUES (?, ?, ?, ?)",
+            (graph_id, node_id, tenant, state.value),
+        )
+
+    def _get_graph_state(self, tenant: str, graph_id: str) -> GraphState | None:
+        row = self._db.execute(
+            "SELECT graph_json FROM workflow_graphs WHERE tenant=? AND id=?",
+            (tenant, graph_id),
+        ).fetchone()
+        if row is None:
+            return None
+        graph = WorkflowGraph.from_dict(json.loads(row["graph_json"]))
+        rows = self._db.execute(
+            "SELECT node_id, state FROM workflow_graph_nodes "
+            "WHERE tenant=? AND graph_id=? ORDER BY node_id",
+            (tenant, graph_id),
+        ).fetchall()
+        try:
+            states = tuple((item["node_id"], NodeState(item["state"])) for item in rows)
+            return GraphState(graph, states)
+        except ValueError as exc:
+            raise ValueError("Invalid persisted workflow graph state") from exc
+
+    def get_graph_state(self, tenant: str, graph_id: str) -> GraphState | None:
+        with self._lock:
+            return self._get_graph_state(tenant, graph_id)
+
+    def transition_graph_node(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        target: NodeState,
+    ) -> GraphState:
+        """Commit one transition and all derived readiness/skip changes atomically."""
+        if not isinstance(target, NodeState):
+            raise ValueError("Graph transition target must be a NodeState")
+        with self._transaction():
+            current = self._get_graph_state(tenant, graph_id)
+            if current is None:
+                raise WorkflowConflict("Workflow graph not found")
+            try:
+                updated = current.transition(node_id, target)
+            except ValueError as exc:
+                raise WorkflowConflict("Illegal workflow graph transition") from exc
+            before = dict(current.node_states)
+            after = dict(updated.node_states)
+            pending = {
+                changed_node
+                for changed_node, state in updated.node_states
+                if before[changed_node] is not state
+            }
+            ordered: list[str] = []
+            if node_id in pending:
+                ordered.append(node_id)
+                pending.remove(node_id)
+            dependencies = {
+                node.node_id: set(node.depends_on) for node in updated.graph.nodes
+            }
+            while pending:
+                eligible = [
+                    node.node_id
+                    for node in updated.graph.nodes
+                    if node.node_id in pending
+                    and not dependencies[node.node_id] & pending
+                ]
+                if not eligible:  # Defensive: graph validation already rejects cycles.
+                    raise ValueError("Invalid derived graph transition ordering")
+                ordered.extend(eligible)
+                pending.difference_update(eligible)
+            for changed_node in ordered:
+                state = after[changed_node]
+                cursor = self._db.execute(
+                    "UPDATE workflow_graph_nodes SET state=? "
+                    "WHERE tenant=? AND graph_id=? AND node_id=? AND state=?",
+                    (
+                        state.value,
+                        tenant,
+                        graph_id,
+                        changed_node,
+                        before[changed_node].value,
+                    ),
+                )
+                if cursor.rowcount != 1:
+                    raise WorkflowConflict("Workflow graph state changed concurrently")
+                self._graph_event(tenant, graph_id, changed_node, state)
+            return updated
+
+    def list_ready_graph_nodes(self, limit: int) -> list[tuple[str, str, str]]:
+        """Return a bounded advisory snapshot; WF-016 will define claiming."""
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("Ready graph-node limit must be between 1 and 1000")
+        with self._lock:
+            return [
+                (row["tenant"], row["graph_id"], row["node_id"])
+                for row in self._db.execute(
+                    "SELECT tenant, graph_id, node_id FROM workflow_graph_nodes "
+                    "WHERE state=? ORDER BY rowid LIMIT ?",
+                    (NodeState.READY.value, limit),
+                )
+            ]
+
+    def graph_events(self, tenant: str, graph_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            return [
+                dict(row)
+                for row in self._db.execute(
+                    "SELECT sequence, node_id, state FROM workflow_graph_events "
+                    "WHERE tenant=? AND graph_id=? ORDER BY sequence",
+                    (tenant, graph_id),
+                )
+            ]
 
     def list_ready(self, limit: int) -> list[tuple[str, str]]:
         """Return a bounded local snapshot; claiming remains the authority."""

@@ -58,9 +58,9 @@ behavior. They are not final acceptance or production rollout.
 1. CTX-003, then CTX-004.
 2. WF-012 and WF-013.
 3. WF-014 — DONE: bounded dependency-graph and scheduler-state contracts.
-4. WF-015 — next READY task: durable graph/node state and atomic readiness.
-5. WF-016, then WF-017: graph execution/artifact binding, followed by governed
-   APIs and recovery.
+4. WF-015 — DONE: schema v6 durable graph/node state and atomic causal readiness.
+5. WF-016 — next READY task: fenced graph execution, accepted-artifact binding
+   and a graph-wide budget; then WF-017 governed APIs and recovery.
 6. TOOL-001 after its phase gate.
 7. MEM-001.
 8. CACHE-001 after accepted-result and provenance policies are stable.
@@ -89,7 +89,7 @@ claim.
 
 ## Current count
 
-Twenty-eight tracker items remain non-DONE: 18 HOLD (including deferred
+Twenty-seven tracker items remain non-DONE: 17 HOLD (including deferred
 EVAL-010), 8 BLOCKED, 1 REVIEW and 1 READY. Several broad items must be split after scope
-decisions, so 28 is a lower bound on implementation change sets, not a schedule
+decisions, so 27 is a lower bound on implementation change sets, not a schedule
 estimate.

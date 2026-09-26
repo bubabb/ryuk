@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Implement WF-015 durable graph/node persistence and atomic readiness as the next bounded offline initial-release task; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
+**Next session starts with:** Implement WF-016 fenced graph-node execution, accepted-artifact handoff and one graph-wide budget as the next bounded offline initial-release task; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -95,8 +95,8 @@ blocked until Phase 2B passes.
 | WF-012 | HOLD | Add and verify provider cancellation propagation and late-result behavior | P2B-001 through P2B-004 | Per-provider cancellation evidence; no unsupported cancellation claim |
 | WF-013 | HOLD | Define durable usage/input-token accounting and monetary cost-budget enforcement | DEC-006 and verified provider usage/billing evidence | Durable counters and enforced policy with explicit unknown-usage behavior |
 | WF-014 | DONE | Add task dependency-graph contracts for approved multi-step orchestration | DEC-008 initial-release scope | `backend/workflows/graph.py`, ADR-021, canonical bounded DAG and uncertainty-safe scheduler transitions; `docs/reports/workflow-dependency-graph-contract-review-2026-09-26.md` |
-| WF-015 | READY | Persist graph/node state and atomically release dependency-ready nodes | WF-014 | Tenant-scoped graph records, transactional node transitions, idempotency, migration and concurrency/restart tests |
-| WF-016 | HOLD | Execute graph nodes with artifact handoff and one graph-wide budget | WF-015; existing executor, validation and recovery contracts | Exact accepted-artifact input binding, aggregate attempt/token/deadline enforcement and no replay after uncertainty |
+| WF-015 | DONE | Persist graph/node state and atomically release dependency-ready nodes | WF-014 | Schema v6 tenant-scoped graph/node/event records, canonical idempotency, atomic causal transitions, migration/concurrency/restart tests; ADR-022 and `docs/reports/workflow-graph-persistence-review-2026-09-26.md` |
+| WF-016 | READY | Execute graph nodes with artifact handoff and one graph-wide budget | WF-015; existing executor, validation and recovery contracts | Exact accepted-artifact input binding, aggregate attempt/token/deadline enforcement and no replay after uncertainty |
 | WF-017 | HOLD | Add governed multi-step create/status/cancel/result APIs and startup recovery | WF-015, WF-016 | Tenant isolation, bounded graph admission, descendant cancellation/skip, restart reconciliation and accepted-result contracts |
 
 ## Evaluation and model allocation
