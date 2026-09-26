@@ -69,7 +69,7 @@ work. Effort levels are starting settings, not calibrated guarantees.
 | ID | Status | Primary model / effort | Cheaper bounded work | Required review or decision and rationale |
 | --- | --- | --- | --- | --- |
 | DEC-001 | DONE | Sol / medium | Luna summarizes approved environment options | Owner approved hosted-first on 2026-09-26; exact models, data rules, credentials/budget and live identity remain separate gates. |
-| DEC-002 | HOLD | Sol / medium | Luna extracts exact model IDs from verified sources | Owner approves models/revisions; verify current publisher/engine compatibility, never infer availability from a name. |
+| DEC-002 | DONE | Sol / medium | Luna extracts exact model IDs from verified sources | Owner approved `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731` on 2026-09-26; current availability, served identity and revisions still require live evidence. |
 | DEC-003 | REVIEW | Sol / high | Luna inventories existing data flows | Owner defines classification/residency/retention/disclosure; Astra reviews conflicting data boundaries. A model cannot supply legal or organizational approval. |
 | DEC-004 | HOLD | Sol / medium | Luna formats a secret-free access/budget checklist | Owner authorizes credentials, hardware and spend. Astra only for unresolved secret-boundary design; no credentials in prompts or reports. |
 | DEC-006 | HOLD | Sol / high | Luna formats pinned benchmark manifests | Astra reviews leakage, representativeness and metric incentives; owner approves tasks/thresholds. Cheap corpus formatting is separate from evaluation design. |
