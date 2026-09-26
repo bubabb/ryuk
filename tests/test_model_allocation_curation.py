@@ -80,6 +80,11 @@ def test_compiler_expands_exactly_identical_matched_pairs():
         "candidate_author_ids": ["candidate-fixture"],
         "blind_to_arm_until_scores_are_frozen": True,
     }
+    assert manifest["resume_policy"] == {
+        "retry_statuses": [],
+        "maximum_infrastructure_attempts_per_task": 1,
+        "quality_failures_retryable": False,
+    }
     for index in range(0, 200, 2):
         allocation, baseline = manifest["tasks"][index : index + 2]
         assert allocation["arm"] == "allocation"

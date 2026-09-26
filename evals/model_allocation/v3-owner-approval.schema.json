@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ryuk.invalid/schemas/model-allocation-v3-owner-approval.json",
+  "title": "Ryuk model-allocation v3 owner run-approval receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "id", "approved", "approved_at", "approver_id",
+    "manifest_sha256", "governance_policy_sha256", "access_probe_id",
+    "billing_snapshot_id", "maximum_calls", "synthetic_or_public_only"
+  ],
+  "properties": {
+    "version": {"const": 1},
+    "id": {"type": "string", "minLength": 1},
+    "approved": {"const": true},
+    "approved_at": {"type": "string", "format": "date-time"},
+    "approver_id": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "governance_policy_sha256": {"$ref": "#/$defs/sha256"},
+    "access_probe_id": {"type": "string", "minLength": 1},
+    "billing_snapshot_id": {"type": "string", "minLength": 1},
+    "maximum_calls": {"const": 200},
+    "synthetic_or_public_only": {"const": true}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

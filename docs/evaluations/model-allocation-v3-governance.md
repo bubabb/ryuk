@@ -60,3 +60,13 @@ billing snapshot, price every used model, and include setup, grading and review
 usage for both arms. The grader recomputes all-in arm costs and cannot pass the
 savings gate before quality or with unknown evidence. These contracts contain
 no actual identities, measurements, prices, approval, or run evidence.
+
+EVAL-009 adds the unified `scripts/model_allocation_preflight.py` validator and
+pre/post-run bundle contracts. Pre-run authorization now requires physical,
+bundle-local curation, manifest, billing, access-probe and owner-approval
+records whose IDs, hashes, assignments, chronology, call limit and data scope
+agree with ready governance. Post-run validation extends the chain through all
+measurements/responses, blinded review and savings evidence. Reports explicitly
+state that internally consistent declarations are not external proof. The
+repository contains schemas and synthetic tests only; its governance remains
+blocked.

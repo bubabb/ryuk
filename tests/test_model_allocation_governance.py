@@ -82,7 +82,8 @@ def test_v3_runner_refuses_blocked_or_wrong_manifest_governance(tmp_path):
         authorize_manifest_run(manifest, digest, record)
     ready["readiness"]["case_manifest_sha256"] = digest
     record.write_text(json.dumps(ready))
-    authorize_manifest_run(manifest, digest, record)
+    with pytest.raises(ValueError, match="readiness bundle"):
+        authorize_manifest_run(manifest, digest, record)
 
 
 def test_ready_governance_requires_distinct_roles_and_real_hashes():

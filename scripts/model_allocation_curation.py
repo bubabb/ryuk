@@ -268,8 +268,8 @@ def compile_execution_manifest(document: dict[str, Any]) -> dict[str, Any]:
             "blind_to_arm_until_scores_are_frozen": True,
         },
         "resume_policy": {
-            "retry_statuses": ["infrastructure_error", "infrastructure_timeout"],
-            "maximum_infrastructure_attempts_per_task": 2,
+            "retry_statuses": [],
+            "maximum_infrastructure_attempts_per_task": 1,
             "quality_failures_retryable": False,
         },
         "curation_sha256": hashlib.sha256(

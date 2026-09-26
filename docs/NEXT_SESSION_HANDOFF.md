@@ -5,10 +5,10 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-008 is complete. Next bounded offline task: EVAL-009, define a single v3
-readiness-bundle validator and preflight report that cross-binds the existing
-curation, review, savings, access-probe, and owner-approval receipts without
-creating those external receipts.** The v3
+**EVAL-009 is complete. Next bounded offline task: EVAL-010, perform an
+adversarial end-to-end audit of the versioned v3 contracts and freeze the
+offline protocol if no trust-chain gaps remain. Do not create external evidence
+or run models.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -69,8 +69,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 459 passed, 8 deselected
--m mypy backend tests scripts: success, 118 source files
+-m pytest -q -m 'not integration': 466 passed, 8 deselected
+-m mypy backend tests scripts: success, 120 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -334,4 +334,26 @@ records the completed static review and a proposed measurable acceptance gate.
   call, spending, or runtime change occurred.
 - Final verification: 459 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 118 sources, compileall, both schema JSON
+  parses, `git diff --check`, and the repository credential-pattern scan passed.
+
+## EVAL-009 unified v3 readiness preflight (2026-09-26)
+
+- `scripts/model_allocation_preflight.py` validates bundle-local pre-run and
+  post-run evidence chains and emits a deterministic report that preserves the
+  distinction between internal consistency and externally proven evidence.
+- Pre-run validation cross-binds curation, the exact compiled manifest,
+  governance, complete billing rates, assignment-complete access evidence, and
+  owner approval after its prerequisites. The runner now requires the validated
+  bundle; readiness strings alone are insufficient.
+- Post-run validation adds every measurement and response, blinded review,
+  reviewer identity, and savings evidence with the identical billing snapshot.
+- V3 now allows one attempt per task and no in-place resume, keeping the owner
+  approval at a real 200-attempt ceiling; replacement runs require new approval.
+- Schemas and instructions are in `evals/model_allocation/`; review:
+  `docs/reports/model-allocation-v3-readiness-preflight-review-2026-09-26.md`.
+- No real evidence, identity, case, response, usage, price, credential, model
+  call, spending, or runtime-routing change occurred. Governance remains
+  blocked.
+- Final verification: 466 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 120 sources, compileall, three schema JSON
   parses, `git diff --check`, and the repository credential-pattern scan passed.

@@ -36,6 +36,9 @@ recorded by this packet.
 | architecture and evaluation | 20 |
 
 Total: 100 cases and, after deterministic expansion, 200 matched calls.
+V3 permits one attempt per task and no in-place resume. An infrastructure
+failure leaves the run incomplete; any replacement run needs a new directory
+and fresh owner approval so usage cannot exceed the approved 200-call boundary.
 
 ## Offline commands
 

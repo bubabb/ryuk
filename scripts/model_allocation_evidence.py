@@ -41,6 +41,28 @@ def response_set_sha256(manifest: dict[str, Any], directory: Path) -> str:
     ).hexdigest()
 
 
+def validate_candidate_measurements(
+    manifest: dict[str, Any], directory: Path
+) -> None:
+    """Require one complete, usage-bearing measurement for every planned call."""
+
+    for task in manifest["tasks"]:
+        path = directory / task["id"] / "measurement.json"
+        if not path.is_file():
+            raise ValueError("Every task must have a measurement artifact")
+        measurement = json.loads(path.read_text())
+        if not isinstance(measurement, dict):
+            raise ValueError("Every measurement must be an object")
+        if (
+            measurement.get("id") != task["id"]
+            or measurement.get("status") != "completed"
+            or measurement.get("model_requested") != task["model"]
+            or measurement.get("effort") != task["effort"]
+        ):
+            raise ValueError("Candidate measurement differs from the manifest")
+        _usage(measurement.get("usage"), "candidate usage")
+
+
 def _exact(value: dict[str, Any], fields: set[str], name: str) -> None:
     if set(value) != fields:
         raise ValueError(f"{name} fields must be exactly {sorted(fields)}")

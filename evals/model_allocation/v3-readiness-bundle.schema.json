@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ryuk.invalid/schemas/model-allocation-v3-readiness-bundle.json",
+  "title": "Ryuk model-allocation v3 readiness bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "phase", "artifacts"],
+  "properties": {
+    "version": {"const": 1},
+    "phase": {"enum": ["pre_run", "post_run"]},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "governance", "curation_manifest", "execution_manifest",
+        "billing_snapshot", "access_probe", "owner_approval",
+        "run_directory", "review_ledger", "savings_evidence"
+      ],
+      "properties": {
+        "governance": {"$ref": "#/$defs/path"},
+        "curation_manifest": {"$ref": "#/$defs/path"},
+        "execution_manifest": {"$ref": "#/$defs/path"},
+        "billing_snapshot": {"$ref": "#/$defs/path"},
+        "access_probe": {"$ref": "#/$defs/path"},
+        "owner_approval": {"$ref": "#/$defs/path"},
+        "run_directory": {"$ref": "#/$defs/optionalPath"},
+        "review_ledger": {"$ref": "#/$defs/optionalPath"},
+        "savings_evidence": {"$ref": "#/$defs/optionalPath"}
+      }
+    }
+  },
+  "$defs": {
+    "path": {"type": "string", "minLength": 1},
+    "optionalPath": {"type": ["string", "null"]}
+  }
+}
