@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Resolve the remaining first-release scope decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
+**Next session starts with:** Implement WF-014 as the next bounded offline initial-release task; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -59,6 +59,7 @@ the existence of configuration fields or integration tests.
 | DEC-005 | DONE | Define acceptable identity evidence for opaque hosted endpoints | Owner accepted observed catalog attribution for synthetic/public offline work; no artifact verification claim; live activation policy remains DEC-007 |
 | DEC-006 | REVIEW | Select benchmark repositories/tasks and acceptance thresholds | Owner approved public version-pinned repositories, synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, 5-point paired noninferiority margin, 25% all-in savings gate and owner final acceptance on 2026-09-26; exact repositories/revisions, sealed manifest and independent reviewers remain pending; `docs/decisions/DEC-006-benchmark-policy.md` |
 | DEC-007 | DONE | Approve identity evidence for live hosted activation | Owner approved exact configuration/response identity agreement plus independent provider catalog/dashboard mapping and timestamped sanitized endpoint/account evidence on 2026-09-26; mismatches fail closed and claims remain provider-attested, not weight-verified; `docs/decisions/DEC-007-live-hosted-identity.md` |
+| DEC-008 | DONE | Select initial-release feature scope | Owner included multi-step workflows, governed tools, persistent memory and caching; deferred collaboration, specialist modalities and HA until after initial certification on 2026-09-26; `docs/decisions/DEC-008-initial-release-feature-scope.md` |
 
 ## Phase 2B — real deployment certification
 
@@ -93,7 +94,7 @@ blocked until Phase 2B passes.
 | WF-011 | DONE | Orchestrate expired-lease recovery and uncertain-outcome reconciliation at service startup | WF-010; owner authorized the next bounded offline task on 2026-09-25 | ADR-020, atomic bounded recovery, tenant-filtered operator status, restart/failure/rollback tests and `docs/reports/workflow-startup-recovery-review-2026-09-25.md`; no automatic replay |
 | WF-012 | HOLD | Add and verify provider cancellation propagation and late-result behavior | P2B-001 through P2B-004 | Per-provider cancellation evidence; no unsupported cancellation claim |
 | WF-013 | HOLD | Define durable usage/input-token accounting and monetary cost-budget enforcement | DEC-006 and verified provider usage/billing evidence | Durable counters and enforced policy with explicit unknown-usage behavior |
-| WF-014 | HOLD | Add task dependency-graph contracts if multi-step orchestration is approved | Later multi-step workflow scope | Versioned graph semantics, transitions and scheduling contracts |
+| WF-014 | READY | Add task dependency-graph contracts for approved multi-step orchestration | DEC-008 initial-release scope | Versioned graph semantics, transitions and scheduling contracts |
 
 ## Evaluation and model allocation
 
@@ -117,9 +118,9 @@ blocked until Phase 2B passes.
 | CP-002 | DONE | Specify terminal-record failure semantics | None | `docs/adr/ADR-009-terminal-record-failure-semantics.md`: commit before success; preserve original failure; no automatic replay after uncertain commit |
 | CP-003 | DONE | Implement and test the selected terminal-record failure behavior | CP-002 | API fault-injection tests cover success/original failure, permit release, reused correlation IDs and commit with lost acknowledgement |
 | CP-004 | DONE | Replace shallow event redaction with typed allowlisted events or recursive structural sanitization | None | Scalar operational field allowlist; nested secret/authorization/prompt/output, alternate-key, object, control-character, and invalid-count contracts in `tests/test_control_plane.py` |
-| CP-005 | HOLD | Add Redis permit leases/fencing and process-crash reconciliation | Phase 10 trigger | No silent capacity reopening; recovery behavior proven across controller death |
-| CP-006 | HOLD | Prove PostgreSQL migrations, backup/restore, and RPO/RTO | Phase 10 trigger | Concurrent migration and scheduled restore reports |
-| CP-007 | HOLD | Prove Redis/database behavior under failover and partitions | Phase 10 trigger | Multi-replica chaos report with quota and tenant invariants |
+| CP-005 | HOLD | Add Redis permit leases/fencing and process-crash reconciliation | Post-initial-release HA scope under DEC-008 | No silent capacity reopening; recovery behavior proven across controller death |
+| CP-006 | HOLD | Prove PostgreSQL migrations, backup/restore, and RPO/RTO | Post-initial-release HA scope under DEC-008 | Concurrent migration and scheduled restore reports |
+| CP-007 | HOLD | Prove Redis/database behavior under failover and partitions | Post-initial-release HA scope under DEC-008 | Multi-replica chaos report with quota and tenant invariants |
 | SEC-001 | HOLD | Add Vault workload authentication, renewal, rotation, and revocation drills | Production deployment design | Drill report without stored or logged secret material |
 
 ## Later phase gates
@@ -131,9 +132,9 @@ blocked until Phase 2B passes.
 | CTX-003 | HOLD | Bind verified candidate tokenizers/templates and capacity evidence to dispatch; account for structured/tool/media overhead | Verified candidate tokenizer/template and Phase 2B contract; reprepare after fallback and prove execution uses the exact counted payload/settings |
 | CTX-004 | HOLD | Add source correction/invalidation, checkpoint compaction and context-retention behavior; evaluate critical-fact placement | CTX-002 and CTX-003; approved retention scope; revision-bound invalidation/deletion and held-out evaluation for two candidates |
 | TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Phase 4 exit |
-| COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Phase 2 and Phase 5 exits |
+| COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Post-initial-release scope under DEC-008; Phase 2 and Phase 5 exits |
 | MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Phase 6 exit |
-| SPEC-001 | HOLD | Add specialist modalities one complete vertical slice at a time | Phase 7 exit |
+| SPEC-001 | HOLD | Add specialist modalities one complete vertical slice at a time | Post-initial-release scope under DEC-008; Phase 7 exit |
 | CACHE-001 | HOLD | Add provenance-preserving application result caching | Phase 8 exit |
 | PROD-001 | HOLD | Complete load, soak, chaos, restore, observability, incident-response, and rollout certification | All preceding production gates |
 

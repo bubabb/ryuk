@@ -41,8 +41,9 @@ Resolve these before implementation branches diverge:
 6. DEC-007 — DONE: exact endpoint configuration/live-response agreement plus
    independent provider catalog/dashboard mapping and timestamped sanitized
    evidence; mismatches fail closed and weight identity remains unverified.
-7. Scope decisions: first-release inclusion of multi-step workflows, tools,
-   collaboration, persistent memory, specialist modalities, caching and HA.
+7. DEC-008 — DONE: initial release includes multi-step workflows, governed
+   tools, persistent memory and caching; collaboration, specialist modalities
+   and HA are deferred until after initial certification.
 
 No model or document may supply these owner decisions implicitly.
 
@@ -56,18 +57,18 @@ behavior. They are not final acceptance or production rollout.
 
 1. CTX-003, then CTX-004.
 2. WF-012 and WF-013.
-3. WF-014 only if multi-step scope is approved.
-4. TOOL-001, then COLLAB-001.
+3. WF-014 — scope approved; this is the next READY offline task.
+4. TOOL-001 after its phase gate.
 5. MEM-001.
-6. One bounded SPEC-001 slice.
-7. CACHE-001 after accepted-result and provenance policies are stable.
+6. CACHE-001 after accepted-result and provenance policies are stable.
+
+COLLAB-001 and SPEC-001 are post-initial-release work under DEC-008.
 
 ### P3 — production infrastructure and security
 
-Complete CP-005, CP-006, CP-007 and SEC-001 if the approved deployment target
-requires distributed/HA production infrastructure. Do not build distributed
-components merely to satisfy a checklist if the approved first release is
-single-controller.
+CP-005, CP-006 and CP-007 are post-initial-release HA work under DEC-008.
+SEC-001 remains gated by the future production deployment and DEC-004 access
+design. Do not build distributed components merely to satisfy a checklist.
 
 ### P4 — evaluation
 
@@ -85,7 +86,7 @@ claim.
 
 ## Current count
 
-Twenty-six tracker items remain non-DONE: 17 HOLD (including deferred
-EVAL-010), 8 BLOCKED and 1 REVIEW. Several broad items must be split after scope
+Twenty-six tracker items remain non-DONE: 16 HOLD (including deferred
+EVAL-010), 8 BLOCKED, 1 REVIEW and 1 READY. Several broad items must be split after scope
 decisions, so 26 is a lower bound on implementation change sets, not a schedule
 estimate.

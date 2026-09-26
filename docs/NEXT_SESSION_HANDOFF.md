@@ -20,9 +20,10 @@ and thresholds, but remains REVIEW pending exact repository revisions, sealed
 cases and independent reviewers during deferred curation. DEC-007 approves
 provider-attested live identity from exact configuration and
 response agreement plus independent catalog/dashboard mapping; mismatches fail
-closed and model weights remain unverified. Next: resolve the remaining
-first-release scope decisions in
-`docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
+closed and model weights remain unverified. DEC-008 includes multi-step
+workflows, governed tools, persistent memory and caching in the initial release;
+collaboration, specialist modalities and HA are post-release. Next: implement
+WF-014 as the bounded READY offline task.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
