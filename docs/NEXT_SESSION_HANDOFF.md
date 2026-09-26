@@ -17,8 +17,11 @@ are implemented and verified. DEC-004 is intentionally deferred: no provider
 credentials, secret manager, hardware/access commitment or spending authority
 is needed for the current offline phase. DEC-006 approves the benchmark policy
 and thresholds, but remains REVIEW pending exact repository revisions, sealed
-cases and independent reviewers during deferred curation. Next: resolve DEC-007
-and the remaining scope decisions in
+cases and independent reviewers during deferred curation. DEC-007 approves
+provider-attested live identity from exact configuration and
+response agreement plus independent catalog/dashboard mapping; mismatches fail
+closed and model weights remain unverified. Next: resolve the remaining
+first-release scope decisions in
 `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
@@ -122,7 +125,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 27 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 26 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded

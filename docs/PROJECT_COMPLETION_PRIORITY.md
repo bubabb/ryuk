@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: owner sequencing and DEC-001 through DEC-003 selected; remaining policy decisions pending
+Status: DEC-001 through DEC-003 and DEC-007 selected; DEC-004 deferred; DEC-006 corpus review and scope decisions pending
 
 ## Selected delivery sequence
 
@@ -38,7 +38,9 @@ Resolve these before implementation branches diverge:
    100+ held-out matched cases, 87% success, zero critical failures, five-point
    paired noninferiority margin and 25% all-in savings gate are approved; exact
    revisions, sealed manifest and independent reviewers remain to be recorded.
-6. DEC-007: identity evidence required for live activation.
+6. DEC-007 — DONE: exact endpoint configuration/live-response agreement plus
+   independent provider catalog/dashboard mapping and timestamped sanitized
+   evidence; mismatches fail closed and weight identity remains unverified.
 7. Scope decisions: first-release inclusion of multi-step workflows, tools,
    collaboration, persistent memory, specialist modalities, caching and HA.
 
@@ -83,7 +85,7 @@ claim.
 
 ## Current count
 
-Twenty-seven tracker items remain non-DONE: 18 HOLD (including deferred
+Twenty-six tracker items remain non-DONE: 17 HOLD (including deferred
 EVAL-010), 8 BLOCKED and 1 REVIEW. Several broad items must be split after scope
-decisions, so 27 is a lower bound on implementation change sets, not a schedule
+decisions, so 26 is a lower bound on implementation change sets, not a schedule
 estimate.
