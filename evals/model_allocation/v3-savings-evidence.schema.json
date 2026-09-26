@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ryuk.invalid/schemas/model-allocation-v3-savings-evidence.json",
+  "title": "Ryuk model-allocation v3 all-in savings evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "manifest_sha256", "run_sha256", "review_ledger_sha256",
+    "billing_snapshot", "overhead"
+  ],
+  "properties": {
+    "version": {"const": 1},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "run_sha256": {"$ref": "#/$defs/sha256"},
+    "review_ledger_sha256": {"$ref": "#/$defs/sha256"},
+    "billing_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "captured_at", "currency", "source_reference",
+        "applicable_to_run", "reasoning_output_billed_separately", "model_rates"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "currency": {"const": "USD"},
+        "source_reference": {"type": "string", "minLength": 1},
+        "applicable_to_run": {"const": true},
+        "reasoning_output_billed_separately": {"const": false},
+        "model_rates": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/rate"}
+        }
+      }
+    },
+    "overhead": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["arm", "category", "model", "usage"],
+        "properties": {
+          "arm": {"enum": ["allocation", "all_astra_baseline"]},
+          "category": {"enum": ["setup", "grading", "review"]},
+          "model": {"type": "string", "minLength": 1},
+          "usage": {"$ref": "#/$defs/usage"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_usd_per_million_tokens",
+        "cached_input_usd_per_million_tokens",
+        "output_usd_per_million_tokens"
+      ],
+      "properties": {
+        "input_usd_per_million_tokens": {"$ref": "#/$defs/decimal"},
+        "cached_input_usd_per_million_tokens": {"$ref": "#/$defs/decimal"},
+        "output_usd_per_million_tokens": {"$ref": "#/$defs/decimal"}
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_tokens", "cached_input_tokens", "output_tokens",
+        "reasoning_output_tokens"
+      ],
+      "properties": {
+        "input_tokens": {"type": "integer", "minimum": 0},
+        "cached_input_tokens": {"type": "integer", "minimum": 0},
+        "output_tokens": {"type": "integer", "minimum": 0},
+        "reasoning_output_tokens": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

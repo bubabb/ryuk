@@ -16,6 +16,13 @@ from typing import Any
 if __package__ in (None, ""):  # Support direct `python scripts/...py` invocation.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.model_allocation_evidence import (  # noqa: E402
+    compile_review_for_grader,
+    evaluate_savings,
+    file_sha256,
+    validate_blinded_review_ledger,
+    validate_savings_evidence,
+)
 from scripts.model_allocation_governance import load_governance  # noqa: E402
 from scripts.model_allocation_manifest import load_manifest  # noqa: E402
 from scripts.model_allocation_statistics import (  # noqa: E402
@@ -405,10 +412,12 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path, default=PILOT)
     parser.add_argument("--overhead", type=Path)
     parser.add_argument("--governance", type=Path)
+    parser.add_argument("--savings-evidence", type=Path)
     args = parser.parse_args()
     manifest, manifest_digest = load_manifest(args.manifest.resolve())
     noninferiority_margin = None
     minimum_allocation_passes = None
+    governance: dict[str, Any] | None = None
     if manifest.get("version") == 3:
         if args.governance is None:
             raise ValueError("Version 3 grading requires a governance record")
@@ -429,21 +438,61 @@ def main() -> None:
     metadata = json.loads((args.directory / "run.json").read_text())
     if manifest_digest != metadata["manifest_sha256"]:
         raise ValueError("Manifest changed after run began")
-    review = json.loads(args.review.read_text())
+    if manifest.get("version") == 3:
+        assert governance is not None
+        if args.overhead is not None:
+            raise ValueError("V3 overhead must come from savings evidence")
+        if args.savings_evidence is None:
+            raise ValueError("Version 3 grading requires savings evidence")
+        run_digest = file_sha256(args.directory / "run.json")
+        review_document = json.loads(args.review.read_text())
+        validate_blinded_review_ledger(
+            review_document,
+            manifest,
+            manifest_sha256=manifest_digest,
+            run_sha256=run_digest,
+            response_directory=args.directory,
+        )
+        if review_document["reviewer_id"] != governance["readiness"]["reviewer_id"]:
+            raise ValueError("Review ledger reviewer does not match governance")
+        review = compile_review_for_grader(review_document)
+        savings_document = json.loads(args.savings_evidence.read_text())
+        validate_savings_evidence(
+            savings_document,
+            manifest_sha256=manifest_digest,
+            run_sha256=run_digest,
+            review_ledger_sha256=file_sha256(args.review),
+            billing_snapshot_id=governance["readiness"]["billing_snapshot_id"],
+        )
+        overhead: dict[str, Any] | None = {
+            f"{item['arm']}:{item['category']}": item["usage"]
+            for item in savings_document["overhead"]
+        }
+    else:
+        review = json.loads(args.review.read_text())
+        savings_document = None
+        overhead = load_overhead(args.overhead)
     validate_review_declaration(manifest, review)
-    overhead = load_overhead(args.overhead)
     results = [grade_task(task, args.directory, review) for task in manifest["tasks"]]
-    report = {
-        "summary": summarize(
+    summary = summarize(
+        results,
+        manifest["threshold"],
+        manifest.get("comparison"),
+        overhead,
+        noninferiority_margin,
+        minimum_allocation_passes,
+    )
+    if savings_document is not None:
+        assert governance is not None
+        summary["savings"] = evaluate_savings(
             results,
-            manifest["threshold"],
-            manifest.get("comparison"),
-            overhead,
-            noninferiority_margin,
-            minimum_allocation_passes,
-        ),
-        "tasks": results,
-    }
+            savings_document,
+            quality_gate_passed=summary["matched_quality_gate_passed"],
+            minimum_cost_reduction=governance["savings_gate"][
+                "minimum_cost_reduction"
+            ],
+        )
+    report = {"summary": summary, "tasks": results}
     (args.directory / "grades.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report["summary"], indent=2))
 

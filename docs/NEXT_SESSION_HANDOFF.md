@@ -5,9 +5,10 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-007 is complete. Next bounded offline task: EVAL-008, define the v3
-blinded-review ledger and all-in savings-evidence contracts without recording
-identities, billing evidence, or model responses.** The v3
+**EVAL-008 is complete. Next bounded offline task: EVAL-009, define a single v3
+readiness-bundle validator and preflight report that cross-binds the existing
+curation, review, savings, access-probe, and owner-approval receipts without
+creating those external receipts.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -68,8 +69,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 444 passed, 8 deselected
--m mypy backend tests scripts: success, 116 source files
+-m pytest -q -m 'not integration': 459 passed, 8 deselected
+-m mypy backend tests scripts: success, 118 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -314,3 +315,23 @@ records the completed static review and a proposed measurable acceptance gate.
 - Final verification: 444 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 116 sources, compileall, `git diff --check` and
   the repository credential-pattern scan passed.
+
+## EVAL-008 blinded review and savings contracts (2026-09-26)
+
+- `v3-review-ledger.schema.json` binds blind aliases, score-freeze/unblinding
+  order, reviewer independence, exact task coverage, and response hashes to the
+  manifest and run.
+- `v3-savings-evidence.schema.json` binds applicable model rates and complete
+  per-arm setup/grading/review usage to the manifest, run, review ledger, and
+  governance billing snapshot.
+- `scripts/model_allocation_evidence.py` validates both records and recomputes
+  all-in costs. Unknown evidence never becomes zero, and savings requires the
+  matched quality gate first plus at least 25% reduction.
+- V3 grading requires these strict records; loose legacy overhead remains
+  supported only for v1/v2. Review:
+  `docs/reports/model-allocation-v3-review-savings-contract-review-2026-09-26.md`.
+- No real identity, response, usage, price, billing, access, approval, model
+  call, spending, or runtime change occurred.
+- Final verification: 459 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 118 sources, compileall, both schema JSON
+  parses, `git diff --check`, and the repository credential-pattern scan passed.

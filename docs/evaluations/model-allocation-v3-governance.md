@@ -50,3 +50,13 @@ The future curator must use `evals/model_allocation/V3_CURATION_PACKET.md` and
 the 100-case stratum distribution and expands a valid sealed record into 200
 matched tasks without making model calls. The resulting resolved manifest hash,
 not the template or a draft curation hash, is the value governance must bind.
+
+EVAL-008 adds `v3-review-ledger.schema.json`,
+`v3-savings-evidence.schema.json`, and
+`V3_REVIEW_AND_SAVINGS_PACKET.md`. The finalized blinded-review record must bind
+the manifest, run, alias map and responses after scores are frozen and before
+arm unblinding. The savings record must bind that ledger and the applicable
+billing snapshot, price every used model, and include setup, grading and review
+usage for both arms. The grader recomputes all-in arm costs and cannot pass the
+savings gate before quality or with unknown evidence. These contracts contain
+no actual identities, measurements, prices, approval, or run evidence.

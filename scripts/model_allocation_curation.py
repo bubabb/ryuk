@@ -262,6 +262,11 @@ def compile_execution_manifest(document: dict[str, Any]) -> dict[str, Any]:
             "baseline_arm": "all_astra_baseline",
             "require_complete_pairs": True,
         },
+        "review": {
+            "require_independent": True,
+            "candidate_author_ids": document["curation"]["candidate_author_ids"],
+            "blind_to_arm_until_scores_are_frozen": True,
+        },
         "resume_policy": {
             "retry_statuses": ["infrastructure_error", "infrastructure_timeout"],
             "maximum_infrastructure_attempts_per_task": 2,

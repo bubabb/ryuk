@@ -75,6 +75,11 @@ def test_compiler_expands_exactly_identical_matched_pairs():
     manifest = compile_execution_manifest(document)
     assert len(manifest["tasks"]) == 200
     assert len(manifest["curation_sha256"]) == 64
+    assert manifest["review"] == {
+        "require_independent": True,
+        "candidate_author_ids": ["candidate-fixture"],
+        "blind_to_arm_until_scores_are_frozen": True,
+    }
     for index in range(0, 200, 2):
         allocation, baseline = manifest["tasks"][index : index + 2]
         assert allocation["arm"] == "allocation"
