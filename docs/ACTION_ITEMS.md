@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Resolve DEC-006, then DEC-007 and the remaining scope decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; DEC-004 provider access is intentionally deferred and evaluation execution remains deferred until the build-completion gate
+**Next session starts with:** Resolve DEC-007 and the remaining scope decisions in `docs/PROJECT_COMPLETION_PRIORITY.md`; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -57,7 +57,7 @@ the existence of configuration fields or integration tests.
 | DEC-003 | DONE | Define data classification, residency, retention, and provider-disclosure constraints | Owner approved all-class product scope, tenant/legal region constraints, mandatory per-class retention/deletion policy, no provider training and explicit provider/model disclosure on 2026-09-26; activation remains evidence-gated; `docs/decisions/DEC-003-data-governance.md` |
 | DEC-004 | HOLD | Approve credentials, secret mechanism, hardware, and budget | Owner deferred provider credentials, secret management, hardware/access and spending authorization on 2026-09-26; reopen before live provider work; `docs/decisions/DEC-004-provider-access-deferred.md` |
 | DEC-005 | DONE | Define acceptable identity evidence for opaque hosted endpoints | Owner accepted observed catalog attribution for synthetic/public offline work; no artifact verification claim; live activation policy remains DEC-007 |
-| DEC-006 | HOLD | Select benchmark repositories/tasks and acceptance thresholds | Pinned revisions, metrics, thresholds, and evaluation owner |
+| DEC-006 | REVIEW | Select benchmark repositories/tasks and acceptance thresholds | Owner approved public version-pinned repositories, synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, 5-point paired noninferiority margin, 25% all-in savings gate and owner final acceptance on 2026-09-26; exact repositories/revisions, sealed manifest and independent reviewers remain pending; `docs/decisions/DEC-006-benchmark-policy.md` |
 | DEC-007 | HOLD | Approve identity evidence for live hosted activation | Offline catalog observation is accepted; live-use acceptance requires a separate decision when certification resumes |
 
 ## Phase 2B — real deployment certification

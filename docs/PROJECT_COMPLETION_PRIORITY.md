@@ -34,7 +34,10 @@ Resolve these before implementation branches diverge:
 4. DEC-004 — HOLD by owner: secret mechanism, hardware/access path and spending
    ceiling are deferred until live provider work is needed; no provider spend
    or credential use is currently authorized.
-5. DEC-006: benchmark corpus, thresholds and evaluation owner.
+5. DEC-006 — REVIEW: public version-pinned repositories, synthetic Ryuk tasks,
+   100+ held-out matched cases, 87% success, zero critical failures, five-point
+   paired noninferiority margin and 25% all-in savings gate are approved; exact
+   revisions, sealed manifest and independent reviewers remain to be recorded.
 6. DEC-007: identity evidence required for live activation.
 7. Scope decisions: first-release inclusion of multi-step workflows, tools,
    collaboration, persistent memory, specialist modalities, caching and HA.
@@ -80,7 +83,7 @@ claim.
 
 ## Current count
 
-Twenty-seven tracker items remain non-DONE: 19 HOLD (including deferred
-EVAL-010) and 8 BLOCKED. Several broad items must be split after scope
+Twenty-seven tracker items remain non-DONE: 18 HOLD (including deferred
+EVAL-010), 8 BLOCKED and 1 REVIEW. Several broad items must be split after scope
 decisions, so 27 is a lower bound on implementation change sets, not a schedule
 estimate.

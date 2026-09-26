@@ -15,8 +15,10 @@ deletion, no provider training, and explicit provider/model disclosure. Current
 use remains synthetic/public-only until those controls and applicable evidence
 are implemented and verified. DEC-004 is intentionally deferred: no provider
 credentials, secret manager, hardware/access commitment or spending authority
-is needed for the current offline phase. Next: resolve DEC-006, DEC-007 and the
-remaining scope decisions in
+is needed for the current offline phase. DEC-006 approves the benchmark policy
+and thresholds, but remains REVIEW pending exact repository revisions, sealed
+cases and independent reviewers during deferred curation. Next: resolve DEC-007
+and the remaining scope decisions in
 `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
