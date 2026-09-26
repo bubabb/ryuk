@@ -296,6 +296,9 @@ def test_v6_graph_migration_adds_execution_state_and_rolls_back(tmp_path, monkey
         assert "fence" not in {
             row[1] for row in db.execute("PRAGMA table_info(workflow_graph_nodes)")
         }
+        assert "binding_json" not in {
+            row[1] for row in db.execute("PRAGMA table_info(workflow_graphs)")
+        }
         assert not db.execute(
             "SELECT name FROM sqlite_master WHERE name='workflow_graph_budgets'"
         ).fetchall()
@@ -305,10 +308,10 @@ def test_v6_graph_migration_adds_execution_state_and_rolls_back(tmp_path, monkey
         graph_state = migrated.get_graph_state("tenant", graph_id)
         assert graph_state is not None
         assert graph_state.ready_nodes() == ("a",)
-        assert migrated.schema_version == 7
+        assert migrated.schema_version == 8
         assert (
             migrated._db.execute("SELECT version FROM workflow_schema").fetchone()[0]
-            == 7
+            == 8
         )
         migrated.bind_graph_budget(
             "tenant",

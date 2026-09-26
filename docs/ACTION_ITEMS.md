@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** Implement WF-017 governed multi-step APIs, cancellation and startup recovery as the next bounded offline initial-release task; DEC-004 provider access is intentionally deferred, DEC-006 corpus pinning remains REVIEW, and evaluation execution remains deferred until the build-completion gate
+**Next session starts with:** No item is READY after WF-017. Reopen DEC-004 to authorize the controlled Phase 2B access path, or explicitly approve a different recorded phase gate; DEC-006 corpus pinning remains REVIEW and evaluation execution remains deferred until the build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -97,7 +97,7 @@ blocked until Phase 2B passes.
 | WF-014 | DONE | Add task dependency-graph contracts for approved multi-step orchestration | DEC-008 initial-release scope | `backend/workflows/graph.py`, ADR-021, canonical bounded DAG and uncertainty-safe scheduler transitions; `docs/reports/workflow-dependency-graph-contract-review-2026-09-26.md` |
 | WF-015 | DONE | Persist graph/node state and atomically release dependency-ready nodes | WF-014 | Schema v6 tenant-scoped graph/node/event records, canonical idempotency, atomic causal transitions, migration/concurrency/restart tests; ADR-022 and `docs/reports/workflow-graph-persistence-review-2026-09-26.md` |
 | WF-016 | DONE | Execute graph nodes with artifact handoff and one graph-wide budget | WF-015; existing executor, validation and recovery contracts | Schema v7 fenced claims/artifacts, accepted-only hash-bound dependency envelope, durable aggregate deadline/attempt/output-token budget and no automatic replay; ADR-023 and `docs/reports/workflow-graph-execution-review-2026-09-26.md` |
-| WF-017 | READY | Add governed multi-step create/status/cancel/result APIs and startup recovery | WF-015, WF-016 | Tenant isolation, bounded graph admission, descendant cancellation/skip, restart reconciliation and accepted-result contracts |
+| WF-017 | DONE | Add governed multi-step create/status/cancel/result APIs and startup recovery | WF-015, WF-016 | ADR-024; schema v8 atomic policy-bound graph admission, authenticated tenant APIs, accepted sink results, fenced cancellation, explicit bounded dispatcher and no-replay startup recovery; `docs/reports/governed-multi-step-workflow-review-2026-09-26.md` |
 
 ## Evaluation and model allocation
 

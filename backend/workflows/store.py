@@ -30,7 +30,7 @@ class WorkflowConflict(ValueError):
 class SQLiteWorkflowStore:
     """Offline workflow store. Expired execution is uncertain, never replayed."""
 
-    schema_version = 7
+    schema_version = 8
 
     def __init__(self, path: Path) -> None:
         self._lock = RLock()
@@ -48,8 +48,17 @@ class SQLiteWorkflowStore:
                     "SELECT version FROM workflow_schema"
                 ).fetchall()
                 if not versions:
-                    self._db.execute("INSERT INTO workflow_schema VALUES (7)")
-                elif len(versions) != 1 or versions[0][0] not in (1, 2, 3, 4, 5, 6, 7):
+                    self._db.execute("INSERT INTO workflow_schema VALUES (8)")
+                elif len(versions) != 1 or versions[0][0] not in (
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                ):
                     raise ValueError("Unsupported workflow schema version")
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflows (
                     id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
@@ -94,8 +103,16 @@ class SQLiteWorkflowStore:
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graphs (
                     id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
                     idempotency_key TEXT NOT NULL, request_hash TEXT NOT NULL,
-                    graph_json TEXT NOT NULL,
+                    graph_json TEXT NOT NULL, binding_json TEXT,
                     UNIQUE(tenant, idempotency_key))""")
+                graph_columns = {
+                    row["name"]
+                    for row in self._db.execute("PRAGMA table_info(workflow_graphs)")
+                }
+                if "binding_json" not in graph_columns:
+                    self._db.execute(
+                        "ALTER TABLE workflow_graphs ADD COLUMN binding_json TEXT"
+                    )
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_nodes (
                     graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
                     tenant TEXT NOT NULL, state TEXT NOT NULL,
@@ -167,7 +184,7 @@ class SQLiteWorkflowStore:
                             "awaiting_validation",
                             row["fence"],
                         )
-                self._db.execute("UPDATE workflow_schema SET version=7")
+                self._db.execute("UPDATE workflow_schema SET version=8")
         except Exception:
             self._db.close()
             raise
@@ -293,7 +310,16 @@ class SQLiteWorkflowStore:
             return None
         return TaskPacket.from_dict(workflow["packet"])
 
-    def create_graph(self, tenant: str, key: str, graph: WorkflowGraph) -> str:
+    def create_graph(
+        self,
+        tenant: str,
+        key: str,
+        graph: WorkflowGraph,
+        *,
+        budget: tuple[float, int, int | None] | None = None,
+        binding: dict[str, Any] | None = None,
+        now: datetime | None = None,
+    ) -> str:
         """Persist a canonical graph and its initial scheduler state atomically."""
         self._identifier(tenant)
         self._identifier(key)
@@ -301,7 +327,29 @@ class SQLiteWorkflowStore:
             raise ValueError("Graph creation requires a WorkflowGraph")
         validated = WorkflowGraph.from_dict(graph.to_dict())
         encoded = canonical_json(validated.to_dict())
-        digest = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        bound = canonical_json(binding) if binding is not None else None
+        if budget is not None or bound is not None:
+            budget_value: dict[str, Any] | None = None
+            if budget is not None:
+                deadline_seconds, max_attempts, max_output_tokens = budget
+                self._validate_graph_budget(
+                    deadline_seconds, max_attempts, max_output_tokens
+                )
+                budget_value = {
+                    "deadline_seconds": deadline_seconds,
+                    "max_attempts": max_attempts,
+                    "max_output_tokens": max_output_tokens,
+                }
+            hashed = canonical_json(
+                {
+                    "graph": validated.to_dict(),
+                    "budget": budget_value,
+                    "binding": json.loads(bound) if bound is not None else None,
+                }
+            )
+        else:
+            hashed = encoded
+        digest = hashlib.sha256(hashed.encode("utf-8")).hexdigest()
         initial = validated.initial_state()
         with self._transaction():
             row = self._db.execute(
@@ -317,8 +365,10 @@ class SQLiteWorkflowStore:
                 return row["id"]
             graph_id = str(uuid4())
             self._db.execute(
-                "INSERT INTO workflow_graphs VALUES (?, ?, ?, ?, ?)",
-                (graph_id, tenant, key, digest, encoded),
+                "INSERT INTO workflow_graphs"
+                "(id, tenant, idempotency_key, request_hash, graph_json, "
+                "binding_json) VALUES (?, ?, ?, ?, ?, ?)",
+                (graph_id, tenant, key, digest, encoded, bound),
             )
             for node_id, state in initial.node_states:
                 self._db.execute(
@@ -327,7 +377,34 @@ class SQLiteWorkflowStore:
                     (graph_id, node_id, tenant, state.value),
                 )
                 self._graph_event(tenant, graph_id, node_id, state)
+            if budget is not None:
+                deadline_seconds, max_attempts, max_output_tokens = budget
+                deadline = (
+                    self._now(now) + timedelta(seconds=deadline_seconds)
+                ).isoformat()
+                self._db.execute(
+                    "INSERT INTO workflow_graph_budgets"
+                    "(graph_id, tenant, deadline_at, max_attempts, "
+                    "max_output_tokens) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        graph_id,
+                        tenant,
+                        deadline,
+                        max_attempts,
+                        max_output_tokens,
+                    ),
+                )
             return graph_id
+
+    def get_graph_binding(self, tenant: str, graph_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT binding_json FROM workflow_graphs WHERE tenant=? AND id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            if row is None or row["binding_json"] is None:
+                return None
+            return json.loads(row["binding_json"])
 
     def _graph_event(
         self,
@@ -477,18 +554,7 @@ class SQLiteWorkflowStore:
         max_output_tokens: int | None,
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        if (
-            type(deadline_seconds) not in (int, float)
-            or deadline_seconds <= 0
-            or not math.isfinite(deadline_seconds)
-            or type(max_attempts) is not int
-            or max_attempts < 1
-            or (
-                max_output_tokens is not None
-                and (type(max_output_tokens) is not int or max_output_tokens < 1)
-            )
-        ):
-            raise ValueError("Invalid graph budget")
+        self._validate_graph_budget(deadline_seconds, max_attempts, max_output_tokens)
         deadline = (self._now(now) + timedelta(seconds=deadline_seconds)).isoformat()
         with self._transaction():
             if self._get_graph_state(tenant, graph_id) is None:
@@ -517,6 +583,25 @@ class SQLiteWorkflowStore:
                     (graph_id,),
                 ).fetchone()
             )
+
+    @staticmethod
+    def _validate_graph_budget(
+        deadline_seconds: float,
+        max_attempts: int,
+        max_output_tokens: int | None,
+    ) -> None:
+        if (
+            type(deadline_seconds) not in (int, float)
+            or deadline_seconds <= 0
+            or not math.isfinite(deadline_seconds)
+            or type(max_attempts) is not int
+            or max_attempts < 1
+            or (
+                max_output_tokens is not None
+                and (type(max_output_tokens) is not int or max_output_tokens < 1)
+            )
+        ):
+            raise ValueError("Invalid graph budget")
 
     def get_graph_budget(self, tenant: str, graph_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -807,6 +892,135 @@ class SQLiteWorkflowStore:
                     )
                 )
             return tuple(artifacts)
+
+    def graph_node_records(self, tenant: str, graph_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            if self._get_graph_state(tenant, graph_id) is None:
+                return []
+            return [
+                dict(row)
+                for row in self._db.execute(
+                    "SELECT node_id, state, fence, result_artifact_id "
+                    "FROM workflow_graph_nodes WHERE tenant=? AND graph_id=? "
+                    "ORDER BY node_id",
+                    (tenant, graph_id),
+                )
+            ]
+
+    def cancel_graph(self, tenant: str, graph_id: str) -> GraphState:
+        """Fence active nodes and deterministically skip blocked descendants."""
+        with self._transaction():
+            state = self._get_graph_state(tenant, graph_id)
+            if state is None:
+                raise WorkflowConflict("Workflow graph not found")
+            for node_id, node_state in tuple(state.node_states):
+                if node_state not in {
+                    NodeState.READY,
+                    NodeState.RUNNING,
+                    NodeState.AWAITING_VALIDATION,
+                }:
+                    continue
+                state = self._get_graph_state(tenant, graph_id)
+                assert state is not None
+                current = state.state_of(node_id)
+                if current not in {
+                    NodeState.READY,
+                    NodeState.RUNNING,
+                    NodeState.AWAITING_VALIDATION,
+                }:
+                    continue
+                self._transition_graph_node(
+                    tenant, graph_id, node_id, NodeState.CANCELLED
+                )
+                self._db.execute(
+                    "UPDATE workflow_graph_nodes SET fence=fence+1, owner=NULL, "
+                    "lease_until=NULL WHERE tenant=? AND graph_id=? AND node_id=?",
+                    (tenant, graph_id, node_id),
+                )
+            final = self._get_graph_state(tenant, graph_id)
+            assert final is not None
+            return final
+
+    def accepted_graph_results(
+        self, tenant: str, graph_id: str
+    ) -> tuple[tuple[str, StoredArtifact, dict[str, Any]], ...]:
+        with self._lock:
+            state = self._get_graph_state(tenant, graph_id)
+            if state is None:
+                raise WorkflowConflict("Workflow graph not found")
+            depended_on = {
+                dependency
+                for node in state.graph.nodes
+                for dependency in node.depends_on
+            }
+            sinks = [
+                node.node_id
+                for node in state.graph.nodes
+                if node.node_id not in depended_on
+            ]
+            if not state.terminal or any(
+                state.state_of(node_id) is not NodeState.SUCCEEDED for node_id in sinks
+            ):
+                raise WorkflowConflict("Workflow graph has no accepted result")
+            results = []
+            for node_id in sinks:
+                row = self._db.execute(
+                    "SELECT * FROM workflow_graph_artifacts WHERE tenant=? "
+                    "AND graph_id=? AND node_id=? AND accepted=1",
+                    (tenant, graph_id, node_id),
+                ).fetchone()
+                if row is None or row["validation_json"] is None:
+                    raise WorkflowConflict("Accepted graph result evidence is missing")
+                artifact = StoredArtifact(
+                    ArtifactRef(
+                        row["id"],
+                        row["graph_id"],
+                        row["sha256"],
+                        row["size_bytes"],
+                        row["schema_version"],
+                    ),
+                    row["content_json"],
+                )
+                results.append((node_id, artifact, json.loads(row["validation_json"])))
+            return tuple(results)
+
+    def recover_graph_nodes_startup(
+        self, *, limit: int, now: datetime | None = None
+    ) -> list[dict[str, str]]:
+        """Fence expired graph nodes as uncertain; never replay them."""
+        if type(limit) is not int or not 1 <= limit <= 100_000:
+            raise ValueError("Recovery scan limit must be between 1 and 100000")
+        with self._transaction():
+            current = self._now(now).isoformat()
+            rows = self._db.execute(
+                "SELECT tenant, graph_id, node_id FROM workflow_graph_nodes "
+                "WHERE state=? AND lease_until<=? ORDER BY rowid LIMIT ?",
+                (NodeState.RUNNING.value, current, limit + 1),
+            ).fetchall()
+            if len(rows) > limit:
+                raise WorkflowConflict("Graph recovery scan limit exceeded")
+            recovered = []
+            for row in rows:
+                self._transition_graph_node(
+                    row["tenant"],
+                    row["graph_id"],
+                    row["node_id"],
+                    NodeState.UNCERTAIN,
+                )
+                self._db.execute(
+                    "UPDATE workflow_graph_nodes SET fence=fence+1, owner=NULL, "
+                    "lease_until=NULL WHERE tenant=? AND graph_id=? AND node_id=?",
+                    (row["tenant"], row["graph_id"], row["node_id"]),
+                )
+                recovered.append(
+                    {
+                        "tenant": row["tenant"],
+                        "graph_id": row["graph_id"],
+                        "node_id": row["node_id"],
+                        "reason": "outcome_unknown",
+                    }
+                )
+            return recovered
 
     def list_ready(self, limit: int) -> list[tuple[str, str]]:
         """Return a bounded local snapshot; claiming remains the authority."""

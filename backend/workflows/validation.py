@@ -77,12 +77,8 @@ def validate_artifact(
     artifact: StoredArtifact, snapshot: dict[str, Any]
 ) -> dict[str, Any]:
     """Evaluate saved output; any finding rejects this deterministic gate."""
-    rules = dict(snapshot)
-    rules["required_sections"] = tuple(rules["required_sections"])
-    rules["forbidden_phrases"] = tuple(rules["forbidden_phrases"])
-    schema = rules["output_schema"]
-    rules["output_schema"] = JSONSchemaConstraint(schema["schema"]) if schema else None
-    policy = ValidationPolicy(**rules)
+    policy = validation_policy_from_snapshot(snapshot)
+    schema = snapshot["output_schema"]
     output = artifact.payload().get("output")
     text = output.get("text") if isinstance(output, dict) else None
     findings: list[dict[str, str]] = []
@@ -120,3 +116,16 @@ def validate_artifact(
         "decision": "rejected" if findings else "accepted",
         "findings": findings,
     }
+
+
+def validation_policy_from_snapshot(snapshot: dict[str, Any]) -> ValidationPolicy:
+    """Reconstruct the exact detached server policy bound at creation."""
+    rules = dict(snapshot)
+    rules["required_sections"] = tuple(rules["required_sections"])
+    rules["forbidden_phrases"] = tuple(rules["forbidden_phrases"])
+    schema = rules["output_schema"]
+    rules["output_schema"] = JSONSchemaConstraint(schema["schema"]) if schema else None
+    policy = ValidationPolicy(**rules)
+    if policy_snapshot(policy) != snapshot:
+        raise ValueError("Invalid validation policy snapshot")
+    return policy

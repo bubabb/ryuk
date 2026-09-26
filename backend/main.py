@@ -40,6 +40,7 @@ from backend.inference.runtime import DeploymentRuntimeState, RuntimeStateCollec
 from backend.middleware import RequestBodyLimitMiddleware, RequestContextMiddleware
 from backend.workflows.api import build_workflow_router
 from backend.workflows.governance import load_workflow_policies
+from backend.workflows.graph_api import build_workflow_graph_router
 from backend.workflows.recovery import (
     StartupRecoveryReport,
     recover_workflows_at_startup,
@@ -49,9 +50,10 @@ from backend.workflows.store import SQLiteWorkflowStore
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    global workflow_recovery_report
+    global graph_recovery_report, workflow_recovery_report
     del app
     workflow_recovery_report = None
+    graph_recovery_report = None
     runtime_started = False
     try:
         if settings.app_env is AppEnvironment.PRODUCTION:
@@ -60,6 +62,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         workflow_recovery_report = (
             recover_workflows_at_startup(
                 workflow_store, limit=settings.workflow_recovery_scan_limit
+            )
+            if workflow_store is not None
+            else None
+        )
+        graph_recovery_report = (
+            tuple(
+                workflow_store.recover_graph_nodes_startup(
+                    limit=settings.workflow_recovery_scan_limit
+                )
             )
             if workflow_store is not None
             else None
@@ -154,6 +165,7 @@ workflow_store = (
     else None
 )
 workflow_recovery_report: StartupRecoveryReport | None = None
+graph_recovery_report: tuple[dict[str, str], ...] | None = None
 
 
 def require_role(role: Role):
@@ -803,8 +815,49 @@ async def workflow_recovery_status(
         record_terminal(request, principal, operation, status)
 
 
+@app.get("/v1/workflow-graphs/recovery")
+async def workflow_graph_recovery_status(
+    request: Request,
+    principal: OperatorPrincipal,
+) -> dict[str, object]:
+    operation = "workflow_graph.recovery.status"
+    permit = admit_request(request, principal, operation, 0)
+    status = "failed"
+    try:
+        if workflow_store is None or graph_recovery_report is None:
+            raise ControlPlaneFailure(
+                503,
+                "workflow_graph_recovery_unavailable",
+                "Workflow graph startup recovery is not available.",
+            )
+        unresolved = [
+            {
+                "graph_id": item["graph_id"],
+                "node_id": item["node_id"],
+                "reason": item["reason"],
+            }
+            for item in graph_recovery_report
+            if item["tenant"] == principal.tenant_id
+        ]
+        status = "accepted"
+        return {"scanned": len(unresolved), "unresolved": unresolved}
+    finally:
+        permit.release()
+        record_terminal(request, principal, operation, status)
+
+
 app.include_router(
     build_workflow_router(
+        require_role(Role.INFERENCE),
+        lambda: workflow_store,
+        lambda: workflow_policies,
+        admit_request,
+        record_terminal,
+        lambda: (settings.max_prompt_chars, settings.max_generation_tokens),
+    )
+)
+app.include_router(
+    build_workflow_graph_router(
         require_role(Role.INFERENCE),
         lambda: workflow_store,
         lambda: workflow_policies,

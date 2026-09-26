@@ -60,7 +60,8 @@ behavior. They are not final acceptance or production rollout.
 3. WF-014 — DONE: bounded dependency-graph and scheduler-state contracts.
 4. WF-015 — DONE: schema v6 durable graph/node state and atomic causal readiness.
 5. WF-016 — DONE: fenced graph execution, accepted-artifact binding and a
-   durable graph-wide budget. WF-017 governed APIs and recovery is next READY.
+   durable graph-wide budget. WF-017 — DONE: governed APIs, explicit local
+   dispatch, fenced cancellation and no-replay startup recovery.
 6. TOOL-001 after its phase gate.
 7. MEM-001.
 8. CACHE-001 after accepted-result and provenance policies are stable.
@@ -89,7 +90,8 @@ claim.
 
 ## Current count
 
-Twenty-six tracker items remain non-DONE: 16 HOLD (including deferred
-EVAL-010), 8 BLOCKED, 1 REVIEW and 1 READY. Several broad items must be split after scope
-decisions, so 26 is a lower bound on implementation change sets, not a schedule
+Twenty-five tracker items remain non-DONE: 16 HOLD (including deferred
+EVAL-010), 8 BLOCKED and 1 REVIEW. No item is READY while DEC-004 and the
+recorded phase gates remain deferred. Several broad items must be split after scope
+decisions, so 25 is a lower bound on implementation change sets, not a schedule
 estimate.
