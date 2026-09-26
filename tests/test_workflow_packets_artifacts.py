@@ -158,7 +158,7 @@ def test_v1_migration_preserves_legacy_packet_but_does_not_invent_a_task(tmp_pat
         with pytest.raises(ValueError):
             store.claim("a", "old", "worker")
         with sqlite3.connect(path) as db:
-            assert db.execute("SELECT version FROM workflow_schema").fetchone()[0] == 6
+            assert db.execute("SELECT version FROM workflow_schema").fetchone()[0] == 7
         assert store.create("a", "new", packet())
     finally:
         store.close()

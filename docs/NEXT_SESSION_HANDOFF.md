@@ -24,9 +24,10 @@ closed and model weights remain unverified. DEC-008 includes multi-step
 workflows, governed tools, persistent memory and caching in the initial release;
 collaboration, specialist modalities and HA are post-release. WF-014 now defines
 the bounded dependency-graph and scheduler-state contracts. WF-015 adds schema
-v6 durable graph/node/event state with atomic causal readiness. Next: implement
-WF-016 fenced graph-node execution, accepted-artifact handoff and one graph-wide
-budget.** The v3
+v6 durable graph/node/event state with atomic causal readiness. WF-016 adds
+schema v7 fenced graph-node execution, accepted-only hash-bound artifact handoff
+and one durable graph deadline/attempt/output-token budget. Next: implement
+WF-017 governed multi-step APIs, cancellation and startup recovery.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -86,8 +87,10 @@ allocation plan; consult Git history for the saved checkpoint.
 - Schema v5 adds workflow_bindings transactionally, without inventing authority
   for existing workflows. Follow ADR-016's stop-writers/backup/restore procedure.
 - Schema v6 adds graph, node and event tables transactionally without inventing
-  graphs for existing workflows. Ready graph-node listings are advisory only;
-  WF-016 must add claiming and execution authority.
+  graphs for existing workflows.
+- Schema v7 adds fenced graph-node execution, immutable result artifacts and a
+  durable aggregate graph budget without inventing authority for old graphs.
+  There is still no public graph API or automatic graph dispatcher/recovery.
 - ControlPlaneFailure is no longer frozen, allowing normal traceback propagation
   through context managers rather than failing on intended HTTP errors.
 
@@ -132,7 +135,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 27 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 26 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded

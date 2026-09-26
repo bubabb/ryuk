@@ -488,7 +488,7 @@ def test_v4_migration_preserves_legacy_and_rolls_back_binding_table(
         assert store.get("a", workflow) == before
         assert store.get_binding("a", workflow) is None
         assert (
-            store._db.execute("SELECT version FROM workflow_schema").fetchone()[0] == 6
+            store._db.execute("SELECT version FROM workflow_schema").fetchone()[0] == 7
         )
     finally:
         store.close()

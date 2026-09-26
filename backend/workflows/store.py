@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -29,7 +30,7 @@ class WorkflowConflict(ValueError):
 class SQLiteWorkflowStore:
     """Offline workflow store. Expired execution is uncertain, never replayed."""
 
-    schema_version = 6
+    schema_version = 7
 
     def __init__(self, path: Path) -> None:
         self._lock = RLock()
@@ -47,8 +48,8 @@ class SQLiteWorkflowStore:
                     "SELECT version FROM workflow_schema"
                 ).fetchall()
                 if not versions:
-                    self._db.execute("INSERT INTO workflow_schema VALUES (6)")
-                elif len(versions) != 1 or versions[0][0] not in (1, 2, 3, 4, 5, 6):
+                    self._db.execute("INSERT INTO workflow_schema VALUES (7)")
+                elif len(versions) != 1 or versions[0][0] not in (1, 2, 3, 4, 5, 6, 7):
                     raise ValueError("Unsupported workflow schema version")
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflows (
                     id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
@@ -98,13 +99,57 @@ class SQLiteWorkflowStore:
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_nodes (
                     graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
                     tenant TEXT NOT NULL, state TEXT NOT NULL,
+                    fence INTEGER NOT NULL DEFAULT 0, owner TEXT, lease_until TEXT,
+                    result_artifact_id TEXT,
                     PRIMARY KEY(graph_id, node_id),
                     FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
+                graph_node_columns = {
+                    row["name"]
+                    for row in self._db.execute(
+                        "PRAGMA table_info(workflow_graph_nodes)"
+                    )
+                }
+                for definition in (
+                    "fence INTEGER NOT NULL DEFAULT 0",
+                    "owner TEXT",
+                    "lease_until TEXT",
+                    "result_artifact_id TEXT",
+                ):
+                    name = definition.split()[0]
+                    if name not in graph_node_columns:
+                        self._db.execute(
+                            f"ALTER TABLE workflow_graph_nodes ADD COLUMN {definition}"
+                        )
                 self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_events (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
                     graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
                     tenant TEXT NOT NULL, state TEXT NOT NULL,
                     FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
+                self._db.execute("""CREATE TABLE IF NOT EXISTS workflow_graph_budgets (
+                    graph_id TEXT PRIMARY KEY, tenant TEXT NOT NULL,
+                    deadline_at TEXT NOT NULL, max_attempts INTEGER NOT NULL,
+                    max_output_tokens INTEGER, attempts INTEGER NOT NULL DEFAULT 0,
+                    output_tokens INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
+                self._db.execute("""CREATE TABLE IF NOT EXISTS
+                    workflow_graph_artifacts (
+                    id TEXT PRIMARY KEY, graph_id TEXT NOT NULL, node_id TEXT NOT NULL,
+                    tenant TEXT NOT NULL, schema_version INTEGER NOT NULL,
+                    sha256 TEXT NOT NULL, size_bytes INTEGER NOT NULL,
+                    content_json TEXT NOT NULL, accepted INTEGER NOT NULL DEFAULT 0,
+                    validation_json TEXT,
+                    FOREIGN KEY(graph_id) REFERENCES workflow_graphs(id))""")
+                graph_artifact_columns = {
+                    row["name"]
+                    for row in self._db.execute(
+                        "PRAGMA table_info(workflow_graph_artifacts)"
+                    )
+                }
+                if "validation_json" not in graph_artifact_columns:
+                    self._db.execute(
+                        "ALTER TABLE workflow_graph_artifacts "
+                        "ADD COLUMN validation_json TEXT"
+                    )
                 if versions and versions[0][0] < 3:
                     legacy = self._db.execute(
                         "SELECT id, tenant, fence FROM workflows "
@@ -122,7 +167,7 @@ class SQLiteWorkflowStore:
                             "awaiting_validation",
                             row["fence"],
                         )
-                self._db.execute("UPDATE workflow_schema SET version=6")
+                self._db.execute("UPDATE workflow_schema SET version=7")
         except Exception:
             self._db.close()
             raise
@@ -277,7 +322,8 @@ class SQLiteWorkflowStore:
             )
             for node_id, state in initial.node_states:
                 self._db.execute(
-                    "INSERT INTO workflow_graph_nodes VALUES (?, ?, ?, ?)",
+                    "INSERT INTO workflow_graph_nodes"
+                    "(graph_id, node_id, tenant, state) VALUES (?, ?, ?, ?)",
                     (graph_id, node_id, tenant, state.value),
                 )
                 self._graph_event(tenant, graph_id, node_id, state)
@@ -319,6 +365,17 @@ class SQLiteWorkflowStore:
         with self._lock:
             return self._get_graph_state(tenant, graph_id)
 
+    def get_graph_node_packet(
+        self, tenant: str, graph_id: str, node_id: str
+    ) -> TaskPacket | None:
+        state = self.get_graph_state(tenant, graph_id)
+        if state is None:
+            return None
+        for node in state.graph.nodes:
+            if node.node_id == node_id:
+                return node.packet
+        return None
+
     def transition_graph_node(
         self,
         tenant: str,
@@ -330,55 +387,60 @@ class SQLiteWorkflowStore:
         if not isinstance(target, NodeState):
             raise ValueError("Graph transition target must be a NodeState")
         with self._transaction():
-            current = self._get_graph_state(tenant, graph_id)
-            if current is None:
-                raise WorkflowConflict("Workflow graph not found")
-            try:
-                updated = current.transition(node_id, target)
-            except ValueError as exc:
-                raise WorkflowConflict("Illegal workflow graph transition") from exc
-            before = dict(current.node_states)
-            after = dict(updated.node_states)
-            pending = {
-                changed_node
-                for changed_node, state in updated.node_states
-                if before[changed_node] is not state
-            }
-            ordered: list[str] = []
-            if node_id in pending:
-                ordered.append(node_id)
-                pending.remove(node_id)
-            dependencies = {
-                node.node_id: set(node.depends_on) for node in updated.graph.nodes
-            }
-            while pending:
-                eligible = [
-                    node.node_id
-                    for node in updated.graph.nodes
-                    if node.node_id in pending
-                    and not dependencies[node.node_id] & pending
-                ]
-                if not eligible:  # Defensive: graph validation already rejects cycles.
-                    raise ValueError("Invalid derived graph transition ordering")
-                ordered.extend(eligible)
-                pending.difference_update(eligible)
-            for changed_node in ordered:
-                state = after[changed_node]
-                cursor = self._db.execute(
-                    "UPDATE workflow_graph_nodes SET state=? "
-                    "WHERE tenant=? AND graph_id=? AND node_id=? AND state=?",
-                    (
-                        state.value,
-                        tenant,
-                        graph_id,
-                        changed_node,
-                        before[changed_node].value,
-                    ),
-                )
-                if cursor.rowcount != 1:
-                    raise WorkflowConflict("Workflow graph state changed concurrently")
-                self._graph_event(tenant, graph_id, changed_node, state)
-            return updated
+            return self._transition_graph_node(tenant, graph_id, node_id, target)
+
+    def _transition_graph_node(
+        self, tenant: str, graph_id: str, node_id: str, target: NodeState
+    ) -> GraphState:
+        """Apply a transition while the caller holds the write transaction."""
+        current = self._get_graph_state(tenant, graph_id)
+        if current is None:
+            raise WorkflowConflict("Workflow graph not found")
+        try:
+            updated = current.transition(node_id, target)
+        except ValueError as exc:
+            raise WorkflowConflict("Illegal workflow graph transition") from exc
+        before = dict(current.node_states)
+        after = dict(updated.node_states)
+        pending = {
+            changed_node
+            for changed_node, state in updated.node_states
+            if before[changed_node] is not state
+        }
+        ordered: list[str] = []
+        if node_id in pending:
+            ordered.append(node_id)
+            pending.remove(node_id)
+        dependencies = {
+            node.node_id: set(node.depends_on) for node in updated.graph.nodes
+        }
+        while pending:
+            eligible = [
+                node.node_id
+                for node in updated.graph.nodes
+                if node.node_id in pending and not dependencies[node.node_id] & pending
+            ]
+            if not eligible:  # Defensive: graph validation already rejects cycles.
+                raise ValueError("Invalid derived graph transition ordering")
+            ordered.extend(eligible)
+            pending.difference_update(eligible)
+        for changed_node in ordered:
+            state = after[changed_node]
+            cursor = self._db.execute(
+                "UPDATE workflow_graph_nodes SET state=? "
+                "WHERE tenant=? AND graph_id=? AND node_id=? AND state=?",
+                (
+                    state.value,
+                    tenant,
+                    graph_id,
+                    changed_node,
+                    before[changed_node].value,
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise WorkflowConflict("Workflow graph state changed concurrently")
+            self._graph_event(tenant, graph_id, changed_node, state)
+        return updated
 
     def list_ready_graph_nodes(self, limit: int) -> list[tuple[str, str, str]]:
         """Return a bounded advisory snapshot; WF-016 will define claiming."""
@@ -404,6 +466,347 @@ class SQLiteWorkflowStore:
                     (tenant, graph_id),
                 )
             ]
+
+    def bind_graph_budget(
+        self,
+        tenant: str,
+        graph_id: str,
+        *,
+        deadline_seconds: float,
+        max_attempts: int,
+        max_output_tokens: int | None,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        if (
+            type(deadline_seconds) not in (int, float)
+            or deadline_seconds <= 0
+            or not math.isfinite(deadline_seconds)
+            or type(max_attempts) is not int
+            or max_attempts < 1
+            or (
+                max_output_tokens is not None
+                and (type(max_output_tokens) is not int or max_output_tokens < 1)
+            )
+        ):
+            raise ValueError("Invalid graph budget")
+        deadline = (self._now(now) + timedelta(seconds=deadline_seconds)).isoformat()
+        with self._transaction():
+            if self._get_graph_state(tenant, graph_id) is None:
+                raise WorkflowConflict("Workflow graph not found")
+            existing = self._db.execute(
+                "SELECT * FROM workflow_graph_budgets WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            if existing is not None:
+                actual = (
+                    existing["max_attempts"],
+                    existing["max_output_tokens"],
+                )
+                if actual != (max_attempts, max_output_tokens):
+                    raise WorkflowConflict("Graph budget is already bound")
+                return dict(existing)
+            self._db.execute(
+                "INSERT INTO workflow_graph_budgets"
+                "(graph_id, tenant, deadline_at, max_attempts, max_output_tokens) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (graph_id, tenant, deadline, max_attempts, max_output_tokens),
+            )
+            return dict(
+                self._db.execute(
+                    "SELECT * FROM workflow_graph_budgets WHERE graph_id=?",
+                    (graph_id,),
+                ).fetchone()
+            )
+
+    def get_graph_budget(self, tenant: str, graph_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT * FROM workflow_graph_budgets WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            return dict(row) if row is not None else None
+
+    def reserve_graph_attempt(
+        self, tenant: str, graph_id: str, *, now: datetime | None = None
+    ) -> bool:
+        with self._transaction():
+            row = self._db.execute(
+                "SELECT * FROM workflow_graph_budgets WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            if row is None:
+                raise WorkflowConflict("Graph budget is not bound")
+            if (
+                datetime.fromisoformat(row["deadline_at"]) <= self._now(now)
+                or row["attempts"] >= row["max_attempts"]
+            ):
+                return False
+            self._db.execute(
+                "UPDATE workflow_graph_budgets SET attempts=attempts+1 "
+                "WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            )
+            return True
+
+    def record_graph_output_tokens(
+        self, tenant: str, graph_id: str, count: int | None
+    ) -> bool:
+        if count is None:
+            return True
+        if type(count) is not int or count < 0:
+            raise ValueError("Output token count must be a nonnegative integer")
+        with self._transaction():
+            row = self._db.execute(
+                "SELECT * FROM workflow_graph_budgets WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            if row is None:
+                raise WorkflowConflict("Graph budget is not bound")
+            if (
+                row["max_output_tokens"] is not None
+                and row["output_tokens"] + count > row["max_output_tokens"]
+            ):
+                return False
+            self._db.execute(
+                "UPDATE workflow_graph_budgets SET output_tokens=output_tokens+? "
+                "WHERE tenant=? AND graph_id=?",
+                (count, tenant, graph_id),
+            )
+            return True
+
+    def claim_graph_node(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        owner: str,
+        *,
+        lease_seconds: int = 30,
+        now: datetime | None = None,
+    ) -> int:
+        self._identifier(owner)
+        if type(lease_seconds) is not int or not 1 <= lease_seconds <= 3600:
+            raise ValueError("Lease must be between 1 and 3600 seconds")
+        with self._transaction():
+            budget = self._db.execute(
+                "SELECT deadline_at FROM workflow_graph_budgets "
+                "WHERE tenant=? AND graph_id=?",
+                (tenant, graph_id),
+            ).fetchone()
+            current = self._now(now)
+            if budget is None or datetime.fromisoformat(budget[0]) <= current:
+                raise WorkflowConflict("Graph budget is missing or expired")
+            row = self._db.execute(
+                "SELECT state, fence FROM workflow_graph_nodes "
+                "WHERE tenant=? AND graph_id=? AND node_id=?",
+                (tenant, graph_id, node_id),
+            ).fetchone()
+            if row is None or row["state"] != NodeState.READY.value:
+                raise WorkflowConflict("Graph node is not claimable")
+            fence = row["fence"] + 1
+            expiry = (current + timedelta(seconds=lease_seconds)).isoformat()
+            cursor = self._db.execute(
+                "UPDATE workflow_graph_nodes SET state=?, fence=?, owner=?, "
+                "lease_until=? WHERE tenant=? AND graph_id=? AND node_id=? "
+                "AND state=? AND fence=?",
+                (
+                    NodeState.RUNNING.value,
+                    fence,
+                    owner,
+                    expiry,
+                    tenant,
+                    graph_id,
+                    node_id,
+                    NodeState.READY.value,
+                    row["fence"],
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise WorkflowConflict("Graph node claim changed concurrently")
+            self._graph_event(tenant, graph_id, node_id, NodeState.RUNNING)
+            return fence
+
+    def _require_graph_lease(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        owner: str,
+        fence: int,
+        now: datetime | None,
+    ) -> None:
+        row = self._db.execute(
+            "SELECT state, owner, fence, lease_until FROM workflow_graph_nodes "
+            "WHERE tenant=? AND graph_id=? AND node_id=?",
+            (tenant, graph_id, node_id),
+        ).fetchone()
+        if (
+            row is None
+            or row["state"] != NodeState.RUNNING.value
+            or row["owner"] != owner
+            or row["fence"] != fence
+            or datetime.fromisoformat(row["lease_until"]) <= self._now(now)
+        ):
+            raise WorkflowConflict("Stale or unauthorized graph-node execution")
+
+    def complete_graph_node(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        owner: str,
+        fence: int,
+        result: dict[str, Any],
+        *,
+        succeeded: bool,
+        now: datetime | None = None,
+    ) -> ArtifactRef:
+        if not isinstance(result, dict) or type(succeeded) is not bool:
+            raise ValueError("A result object and boolean success are required")
+        encoded = canonical_json(result)
+        with self._transaction():
+            self._require_graph_lease(tenant, graph_id, node_id, owner, fence, now)
+            artifact = ArtifactRef(
+                str(uuid4()),
+                graph_id,
+                hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
+                len(encoded.encode("utf-8")),
+            )
+            self._db.execute(
+                "INSERT INTO workflow_graph_artifacts"
+                "(id, graph_id, node_id, tenant, schema_version, sha256, "
+                "size_bytes, content_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    artifact.artifact_id,
+                    graph_id,
+                    node_id,
+                    tenant,
+                    artifact.schema_version,
+                    artifact.sha256,
+                    artifact.size_bytes,
+                    encoded,
+                ),
+            )
+            target = NodeState.AWAITING_VALIDATION if succeeded else NodeState.FAILED
+            self._transition_graph_node(tenant, graph_id, node_id, target)
+            self._db.execute(
+                "UPDATE workflow_graph_nodes SET owner=NULL, lease_until=NULL, "
+                "result_artifact_id=? WHERE tenant=? AND graph_id=? AND node_id=?",
+                (artifact.artifact_id, tenant, graph_id, node_id),
+            )
+            return artifact
+
+    def get_graph_artifact(
+        self, tenant: str, graph_id: str, node_id: str
+    ) -> StoredArtifact | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT a.* FROM workflow_graph_artifacts a "
+                "JOIN workflow_graph_nodes n ON n.result_artifact_id=a.id "
+                "WHERE a.tenant=? AND a.graph_id=? AND a.node_id=?",
+                (tenant, graph_id, node_id),
+            ).fetchone()
+            if row is None:
+                return None
+            return StoredArtifact(
+                ArtifactRef(
+                    row["id"],
+                    row["graph_id"],
+                    row["sha256"],
+                    row["size_bytes"],
+                    row["schema_version"],
+                ),
+                row["content_json"],
+            )
+
+    def validate_graph_node(
+        self,
+        tenant: str,
+        graph_id: str,
+        node_id: str,
+        policy: ValidationPolicy,
+    ) -> dict[str, Any]:
+        snapshot = policy_snapshot(policy)
+        with self._transaction():
+            row = self._db.execute(
+                "SELECT n.state, a.* FROM workflow_graph_nodes n "
+                "JOIN workflow_graph_artifacts a ON n.result_artifact_id=a.id "
+                "WHERE n.tenant=? AND n.graph_id=? AND n.node_id=?",
+                (tenant, graph_id, node_id),
+            ).fetchone()
+            if row is None:
+                raise WorkflowConflict("Graph node has no result artifact")
+            artifact = StoredArtifact(
+                ArtifactRef(
+                    row["id"],
+                    row["graph_id"],
+                    row["sha256"],
+                    row["size_bytes"],
+                    row["schema_version"],
+                ),
+                row["content_json"],
+            )
+            if row["validation_json"] is not None:
+                report = json.loads(row["validation_json"])
+                if report["policy"] != snapshot:
+                    raise WorkflowConflict("Graph validation policy changed")
+                return report
+            if row["state"] != NodeState.AWAITING_VALIDATION.value:
+                raise WorkflowConflict("Graph node is not eligible for validation")
+            report = validate_artifact(artifact, snapshot)
+            accepted = report["decision"] == "accepted"
+            self._db.execute(
+                "UPDATE workflow_graph_artifacts SET accepted=?, validation_json=? "
+                "WHERE id=?",
+                (int(accepted), canonical_json(report), artifact.ref.artifact_id),
+            )
+            self._transition_graph_node(
+                tenant,
+                graph_id,
+                node_id,
+                NodeState.SUCCEEDED if accepted else NodeState.REJECTED,
+            )
+            return report
+
+    def accepted_dependency_artifacts(
+        self, tenant: str, graph_id: str, node_id: str
+    ) -> tuple[tuple[str, StoredArtifact], ...]:
+        with self._lock:
+            state = self._get_graph_state(tenant, graph_id)
+            if state is None:
+                raise WorkflowConflict("Workflow graph not found")
+            nodes = {node.node_id: node for node in state.graph.nodes}
+            if node_id not in nodes:
+                raise WorkflowConflict("Workflow graph node not found")
+            artifacts: list[tuple[str, StoredArtifact]] = []
+            for dependency in nodes[node_id].depends_on:
+                if state.state_of(dependency) is not NodeState.SUCCEEDED:
+                    raise WorkflowConflict("Graph dependency is not accepted")
+                row = self._db.execute(
+                    "SELECT a.* FROM workflow_graph_nodes n "
+                    "JOIN workflow_graph_artifacts a ON n.result_artifact_id=a.id "
+                    "WHERE n.tenant=? AND n.graph_id=? AND n.node_id=? "
+                    "AND a.accepted=1",
+                    (tenant, graph_id, dependency),
+                ).fetchone()
+                if row is None:
+                    raise WorkflowConflict("Accepted dependency artifact is missing")
+                artifacts.append(
+                    (
+                        dependency,
+                        StoredArtifact(
+                            ArtifactRef(
+                                row["id"],
+                                row["graph_id"],
+                                row["sha256"],
+                                row["size_bytes"],
+                                row["schema_version"],
+                            ),
+                            row["content_json"],
+                        ),
+                    )
+                )
+            return tuple(artifacts)
 
     def list_ready(self, limit: int) -> list[tuple[str, str]]:
         """Return a bounded local snapshot; claiming remains the authority."""

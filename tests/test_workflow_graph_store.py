@@ -208,7 +208,7 @@ def test_v5_migration_is_atomic_and_does_not_invent_graphs(tmp_path, monkeypatch
         assert migrated.get_graph_state("tenant", "missing") is None
         assert (
             migrated._db.execute("SELECT version FROM workflow_schema").fetchone()[0]
-            == 6
+            == 7
         )
     finally:
         migrated.close()
