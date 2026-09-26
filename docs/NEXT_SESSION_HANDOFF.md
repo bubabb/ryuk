@@ -13,7 +13,10 @@ served revisions. DEC-003 approves all data classifications, global regions
 subject to tenant/legal constraints, mandatory class-specific retention and
 deletion, no provider training, and explicit provider/model disclosure. Current
 use remains synthetic/public-only until those controls and applicable evidence
-are implemented and verified. Next: resolve DEC-004 and the remaining owner decisions in
+are implemented and verified. DEC-004 is intentionally deferred: no provider
+credentials, secret manager, hardware/access commitment or spending authority
+is needed for the current offline phase. Next: resolve DEC-006, DEC-007 and the
+remaining scope decisions in
 `docs/PROJECT_COMPLETION_PRIORITY.md`.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
@@ -46,6 +49,8 @@ reliability or savings. Live certification remains pending.
 - Hosted catalog identity is observed, not artifact-verified.
 - No live Ryuk-provider calls, provisioning or production activation. The owner
   separately authorized the recorded Codex model-allocation pilot v2 calls.
+- Provider credential delivery, hardware/access and spending authorization are
+  deferred until the owner reopens DEC-004 for live provider work.
 
 ## Current checkpoint
 

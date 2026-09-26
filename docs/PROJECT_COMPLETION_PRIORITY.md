@@ -31,7 +31,9 @@ Resolve these before implementation branches diverge:
 3. DEC-003 — DONE: all-class product scope; global regions subject to tenant and
    legal requirements; mandatory class-specific retention/deletion; no provider
    training; explicit provider/model disclosure. Activation remains evidence-gated.
-4. DEC-004: secret mechanism, hardware/access path and spending ceiling.
+4. DEC-004 — HOLD by owner: secret mechanism, hardware/access path and spending
+   ceiling are deferred until live provider work is needed; no provider spend
+   or credential use is currently authorized.
 5. DEC-006: benchmark corpus, thresholds and evaluation owner.
 6. DEC-007: identity evidence required for live activation.
 7. Scope decisions: first-release inclusion of multi-step workflows, tools,
