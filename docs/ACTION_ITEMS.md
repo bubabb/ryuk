@@ -99,6 +99,8 @@ blocked until Phase 2B passes.
 | EVAL-002 | DONE | Preregister a corrected pilot v2 without executing model calls | EVAL-001 | Hash-bound `pilot-v2.json` overlay and `PROTOCOL-v2.md`; P02 types explicit, P20 missing/duplicate version-row checks added, infrastructure-only continuation enforced and tested |
 | EVAL-003 | DONE | Execute, grade and review the preregistered model-allocation pilot v2 | EVAL-002 | `docs/reports/model-allocation-pilot-v2-2026-09-25.md`; 26/26 passed, zero critical failures or retries; bounded gate passed, population reliability and savings remain unverified |
 | EVAL-004 | DONE | Add v3 harness contracts for matched comparison arms, independent-review declarations and non-candidate usage | EVAL-003 | `docs/evaluations/model-allocation-v3-harness.md` and `docs/reports/model-allocation-v3-harness-review-2026-09-25.md`; 15 focused tests; no model calls or v3 benchmark claim |
+| EVAL-005 | DONE | Define a blocked-by-default v3 matched-evaluation governance and readiness protocol | EVAL-004 | `v3-governance.json`, fail-closed runner authorization, `docs/evaluations/model-allocation-v3-governance.md`, and review report; no model calls |
+| EVAL-006 | READY | Implement and test the preregistered Newcombe paired noninferiority metric | EVAL-005 | Reviewed implementation hash and deterministic boundary/reference tests; no model calls required |
 
 ## Control-plane hardening
 

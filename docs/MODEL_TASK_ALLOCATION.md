@@ -195,6 +195,13 @@ independent-review declarations, and all-in usage that stays unknown when setup
 or reviewer counters are missing. It does not preregister or authorize a v3 run.
 See `docs/evaluations/model-allocation-v3-harness.md`.
 
+EVAL-005 records a blocked-by-default 100-case matched governance protocol. It
+requires 94 allocation passes, zero critical failures, complete pairs, a
+preregistered paired noninferiority interval, complete all-in usage, billing
+evidence and at least 25% matched cost reduction before a savings claim. The
+runner cannot make v3 calls until every readiness field is recorded and bound
+to the resolved manifest. No v3 run is currently authorized.
+
 ## How to apply this without wasting usage
 
 For CTX-003, first verify whether candidate tokenizer/template identities and

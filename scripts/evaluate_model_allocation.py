@@ -16,11 +16,30 @@ from typing import Any
 if __package__ in (None, ""):  # Support direct `python scripts/...py` invocation.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.model_allocation_governance import load_governance  # noqa: E402
 from scripts.model_allocation_manifest import load_manifest  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT = ROOT / "evals/model_allocation/pilot.json"
 SCHEMA = ROOT / "evals/model_allocation/response.schema.json"
+
+
+def authorize_manifest_run(
+    manifest: dict[str, Any], manifest_digest: str, governance_path: Path | None
+) -> None:
+    """Require a ready, hash-bound governance record for v3 and later runs."""
+    version = manifest.get("version", 1)
+    if type(version) is not int or version < 1:
+        raise ValueError("Manifest version must be a positive integer")
+    if version < 3:
+        return
+    if governance_path is None:
+        raise ValueError("V3 model calls require a governance record")
+    governance, blockers = load_governance(governance_path)
+    if blockers:
+        raise ValueError("V3 model calls are blocked by incomplete governance")
+    if governance["readiness"]["case_manifest_sha256"] != manifest_digest:
+        raise ValueError("Governance is not bound to this resolved manifest")
 
 
 def prompt_for(task: dict[str, Any]) -> str:
@@ -151,6 +170,7 @@ def main() -> None:
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, default=PILOT)
+    parser.add_argument("--governance", type=Path)
     args = parser.parse_args()
     manifest_path = args.manifest.resolve()
     manifest, manifest_digest = load_manifest(manifest_path)
@@ -159,6 +179,7 @@ def main() -> None:
             f"Prepared {len(manifest['tasks'])} tasks; --run required for model calls"
         )
         return
+    authorize_manifest_run(manifest, manifest_digest, args.governance)
     args.output.mkdir(parents=True, exist_ok=args.resume)
     metadata = {
         "started_at": datetime.now(UTC).isoformat(),

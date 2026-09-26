@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "status": "blocked",
+  "purpose": "matched development-model allocation evaluation; not Ryuk runtime or production certification",
+  "sample": {
+    "matched_cases": 100,
+    "arms": ["allocation", "all_astra_baseline"],
+    "planned_calls": 200,
+    "strata": {
+      "bounded_evidence_and_documentation": 15,
+      "scoped_implementation": 35,
+      "security_and_tenant_boundaries": 15,
+      "concurrency_and_recovery": 15,
+      "architecture_and_evaluation": 20
+    },
+    "synthetic_or_public_only": true,
+    "held_out_from_candidates": true,
+    "case_reuse_from_v1_v2": false
+  },
+  "assignments": {
+    "allocation": "category policy frozen in the future case manifest",
+    "all_astra_baseline": "gpt-6-astra/high for every case"
+  },
+  "quality_gate": {
+    "target_population_rate": 0.87,
+    "confidence_level": 0.95,
+    "minimum_allocation_passes": 94,
+    "critical_failures_allowed": 0,
+    "all_pairs_must_be_graded": true,
+    "noninferiority_margin": 0.03,
+    "paired_interval_method": "Newcombe score interval for paired proportions"
+  },
+  "savings_gate": {
+    "minimum_cost_reduction": 0.25,
+    "require_complete_candidate_and_overhead_usage": true,
+    "require_applicable_billing_snapshot": true,
+    "quality_gate_must_pass_first": true
+  },
+  "hard_stops": [
+    "cross_tenant_access_or_output",
+    "unsafe_replay_or_fencing_violation",
+    "secret_or_protected_data_exposure",
+    "unreviewed_tool_or_external_side_effect",
+    "manifest_or_review_hash_mismatch"
+  ],
+  "review": {
+    "independent_required": true,
+    "blind_to_arm_until_scores_are_frozen": true,
+    "candidate_author_ids_recorded": true
+  },
+  "readiness": {
+    "case_manifest_sha256": null,
+    "curator_id": null,
+    "reviewer_id": null,
+    "billing_snapshot_id": null,
+    "model_access_probe_id": null,
+    "paired_metric_implementation_sha256": null,
+    "owner_run_approval_id": null
+  }
+}

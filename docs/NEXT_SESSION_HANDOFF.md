@@ -5,11 +5,11 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-004 is complete. Next: define v3 evaluation governance or select another
-separately authorized, unblocked task.** No v3 benchmark is preregistered; an
-evaluation owner must choose representative case sources, a matched baseline,
-sample size, quality gate, independent reviewer identity, and usage/billing
-terms before a run. WF-011 startup recovery is bounded, tenant-visible and
+**EVAL-005 is complete. Next: EVAL-006, the offline paired-metric
+implementation.** The v3 governance record is valid but blocked. No case
+manifest or run is authorized until independent curation/review identities,
+billing, model-access evidence, an implementation hash, and explicit run
+approval are recorded. WF-011 startup recovery is bounded, tenant-visible and
 conservative; it never replays
 inference or starts the local dispatcher. WF-012 still depends on live Phase 2B
 provider cancellation evidence, WF-013 on DEC-006 usage/billing evidence, and
@@ -66,8 +66,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 404 passed, 8 deselected
--m mypy backend tests scripts: success, 110 source files
+-m pytest -q -m 'not integration': 413 passed, 8 deselected
+-m mypy backend tests scripts: success, 112 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -253,3 +253,22 @@ records the completed static review and a proposed measurable acceptance gate.
   the repository credential-pattern scan passed. A copied v2 run regraded 26/26
   with its original gate intact; absent overhead correctly leaves all-in usage
   incomplete.
+
+## EVAL-005 v3 governance (2026-09-25)
+
+- The blocked protocol specifies 100 held-out synthetic/public matched cases
+  across five strata and 200 calls: category allocation versus all-Astra/high.
+- Allocation needs 94/100 passes for a Wilson 95% lower bound above 87%, zero
+  critical failures, all pairs graded, and a 3-point paired noninferiority gate.
+- Savings requires quality first, complete candidate/overhead usage, applicable
+  billing evidence and at least 25% lower matched cost. Unknowns never become
+  zero.
+- V3 `--run` requires ready governance bound to the resolved manifest hash;
+  blocked governance still permits dry-run inspection. Curator and reviewer must
+  be distinct, and readiness hashes must be lowercase SHA-256 values.
+- Review: `docs/reports/model-allocation-v3-governance-review-2026-09-25.md`.
+  EVAL-006 is READY to implement the paired metric offline. No model call,
+  credential use, spending or runtime-routing change occurred.
+- Final verification: 413 offline tests passed, 8 external integrations were
+  deselected; Ruff, Mypy across 112 sources, compileall, `git diff --check` and
+  the repository credential-pattern scan passed.
