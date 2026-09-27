@@ -61,7 +61,7 @@ async def test_two_real_nvidia_hosted_nim_models() -> None:
         value.strip()
         for value in os.getenv(
             "NVIDIA_HOSTED_NIM_MODELS",
-            "moonshotai/kimi-k3,deepseek-ai/deepseek-v4-flash-0731",
+            "moonshotai/kimi-k3,deepseek-ai/deepseek-v4.1-flash",
         ).split(",")
         if value.strip()
     )

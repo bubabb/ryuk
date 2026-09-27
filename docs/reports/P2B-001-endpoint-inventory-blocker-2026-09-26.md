@@ -46,16 +46,23 @@ That inconsistent public state reinforces the need for an explicit owner choice
 and account-observed entitlement rather than a substitution based on search or
 catalog labels.
 
-## Blocking decision
+A later public-catalog observation on 2026-09-26 found
+`deepseek-ai/deepseek-v4.1-flash` advertised as the only DeepSeek-published
+catalog result and as an available free endpoint. It is now the documented
+DEC-009 recommendation; see
+`docs/reports/DEC-009-deepseek-replacement-recommendation-2026-09-26.md`.
+The owner subsequently approved that exact replacement in DEC-009. This public
+observation still does not establish account entitlement.
 
-P2B-001 is blocked for two independent reasons:
+## Historical blocking decision
 
-1. the exact DEC-002 DeepSeek target is deprecated; and
-2. the authorized account entitlement cannot be observed without a protected
-   `NVIDIA_API_KEY` injection or an already authenticated account surface.
+DEC-009 resolved the deprecated-model decision. P2B-001 remains blocked because
+the authorized account entitlement cannot be observed without a protected
+`NVIDIA_API_KEY` injection or an already authenticated account surface. It must
+stop if the account requests payment, paid credits, a subscription, or paid
+provisioning.
 
-DEC-002 requires separate approval for a substitute. Ryuk must not silently use
-the catalog's newer DeepSeek entries. After the owner approves an exact
-replacement, P2B-001 can resume with account-observed free entitlement. It must
-still stop if the account requests payment, paid credits, a subscription, or
-paid provisioning.
+This was the state at the time of the blocked attempt. The later authenticated
+inventory resolved the credential/account-visibility blocker and completed
+P2B-001; see
+`docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md`.

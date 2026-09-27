@@ -104,10 +104,13 @@ async def test_phase2a_fixture_normalizes_identity_success_and_usage(
         captured.update(json.loads(request.content))
         return httpx.Response(success["status"], json=success["response"])
 
+    reasoning_effort = (
+        None if fixture["model"] == "deepseek-ai/deepseek-v4.1-flash" else "high"
+    )
     adapter = NVIDIAHostedNIMEngine(
         "https://integrate.api.nvidia.com",
         model=fixture["model"],
-        reasoning_effort="high",
+        reasoning_effort=reasoning_effort,
         client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
     )
     identity = await adapter.discover_model_identity()
@@ -119,11 +122,14 @@ async def test_phase2a_fixture_normalizes_identity_success_and_usage(
     if fixture["model"] == "moonshotai/kimi-k3":
         assert captured["reasoning_effort"] == "high"
         assert "chat_template_kwargs" not in captured
-    else:
+    elif fixture["model"] == "deepseek-ai/deepseek-v4-flash-0731":
         assert captured["chat_template_kwargs"] == {
             "thinking": True,
             "reasoning_effort": "high",
         }
+        assert "reasoning_effort" not in captured
+    else:
+        assert "chat_template_kwargs" not in captured
         assert "reasoning_effort" not in captured
     assert result.output.text == success["expected"]["text"]
     assert result.reasoning is not None

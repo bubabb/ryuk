@@ -22,6 +22,7 @@ from backend.inference.errors import (
 class NVIDIAHostedModelProfile(StrEnum):
     KIMI_K3 = "moonshotai/kimi-k3"
     DEEPSEEK_V4_FLASH_0731 = "deepseek-ai/deepseek-v4-flash-0731"
+    DEEPSEEK_V4_1_FLASH = "deepseek-ai/deepseek-v4.1-flash"
 
 
 class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
@@ -54,6 +55,14 @@ class NVIDIAHostedNIMEngine(ManagedHTTPInferenceEngine):
             raise ValueError(
                 "The hosted NIM adapter requires a supported exact model profile."
             ) from exc
+        if (
+            self.profile is NVIDIAHostedModelProfile.DEEPSEEK_V4_1_FLASH
+            and reasoning_effort is not None
+        ):
+            raise ValueError(
+                "DeepSeek V4.1 Flash reasoning effort is not supported until "
+                "the hosted numeric request mapping is contract-tested."
+            )
         self.reasoning_effort = reasoning_effort
         super().__init__(*args, **kwargs)
 

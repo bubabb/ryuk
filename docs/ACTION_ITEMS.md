@@ -1,9 +1,9 @@
 # Ryuk Action Tracker
 
 **Last updated:** 2026-09-26
-**Current milestone:** Product decisions and full-project completion sequencing
+**Current milestone:** Phase 2B authorized endpoint inventory
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** DEC-009 requires owner selection of an exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731`; P2B-001 also requires protected `NVIDIA_API_KEY` injection or an authenticated account surface to observe free entitlement
+**Next session starts with:** P2B-002 verifies authentication, readiness, and exact served-model identity for Kimi K3 and DeepSeek V4.1 Flash; then run P2B-003 through P2B-005 as the highest-leverage provider-contract sequence
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -30,7 +30,7 @@ required real-system evidence must also exist.
 | DOC-001 | DONE | Establish a consolidated current architecture and phase review | None | `docs/RYUK_PROJECT_AND_PHASE_REVIEW_2026-09-09.md`; commit `508a1c0` |
 | CP-001 | DONE | Harden the distributed control-plane foundation | None | PostgreSQL and Redis real-service contracts; commit `907f7e8` |
 | QA-001 | DONE | Resolve the Starlette `TestClient`/httpx deprecation warning without reducing API coverage | None | API tests use HTTPX's in-process ASGI transport; 31 API tests passed with `StarletteDeprecationWarning` promoted to an error |
-| P2A-001 | DONE | Verify the current official contracts and exact public identifiers for Kimi K3 and DeepSeek V4 or approved substitutes | Product model choice | `docs/research/phase-2a-model-contracts-2026-09-09.md`; NVIDIA hosted candidates pinned as `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731` |
+| P2A-001 | DONE | Verify the current official contracts and exact public identifiers for Kimi K3 and DeepSeek V4 or approved substitutes | Product model choice | `docs/research/phase-2a-model-contracts-2026-09-09.md`; original DeepSeek target retained as historical evidence and superseded by DEC-009's `deepseek-ai/deepseek-v4.1-flash` |
 | P2A-002 | DONE | Define one immutable offline deployment profile for each selected model | P2A-001 | Frozen schema and validated manifests under `deployments/offline/`; unknown hosted runtime, hardware, image digest, artifact digest, and cancellation evidence remain explicit |
 | P2A-003 | DONE | Define the hosted identity-evidence acceptance policy | DEC-005 | ADR-010 technical semantics tested; owner accepted synthetic/public-only offline scope and observed catalog identity on 2026-09-15; live activation excluded |
 | P2A-004 | DONE | Add sanitized contract fixtures for both profiles | P2A-001, P2A-002 | Versioned fixtures under `tests/fixtures/phase2a/`; 12 fixture contracts cover linkage, sanitization, identity, success/usage, response limits, malformed output, overload, and timeout; full suite 213 passed |
@@ -53,24 +53,24 @@ the existence of configuration fields or integration tests.
 | ID | Status | Decision needed | Required record |
 | --- | --- | --- | --- |
 | DEC-001 | DONE | Choose hosted-first or self-hosted-first | Owner approved hosted-first on 2026-09-26: self-managed Ryuk controller with explicitly authorized hosted NVIDIA inference endpoints; `docs/decisions/DEC-001-hosted-first-initial-release.md` |
-| DEC-002 | DONE | Approve exact initial models or substitutes | Owner approved exact initial catalog IDs `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731` on 2026-09-26; live availability and served revisions remain gated; `docs/decisions/DEC-002-initial-hosted-model-targets.md` |
+| DEC-002 | DONE | Approve exact initial models or substitutes | Owner approved the original pair on 2026-09-26; DEC-009 supersedes the deprecated DeepSeek target with `deepseek-ai/deepseek-v4.1-flash`; live availability and served revisions remain gated; `docs/decisions/DEC-002-initial-hosted-model-targets.md` |
 | DEC-003 | DONE | Define data classification, residency, retention, and provider-disclosure constraints | Owner approved all-class product scope, tenant/legal region constraints, mandatory per-class retention/deletion policy, no provider training and explicit provider/model disclosure on 2026-09-26; activation remains evidence-gated; `docs/decisions/DEC-003-data-governance.md` |
 | DEC-004 | DONE | Approve credentials, secret mechanism, hardware, and budget | Owner approved NVIDIA Developer Program free resources, protected local environment injection, synthetic/public-only Phase 2B use, and a USD 0 paid-spend ceiling on 2026-09-26; paid expansion requires a separate explicit decision; `docs/decisions/DEC-004-provider-access-deferred.md`; `docs/reports/DEC-004-developer-program-access-review-2026-09-26.md` |
 | DEC-005 | DONE | Define acceptable identity evidence for opaque hosted endpoints | Owner accepted observed catalog attribution for synthetic/public offline work; no artifact verification claim; live activation policy remains DEC-007 |
 | DEC-006 | DONE | Select benchmark source policy and acceptance thresholds | Owner approved public version-pinned repositories plus synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, a 5-point paired noninferiority margin, a 25% all-in savings gate and owner final acceptance on 2026-09-26; exact run sources, revisions, sealed cases and named independent people are correctly deferred to EVAL-010; `docs/decisions/DEC-006-benchmark-policy.md`; `docs/reports/DEC-006-benchmark-policy-review-2026-09-26.md` |
 | DEC-007 | DONE | Approve identity evidence for live hosted activation | Owner approved exact configuration/response identity agreement plus independent provider catalog/dashboard mapping and timestamped sanitized endpoint/account evidence on 2026-09-26; mismatches fail closed and claims remain provider-attested, not weight-verified; `docs/decisions/DEC-007-live-hosted-identity.md` |
 | DEC-008 | DONE | Select initial-release feature scope | Owner included multi-step workflows, governed tools, persistent memory and caching; deferred collaboration, specialist modalities and HA until after initial certification on 2026-09-26; `docs/decisions/DEC-008-initial-release-feature-scope.md` |
-| DEC-009 | BLOCKED | Approve an exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731`, or explicitly revise the two-deployment target | Public NVIDIA catalog observation and owner choice | Exact catalog model ID and rationale recorded without claiming account entitlement; no silent substitution |
+| DEC-009 | DONE | Approve recommended `deepseek-ai/deepseek-v4.1-flash` as the exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731` | Owner approved on 2026-09-26 | `docs/decisions/DEC-009-deepseek-v4-1-flash-replacement.md`; new immutable offline profile and fixture; historical `-0731` evidence retained; no account entitlement claimed |
 
 ## Phase 2B — real deployment certification
 
 | ID | Status | Action | Dependency | Completion evidence |
 | --- | --- | --- | --- | --- |
-| P2B-001 | BLOCKED | Identify the two exact authorized NVIDIA Developer Program endpoints | DEC-001 through DEC-005, DEC-007, DEC-009, P2A-007; protected credential or authenticated account surface | 2026-09-26 public check found Kimi K3 free endpoint advertised but exact DeepSeek target deprecated; account entitlement unobserved and `NVIDIA_API_KEY` absent; `docs/reports/P2B-001-endpoint-inventory-blocker-2026-09-26.md` |
-| P2B-002 | BLOCKED | Verify authentication, readiness, and served-model identity | P2B-001 | Sanitized observations for each exact endpoint |
-| P2B-003 | BLOCKED | Measure ordinary generation and safe input/output limits | P2B-001 | Reproducible contract report with model settings and limits |
-| P2B-004 | BLOCKED | Exercise timeout, overload, malformed response, and cancellation behavior | P2B-001 | Normalized failure evidence and cancellation/late-result observations |
-| P2B-005 | BLOCKED | Verify structured output and tool behavior instead of assuming support | P2B-001 | Per-profile support decision with passing or negative contracts |
+| P2B-001 | DONE | Identify the two exact authorized NVIDIA Developer Program model routes on the shared hosted API | Protected credential or authenticated account surface; all decision dependencies complete | Authenticated `GET /v1/models` returned HTTP 200 and both exact approved IDs without a generation or paid-resource request; `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md` |
+| P2B-002 | READY | Verify authentication, readiness, and served-model identity | P2B-001 | Sanitized observations for each exact model route; independent catalog/dashboard mapping; no artifact-identity claim |
+| P2B-003 | READY | Measure ordinary generation and safe input/output limits | P2B-001 | Reproducible contract report with model settings and limits |
+| P2B-004 | READY | Exercise timeout, overload, malformed response, and cancellation behavior | P2B-001 | Normalized failure evidence and cancellation/late-result observations |
+| P2B-005 | READY | Verify structured output and tool behavior instead of assuming support | P2B-001 | Per-profile support decision with passing or negative contracts |
 | P2B-006 | BLOCKED | Run real cross-deployment failover | P2B-002 through P2B-004 | Both attempts recorded with correct identity, usage, and provenance |
 | P2B-007 | BLOCKED | Run the pinned quality/performance/cost benchmark | DEC-006, P2B-003 | Accepted-patch, test-pass, latency, throughput, failure, usage, and cost report |
 | P2B-008 | BLOCKED | Approve or reject each deployment profile | P2B-002 through P2B-007 | Signed-off activation decision; unknown/stale hard constraints remain ineligible |

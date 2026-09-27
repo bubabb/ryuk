@@ -3,6 +3,10 @@
 Date: 2026-09-26  
 Status: approved by owner
 
+Superseded in part by DEC-009: the deprecated DeepSeek target below was
+replaced by `deepseek-ai/deepseek-v4.1-flash`. This file preserves the original
+decision record.
+
 ## Decision
 
 Ryuk's initial hosted-first release targets these two exact provider catalog

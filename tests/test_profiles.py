@@ -21,7 +21,7 @@ def test_phase_2a_profiles_are_unique_frozen_and_production_ineligible() -> None
     assert len(profiles) == 2
     assert {profile.served_model_name for profile in profiles} == {
         "moonshotai/kimi-k3",
-        "deepseek-ai/deepseek-v4-flash-0731",
+        "deepseek-ai/deepseek-v4.1-flash",
     }
     assert all(
         profile.status is ProfileStatus.OFFLINE_CANDIDATE for profile in profiles

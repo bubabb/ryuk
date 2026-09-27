@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: DEC-001 through DEC-008 selected; DEC-009 and P2B-001 are blocked
+Status: DEC-001 through DEC-009 and P2B-001 complete; P2B-002 is next
 
 ## Selected delivery sequence
 
@@ -26,8 +26,9 @@ Resolve these before implementation branches diverge:
 1. DEC-001 — DONE: hosted-first; self-managed Ryuk controller with authorized
    hosted NVIDIA inference endpoints.
 2. DEC-002 — DONE: exact initial hosted catalog targets are
-   `moonshotai/kimi-k3` and `deepseek-ai/deepseek-v4-flash-0731`; served
-   revisions and availability remain live evidence gates.
+   `moonshotai/kimi-k3` and, as superseded by DEC-009,
+   `deepseek-ai/deepseek-v4.1-flash`; served revisions and availability remain
+   live evidence gates.
 3. DEC-003 — DONE: all-class product scope; global regions subject to tenant and
    legal requirements; mandatory class-specific retention/deletion; no provider
    training; explicit provider/model disclosure. Activation remains evidence-gated.
@@ -45,6 +46,9 @@ Resolve these before implementation branches diverge:
 7. DEC-008 — DONE: initial release includes multi-step workflows, governed
    tools, persistent memory and caching; collaboration, specialist modalities
    and HA are deferred until after initial certification.
+8. DEC-009 — DONE: replace the deprecated DeepSeek candidate with exact catalog
+   ID `deepseek-ai/deepseek-v4.1-flash`; account entitlement remains a live
+   evidence gate.
 
 No model or document may supply these owner decisions implicitly.
 
@@ -91,8 +95,9 @@ claim.
 
 ## Current count
 
-Twenty-four tracker items remain non-DONE: 15 HOLD (including deferred
-EVAL-010) and 9 BLOCKED. DEC-009 is the next owner decision; P2B-001 resumes
-after it and protected account access. Several broad items must be split after
+Twenty-two tracker items remain non-DONE: 15 HOLD (including deferred
+EVAL-010), 4 READY, and 3 BLOCKED. P2B-002 through P2B-005 are the next
+controlled provider-contract sequence.
+Several broad items must be split after
 scope decisions, so 24 is a lower bound on implementation change
 sets, not a schedule estimate.

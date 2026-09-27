@@ -5,56 +5,31 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
-**EVAL-009 is complete. The owner deferred EVAL-010 and all evaluation execution
-until the offline build-completion gate. DEC-001 is approved hosted-first and
-DEC-002 approves the exact initial catalog targets `moonshotai/kimi-k3` and
-`deepseek-ai/deepseek-v4-flash-0731`, without claiming live availability or
-served revisions. DEC-003 approves all data classifications, global regions
-subject to tenant/legal constraints, mandatory class-specific retention and
-deletion, no provider training, and explicit provider/model disclosure. Current
-use remains synthetic/public-only until those controls and applicable evidence
-are implemented and verified. DEC-004 is DONE: NVIDIA Developer Program free
-resources are authorized with protected local environment injection and a USD
-0 paid-spend ceiling; any paid expansion needs a separate explicit decision.
-DEC-006 is DONE: it approves the
-benchmark source policy and thresholds, and EVAL-010 owns exact repository
-revisions, sealed cases and named independent people after the offline
-build-completion gate. DEC-007 approves
-provider-attested live identity from exact configuration and
-response agreement plus independent catalog/dashboard mapping; mismatches fail
-closed and model weights remain unverified. DEC-008 includes multi-step
-workflows, governed tools, persistent memory and caching in the initial release;
-collaboration, specialist modalities and HA are post-release. WF-014 now defines
-the bounded dependency-graph and scheduler-state contracts. WF-015 adds schema
-v6 durable graph/node/event state with atomic causal readiness. WF-016 adds
-schema v7 fenced graph-node execution, accepted-only hash-bound artifact handoff
-and one durable graph deadline/attempt/output-token budget. WF-017 completes the
-offline multi-step slice with governed tenant APIs, explicit local dispatch,
-fenced cancellation and no-replay startup recovery. P2B-001 is BLOCKED: the
-public NVIDIA catalog marks exact approved target
-`deepseek-ai/deepseek-v4-flash-0731` deprecated, while Kimi K3 remains
-advertised as free. DEC-009 now requires an explicit replacement decision.
-No protected `NVIDIA_API_KEY` or authenticated browser surface was available,
-so account entitlement was not observed and no endpoint was contacted.** The v3
-governance record is valid but blocked. No case
-manifest or run is authorized until independent curation/review identities,
-billing, model-access evidence, and explicit run
-approval are recorded. WF-011 startup recovery is bounded, tenant-visible and
-conservative; it never replays
-inference or starts the local dispatcher. WF-012 still depends on live Phase 2B
-provider cancellation evidence, WF-013 on DEC-006 usage/billing evidence, and
-WF-014 on approved multi-step scope. CTX-003's
-evidence gate still requires verified
-candidate tokenizer/template identities and Phase 2B generation contracts.
-CTX-003 remains HOLD until that evidence exists; do not treat estimates or
-synthetic counters as deployment evidence. ADR-017 and ADR-018 plus
-`backend/context/` provide offline fitting and scoped conversation/source
-libraries, but neither is wired to API dispatch. Keep synthetic/public inputs
-only. The Phase 3 review accepts the offline single-task exit while
-tracking scheduler, startup recovery, provider cancellation, usage/cost budgets
-and dependency graphs as deferred follow-ups. Model-allocation pilot v2 passed
-its bounded 26-task gate, but its purposive sample does not verify population
-reliability or savings. Live certification remains pending.
+**P2B-001 is complete.** A protected `NVIDIA_API_KEY` authenticated to NVIDIA's
+shared hosted API, and `GET /v1/models` returned HTTP 200 with both exact
+owner-approved model routes: `moonshotai/kimi-k3` and
+`deepseek-ai/deepseek-v4.1-flash`. No generation, provisioning, subscription,
+payment, or paid-resource request occurred. The credential value and sensitive
+headers were not printed or stored. This is account-visible catalog evidence,
+not generation certification, proof of two physical deployments, runtime or
+hardware identity, or model-weight verification.
+
+**Start the next session with P2B-002, then continue P2B-003 through P2B-005.**
+This is the highest-leverage sequence because it supplies the real-provider
+identity, generation, limits, cancellation, usage, structured-output, and tool
+evidence needed to unblock CTX-003, WF-012, and WF-013. Use synthetic/public
+inputs only and retain DEC-004's USD 0 ceiling. Stop on payment, subscription,
+paid provisioning, exhausted credits, missing free entitlement, or ambiguous
+pricing. Do not start P2B-006 failover or P2B-007 benchmarking before their
+recorded prerequisites pass.
+
+The offline controller, governed single-task and graph workflows, Phase 2A
+fixtures, and evaluation-governance groundwork remain implemented. EVAL-010
+remains deferred until the owner-selected offline build-completion gate.
+CTX-003/004 remain held until provider contract evidence exists. DEC-008 keeps
+collaboration, specialist modalities, and HA after the initial release. The
+intended initial release still includes governed tools, scoped persistent
+memory, and provenance-preserving application caching.
 
 ## User-approved scope and current activation boundary
 
@@ -112,31 +87,46 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 509 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 510 passed, 8 deselected
+-m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
 -m mypy backend tests scripts: success, 129 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
+changed deployment/fixture JSON parses: passed
+repository NVIDIA credential-pattern scan: passed
 git diff --check: passed
 ```
 
-Offline pytest ran outside the sandbox under existing approval, due to prior
-sandbox API stalls. No Ryuk external integration test, live inference service
-or GPU certification ran. Pilot v2's Codex candidate calls are recorded
-separately below and do not constitute Ryuk provider certification.
+Offline pytest ran outside the sandbox under approval because sandboxed API
+tests stalled. The first in-process run inherited `NVIDIA_API_KEY`; five
+production configuration tests correctly rejected a direct production
+credential. The passing run explicitly removed the variable from only the test
+process. No live Ryuk integration test or generation/GPU certification ran.
+P2B-001 used only the separate authenticated catalog inventory described above.
 
 ## Next actions and limits
 
-Read `docs/ACTION_ITEMS.md`, the Phase 4 requirements in
-`RYUK_DEVELOPMENT_PHASE_PLAN.md`, ADR-017/018, `backend/context/`, and the
-offline deployment profiles before considering CTX-003.
+1. Mark P2B-002 `IN PROGRESS` and define a bounded, sanitized live contract for
+   authentication, readiness, exact response identity, and independent
+   catalog/dashboard mapping for both approved model routes.
+2. Run the smallest synthetic generation probes needed for P2B-002. Record
+   exact settings, timestamps, status, response model ID, usage-field presence,
+   and sanitized failures; never record response content, credentials,
+   authorization headers, or sensitive headers.
+3. Review P2B-002 evidence against DEC-007. Fail closed on any configured,
+   catalog, or response model mismatch. Keep the identity claim
+   provider-attested/observed rather than artifact-verified.
+4. Continue P2B-003, P2B-004, and P2B-005 in order with bounded test matrices.
+   P2B-003 establishes ordinary generation and safe limits; P2B-004 establishes
+   failure, timeout, overload, cancellation, and late-result behavior; P2B-005
+   establishes positive or negative structured-output/tool contracts.
+5. Reassess CTX-003, WF-012, and WF-013 after the relevant evidence lands.
+   Do not infer tokenizer, billing, cancellation, structured-output, or tool
+   support from catalog visibility.
 
-Start by reviewing the CTX-003 prerequisites in `docs/ACTION_ITEMS.md`,
-`RYUK_DEVELOPMENT_PHASE_PLAN.md` and the offline deployment profiles. Any
-offline-only evidence gathering must preserve unknown tokenizer/template or
-capacity claims; no provider calls, artifact downloads or production activation
-are authorized by this handoff. If the Phase 2B contract prerequisites remain
-unmet, keep CTX-003/004 on HOLD and identify a separately approved READY task.
-Do not treat the Phase 3 offline exit as production approval.
+P2B-006 through P2B-008 remain blocked by their recorded dependencies. Do not
+treat catalog access, a successful generation, or the Phase 3 offline exit as
+production approval.
 
 No automatic scheduler or public execution/validation/recovery route exists.
 Internal execution remains explicitly invoked; deadlines start at dispatch.
@@ -148,7 +138,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 24 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. The 22 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded
@@ -429,22 +419,23 @@ records the completed static review and a proposed measurable acceptance gate.
 - Stop on payment, subscription, paid provisioning, exhausted credits, absent
   entitlement, or ambiguous pricing. Paid expansion requires a new explicit
   owner decision with a finite cap.
-- P2B-001 is blocked. After DEC-009 approves an exact replacement, it must
-  inventory both exact authorized free endpoints and the secret reference
-  without contacting paid resources.
+- P2B-001 is now complete. The protected credential authenticated and the
+  shared catalog exposed both exact approved model routes without contacting a
+  generation or paid resource.
 - Review: `docs/reports/DEC-004-developer-program-access-review-2026-09-26.md`.
 
-## P2B-001 endpoint inventory attempt (2026-09-26)
+## P2B-001 authorized endpoint inventory (2026-09-26)
 
-- Public NVIDIA catalog evidence advertises Kimi K3's free endpoint as
-  available but marks the exact approved DeepSeek V4 Flash 0731 free endpoint
-  deprecated.
-- No successor was silently substituted. DEC-009 requires an explicit owner
-  choice of exact replacement model ID or a revision of the two-deployment goal.
-- The approved secret reference is `env:NVIDIA_API_KEY`. The user set a
-  replacement key in a separate terminal, but this already-running task could
-  not inherit it. No value was printed, read, stored, or transmitted.
-- No authenticated endpoint request, provisioning, payment, or subscription
-  action occurred. P2B-001 remains blocked until DEC-009 and protected account
-  access are both resolved.
-- Review: `docs/reports/P2B-001-endpoint-inventory-blocker-2026-09-26.md`.
+- DEC-009 approved exact replacement `deepseek-ai/deepseek-v4.1-flash` while
+  retaining the deprecated `-0731` evidence only for historical replay.
+- The approved `env:NVIDIA_API_KEY` authenticated successfully to
+  `https://integrate.api.nvidia.com`; `GET /v1/models` returned HTTP 200.
+- The authenticated catalog exposed both `moonshotai/kimi-k3` and
+  `deepseek-ai/deepseek-v4.1-flash` to the account.
+- Both are model routes on one shared hosted API origin. No claim is made that
+  they are separate physical endpoints, runtimes, hardware allocations, or
+  artifact-verified weights.
+- No generation, provisioning, subscription, payment, or paid-resource request
+  occurred. No credential value or sensitive header was recorded.
+- P2B-001 is DONE. P2B-002 through P2B-005 are READY.
+- Review: `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md`.

@@ -1,0 +1,60 @@
+{
+  "adapter_name": "nvidia-hosted-nim",
+  "base_url": "https://integrate.api.nvidia.com",
+  "claims": [
+    {
+      "evidence": "advertised",
+      "name": "context_tokens",
+      "source": "https://docs.api.nvidia.com/nim/reference/nvidia-deepseek-v4_1-flash",
+      "value": 1048576
+    },
+    {
+      "evidence": "advertised",
+      "name": "input_text",
+      "source": "https://docs.api.nvidia.com/nim/reference/nvidia-deepseek-v4_1-flash",
+      "value": true
+    },
+    {
+      "evidence": "advertised",
+      "name": "input_image",
+      "source": "https://docs.api.nvidia.com/nim/reference/nvidia-deepseek-v4_1-flash",
+      "value": true
+    },
+    {
+      "evidence": "advertised",
+      "name": "reasoning_effort",
+      "source": "https://docs.api.nvidia.com/nim/reference/nvidia-deepseek-v4_1-flash",
+      "value": "numeric 1-100; hosted request mapping unverified"
+    },
+    {
+      "evidence": "unknown",
+      "name": "artifact_digest",
+      "source": null,
+      "value": null
+    },
+    {
+      "evidence": "unknown",
+      "name": "cancellation",
+      "source": null,
+      "value": null
+    }
+  ],
+  "contract_checked_on": "2026-09-26",
+  "deployment_mode": "hosted",
+  "generation_path": "/v1/chat/completions",
+  "hardware_identity": null,
+  "image_digest": null,
+  "model_artifact_id": "deepseek-ai/deepseek-v4.1-flash",
+  "model_revision": "v4.1",
+  "production_eligible": false,
+  "profile_id": "nvidia-hosted-deepseek-v4-1-flash-candidate-v1",
+  "provider": "NVIDIA API Catalog / DeepSeek AI",
+  "runtime_identity": null,
+  "schema_version": 1,
+  "served_model_name": "deepseek-ai/deepseek-v4.1-flash",
+  "sources": [
+    "https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash/build",
+    "https://docs.api.nvidia.com/nim/reference/nvidia-deepseek-v4_1-flash"
+  ],
+  "status": "offline_candidate"
+}

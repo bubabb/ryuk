@@ -1,7 +1,7 @@
 {
   "fixture_version": "phase2a-hosted-contract-v1",
-  "profile_id": "nvidia-hosted-kimi-k3-candidate-v1",
-  "model": "moonshotai/kimi-k3",
+  "profile_id": "nvidia-hosted-deepseek-v4-1-flash-candidate-v1",
+  "model": "deepseek-ai/deepseek-v4.1-flash",
   "identity": {
     "status": 200,
     "response": {
@@ -26,13 +26,13 @@
             }
           }
         ],
-        "id": "fixture-kimi-success",
-        "model": "moonshotai/kimi-k3",
-        "usage": {"completion_tokens": 2, "prompt_tokens": 5}
+        "id": "fixture-deepseek-v4-1-success",
+        "model": "deepseek-ai/deepseek-v4.1-flash",
+        "usage": {"completion_tokens": 3, "prompt_tokens": 7}
       },
       "expected": {
-        "input_tokens": 5,
-        "output_tokens": 2,
+        "input_tokens": 7,
+        "output_tokens": 3,
         "reasoning": "sanitized fixture reasoning",
         "text": "ready"
       }
@@ -53,7 +53,10 @@
       "id": "malformed_choices",
       "behavior": "response",
       "status": 200,
-      "response": {"choices": [], "model": "moonshotai/kimi-k3"},
+      "response": {
+        "choices": [],
+        "model": "deepseek-ai/deepseek-v4.1-flash"
+      },
       "expected_failure": "upstream_protocol_failure"
     },
     {

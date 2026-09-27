@@ -178,6 +178,15 @@ def test_hosted_nim_requires_an_exact_supported_model_profile() -> None:
         )
 
 
+def test_hosted_nim_rejects_unverified_v4_1_reasoning_translation() -> None:
+    with pytest.raises(ValueError, match="numeric request mapping"):
+        NVIDIAHostedNIMEngine(
+            "https://integrate.api.nvidia.com",
+            model="deepseek-ai/deepseek-v4.1-flash",
+            reasoning_effort="high",
+        )
+
+
 @pytest.mark.asyncio
 async def test_hosted_nim_rejects_malformed_reasoning_without_leaking_it() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
