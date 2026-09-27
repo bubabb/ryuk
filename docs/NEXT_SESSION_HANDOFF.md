@@ -13,9 +13,10 @@ served revisions. DEC-003 approves all data classifications, global regions
 subject to tenant/legal constraints, mandatory class-specific retention and
 deletion, no provider training, and explicit provider/model disclosure. Current
 use remains synthetic/public-only until those controls and applicable evidence
-are implemented and verified. DEC-004 is intentionally deferred: no provider
-credentials, secret manager, hardware/access commitment or spending authority
-is needed for the current offline phase. DEC-006 is DONE: it approves the
+are implemented and verified. DEC-004 is DONE: NVIDIA Developer Program free
+resources are authorized with protected local environment injection and a USD
+0 paid-spend ceiling; any paid expansion needs a separate explicit decision.
+DEC-006 is DONE: it approves the
 benchmark source policy and thresholds, and EVAL-010 owns exact repository
 revisions, sealed cases and named independent people after the offline
 build-completion gate. DEC-007 approves
@@ -29,9 +30,9 @@ v6 durable graph/node/event state with atomic causal readiness. WF-016 adds
 schema v7 fenced graph-node execution, accepted-only hash-bound artifact handoff
 and one durable graph deadline/attempt/output-token budget. WF-017 completes the
 offline multi-step slice with governed tenant APIs, explicit local dispatch,
-fenced cancellation and no-replay startup recovery. No tracker item is READY;
-next, the owner must reopen DEC-004 for controlled Phase 2B access or explicitly
-approve a different recorded phase gate.** The v3
+fenced cancellation and no-replay startup recovery. P2B-001 is READY to
+inventory the two exact account-authorized free endpoints and secret reference
+without recording the credential.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -61,10 +62,12 @@ reliability or savings. Live certification remains pending.
   approved governance controls are implemented and the applicable evidence is
   verified.
 - Hosted catalog identity is observed, not artifact-verified.
-- No live Ryuk-provider calls, provisioning or production activation. The owner
-  separately authorized the recorded Codex model-allocation pilot v2 calls.
-- Provider credential delivery, hardware/access and spending authorization are
-  deferred until the owner reopens DEC-004 for live provider work.
+- Controlled NVIDIA Developer Program endpoint discovery and Phase 2B checks are
+  authorized with synthetic/public inputs. This does not authorize production
+  activation or paid provisioning.
+- Current paid-spend ceiling is USD 0. Stop on exhausted credits, missing free
+  entitlement, payment/subscription requests, or ambiguous pricing. Any paid
+  expansion requires a separate explicit owner decision.
 
 ## Current checkpoint
 
@@ -142,7 +145,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 24 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 23 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded
@@ -411,5 +414,18 @@ records the completed static review and a proposed measurable acceptance gate.
   until the offline build-completion gate; v3 governance remains blocked.
 - Review: `docs/reports/DEC-006-benchmark-policy-review-2026-09-26.md`.
 - No benchmark, model/provider call, credential use, spending, or production
-  activation occurred. No tracker item is READY; reopen DEC-004 or explicitly
-  authorize a different recorded phase gate before the next implementation.
+  activation occurred in the DEC-006 change.
+
+## DEC-004 Developer Program access decision (2026-09-26)
+
+- DEC-004 is DONE. Use NVIDIA Developer Program free resources for development,
+  prototyping, testing, and evaluation; the paid-spend ceiling is USD 0.
+- A protected local environment variable may supply the NVIDIA credential for
+  controlled Phase 2B checks. Never record its value in Git, chat, fixtures,
+  arguments, logs, reports, or test output.
+- Stop on payment, subscription, paid provisioning, exhausted credits, absent
+  entitlement, or ambiguous pricing. Paid expansion requires a new explicit
+  owner decision with a finite cap.
+- P2B-001 is now the sole READY item. It must inventory both exact authorized
+  free endpoints and the secret reference without contacting paid resources.
+- Review: `docs/reports/DEC-004-developer-program-access-review-2026-09-26.md`.

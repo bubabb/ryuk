@@ -29,7 +29,8 @@ as weight verification.
 
 ## Activation boundary
 
-This decision defines acceptable evidence but does not provide it, authorize
-credentials, make endpoint calls or approve spending. P2B-001 must first obtain
-the access authorization deferred in DEC-004. P2B-002 must then collect and
-validate the live evidence for each exact endpoint before activation.
+This decision defines acceptable identity evidence but does not provide it.
+DEC-004 now authorizes only NVIDIA Developer Program free-resource checks with
+a USD 0 paid-spend ceiling and protected local credential injection. P2B-001
+must inventory the account-authorized endpoints, and P2B-002 must then collect
+and validate the live evidence for each exact endpoint before activation.

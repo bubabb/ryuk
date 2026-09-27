@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: DEC-001 through DEC-003 and DEC-006 through DEC-008 selected; DEC-004 deferred
+Status: DEC-001 through DEC-008 selected; P2B-001 is the next READY item
 
 ## Selected delivery sequence
 
@@ -31,9 +31,9 @@ Resolve these before implementation branches diverge:
 3. DEC-003 — DONE: all-class product scope; global regions subject to tenant and
    legal requirements; mandatory class-specific retention/deletion; no provider
    training; explicit provider/model disclosure. Activation remains evidence-gated.
-4. DEC-004 — HOLD by owner: secret mechanism, hardware/access path and spending
-   ceiling are deferred until live provider work is needed; no provider spend
-   or credential use is currently authorized.
+4. DEC-004 — DONE: use NVIDIA Developer Program free resources with protected
+   local environment injection and a USD 0 paid-spend ceiling. Paid expansion
+   requires a separate explicit owner decision with a finite cap.
 5. DEC-006 — DONE: public version-pinned repositories plus synthetic Ryuk
    tasks, 100+ held-out matched cases, 87% success, zero critical failures,
    five-point paired noninferiority margin and 25% all-in savings gate are
@@ -91,8 +91,7 @@ claim.
 
 ## Current count
 
-Twenty-four tracker items remain non-DONE: 16 HOLD (including deferred
-EVAL-010) and 8 BLOCKED. No item is READY while DEC-004 and the
-recorded phase gates remain deferred. Several broad items must be split after scope
-decisions, so 24 is a lower bound on implementation change sets, not a schedule
-estimate.
+Twenty-three tracker items remain non-DONE: 15 HOLD (including deferred
+EVAL-010), 7 BLOCKED and 1 READY. P2B-001 is next. Several broad items must be
+split after scope decisions, so 23 is a lower bound on implementation change
+sets, not a schedule estimate.

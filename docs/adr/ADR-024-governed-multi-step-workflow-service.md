@@ -48,5 +48,6 @@ stable `outcome_unknown` reason without prompt, output or cross-tenant counts.
 - There is no automatic dispatcher activation, provider cancellation,
   distributed scheduling, notification/remediation channel or production
   certification.
-- Production activation remains blocked by Phase 2B, DEC-004 and the later
+- Production activation remains blocked by Phase 2B, DEC-004's paid/production
+  boundary and the later
   evaluation/security/certification gates.
