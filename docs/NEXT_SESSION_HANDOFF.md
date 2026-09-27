@@ -30,9 +30,12 @@ v6 durable graph/node/event state with atomic causal readiness. WF-016 adds
 schema v7 fenced graph-node execution, accepted-only hash-bound artifact handoff
 and one durable graph deadline/attempt/output-token budget. WF-017 completes the
 offline multi-step slice with governed tenant APIs, explicit local dispatch,
-fenced cancellation and no-replay startup recovery. P2B-001 is READY to
-inventory the two exact account-authorized free endpoints and secret reference
-without recording the credential.** The v3
+fenced cancellation and no-replay startup recovery. P2B-001 is BLOCKED: the
+public NVIDIA catalog marks exact approved target
+`deepseek-ai/deepseek-v4-flash-0731` deprecated, while Kimi K3 remains
+advertised as free. DEC-009 now requires an explicit replacement decision.
+No protected `NVIDIA_API_KEY` or authenticated browser surface was available,
+so account entitlement was not observed and no endpoint was contacted.** The v3
 governance record is valid but blocked. No case
 manifest or run is authorized until independent curation/review identities,
 billing, model-access evidence, and explicit run
@@ -145,7 +148,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 23 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 24 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded
@@ -426,6 +429,22 @@ records the completed static review and a proposed measurable acceptance gate.
 - Stop on payment, subscription, paid provisioning, exhausted credits, absent
   entitlement, or ambiguous pricing. Paid expansion requires a new explicit
   owner decision with a finite cap.
-- P2B-001 is now the sole READY item. It must inventory both exact authorized
-  free endpoints and the secret reference without contacting paid resources.
+- P2B-001 is blocked. After DEC-009 approves an exact replacement, it must
+  inventory both exact authorized free endpoints and the secret reference
+  without contacting paid resources.
 - Review: `docs/reports/DEC-004-developer-program-access-review-2026-09-26.md`.
+
+## P2B-001 endpoint inventory attempt (2026-09-26)
+
+- Public NVIDIA catalog evidence advertises Kimi K3's free endpoint as
+  available but marks the exact approved DeepSeek V4 Flash 0731 free endpoint
+  deprecated.
+- No successor was silently substituted. DEC-009 requires an explicit owner
+  choice of exact replacement model ID or a revision of the two-deployment goal.
+- The approved secret reference is `env:NVIDIA_API_KEY`. The user set a
+  replacement key in a separate terminal, but this already-running task could
+  not inherit it. No value was printed, read, stored, or transmitted.
+- No authenticated endpoint request, provisioning, payment, or subscription
+  action occurred. P2B-001 remains blocked until DEC-009 and protected account
+  access are both resolved.
+- Review: `docs/reports/P2B-001-endpoint-inventory-blocker-2026-09-26.md`.

@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: DEC-001 through DEC-008 selected; P2B-001 is the next READY item
+Status: DEC-001 through DEC-008 selected; DEC-009 and P2B-001 are blocked
 
 ## Selected delivery sequence
 
@@ -91,7 +91,8 @@ claim.
 
 ## Current count
 
-Twenty-three tracker items remain non-DONE: 15 HOLD (including deferred
-EVAL-010), 7 BLOCKED and 1 READY. P2B-001 is next. Several broad items must be
-split after scope decisions, so 23 is a lower bound on implementation change
+Twenty-four tracker items remain non-DONE: 15 HOLD (including deferred
+EVAL-010) and 9 BLOCKED. DEC-009 is the next owner decision; P2B-001 resumes
+after it and protected account access. Several broad items must be split after
+scope decisions, so 24 is a lower bound on implementation change
 sets, not a schedule estimate.

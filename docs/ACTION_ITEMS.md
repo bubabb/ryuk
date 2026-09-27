@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** P2B-001 is READY: inventory the two exact NVIDIA Developer Program endpoints and a secret reference without recording the credential; free resources only, USD 0 paid-spend ceiling, synthetic/public data, and stop on absent entitlement or any payment requirement
+**Next session starts with:** DEC-009 requires owner selection of an exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731`; P2B-001 also requires protected `NVIDIA_API_KEY` injection or an authenticated account surface to observe free entitlement
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -60,12 +60,13 @@ the existence of configuration fields or integration tests.
 | DEC-006 | DONE | Select benchmark source policy and acceptance thresholds | Owner approved public version-pinned repositories plus synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, a 5-point paired noninferiority margin, a 25% all-in savings gate and owner final acceptance on 2026-09-26; exact run sources, revisions, sealed cases and named independent people are correctly deferred to EVAL-010; `docs/decisions/DEC-006-benchmark-policy.md`; `docs/reports/DEC-006-benchmark-policy-review-2026-09-26.md` |
 | DEC-007 | DONE | Approve identity evidence for live hosted activation | Owner approved exact configuration/response identity agreement plus independent provider catalog/dashboard mapping and timestamped sanitized endpoint/account evidence on 2026-09-26; mismatches fail closed and claims remain provider-attested, not weight-verified; `docs/decisions/DEC-007-live-hosted-identity.md` |
 | DEC-008 | DONE | Select initial-release feature scope | Owner included multi-step workflows, governed tools, persistent memory and caching; deferred collaboration, specialist modalities and HA until after initial certification on 2026-09-26; `docs/decisions/DEC-008-initial-release-feature-scope.md` |
+| DEC-009 | BLOCKED | Approve an exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731`, or explicitly revise the two-deployment target | Public NVIDIA catalog observation and owner choice | Exact catalog model ID and rationale recorded without claiming account entitlement; no silent substitution |
 
 ## Phase 2B — real deployment certification
 
 | ID | Status | Action | Dependency | Completion evidence |
 | --- | --- | --- | --- | --- |
-| P2B-001 | READY | Identify the two exact authorized NVIDIA Developer Program endpoints | DEC-001 through DEC-005, DEC-007, P2A-007 | Endpoint inventory with account-observed free entitlement and secret references but no secret values; stop before payment or paid provisioning |
+| P2B-001 | BLOCKED | Identify the two exact authorized NVIDIA Developer Program endpoints | DEC-001 through DEC-005, DEC-007, DEC-009, P2A-007; protected credential or authenticated account surface | 2026-09-26 public check found Kimi K3 free endpoint advertised but exact DeepSeek target deprecated; account entitlement unobserved and `NVIDIA_API_KEY` absent; `docs/reports/P2B-001-endpoint-inventory-blocker-2026-09-26.md` |
 | P2B-002 | BLOCKED | Verify authentication, readiness, and served-model identity | P2B-001 | Sanitized observations for each exact endpoint |
 | P2B-003 | BLOCKED | Measure ordinary generation and safe input/output limits | P2B-001 | Reproducible contract report with model settings and limits |
 | P2B-004 | BLOCKED | Exercise timeout, overload, malformed response, and cancellation behavior | P2B-001 | Normalized failure evidence and cancellation/late-result observations |
