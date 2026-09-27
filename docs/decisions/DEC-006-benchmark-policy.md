@@ -1,7 +1,7 @@
 # DEC-006 — Benchmark corpus and acceptance policy
 
 Date: 2026-09-26  
-Status: policy approved; corpus manifest pending review
+Status: accepted
 
 ## Approved benchmark scope
 
@@ -25,10 +25,16 @@ blinded review contracts. The owner retains final acceptance authority.
 All gates are conjunctive. Passing an aggregate rate cannot override a critical
 failure, incomplete evidence or a failed paired-quality bound.
 
-## Remaining completion evidence
+## Deferred execution evidence
 
-DEC-006 remains in `REVIEW` until the deferred curation step records the exact
-public repository identities and commit hashes, the sealed synthetic task
-manifest, and the named independent review owner(s). EVAL-010 remains deferred
-until the offline build-completion gate and must produce that evidence before
-any evaluation run is authorized.
+DEC-006 closes the product-policy decision; it does not authorize a benchmark
+run. After the offline build-completion gate, EVAL-010 must select and freeze
+the exact public repository identities and commit hashes, seal the synthetic
+task manifest, and record the actual independent curator and reviewer. These
+are run-specific preregistration and execution artifacts rather than policy
+choices. Until they exist and every readiness field passes, v3 governance
+remains blocked and no evaluation run is authorized.
+
+The accepted five-point paired noninferiority margin supersedes the earlier
+three-point v3 draft. `evals/model_allocation/v3-governance.json` is the
+machine-readable current policy.

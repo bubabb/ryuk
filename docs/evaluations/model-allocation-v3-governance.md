@@ -20,7 +20,7 @@ not Ryuk runtime inference or production readiness.
 The allocation arm needs at least 94/100 passes, the minimum count whose 95%
 Wilson lower bound exceeds 87%. Every pair must be graded and any critical
 security, tenant, replay, secret, side-effect or hash-integrity failure is a hard
-stop. Matched quality must satisfy a 3-point noninferiority margin using a
+stop. Matched quality must satisfy a 5-point noninferiority margin using a
 preregistered Newcombe score interval for paired proportions.
 
 A savings decision occurs only after quality passes. It requires complete
@@ -70,3 +70,9 @@ measurements/responses, blinded review and savings evidence. Reports explicitly
 state that internally consistent declarations are not external proof. The
 repository contains schemas and synthetic tests only; its governance remains
 blocked.
+
+DEC-006 review on 2026-09-26 reconciled the earlier draft's three-point margin
+to the owner-approved five-point margin. Exact public repository commits, the
+sealed cases, and named independent people are execution artifacts that EVAL-010
+must freeze after the offline build-completion gate; their absence keeps v3
+governance blocked but does not leave the product policy undecided.

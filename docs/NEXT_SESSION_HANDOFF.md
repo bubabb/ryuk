@@ -15,9 +15,10 @@ deletion, no provider training, and explicit provider/model disclosure. Current
 use remains synthetic/public-only until those controls and applicable evidence
 are implemented and verified. DEC-004 is intentionally deferred: no provider
 credentials, secret manager, hardware/access commitment or spending authority
-is needed for the current offline phase. DEC-006 approves the benchmark policy
-and thresholds, but remains REVIEW pending exact repository revisions, sealed
-cases and independent reviewers during deferred curation. DEC-007 approves
+is needed for the current offline phase. DEC-006 is DONE: it approves the
+benchmark source policy and thresholds, and EVAL-010 owns exact repository
+revisions, sealed cases and named independent people after the offline
+build-completion gate. DEC-007 approves
 provider-attested live identity from exact configuration and
 response agreement plus independent catalog/dashboard mapping; mismatches fail
 closed and model weights remain unverified. DEC-008 includes multi-step
@@ -105,8 +106,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration': 466 passed, 8 deselected
--m mypy backend tests scripts: success, 120 source files
+-m pytest -q -m 'not integration': 509 passed, 8 deselected
+-m mypy backend tests scripts: success, 129 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 git diff --check: passed
@@ -141,7 +142,7 @@ remain pending.
 
 ## Development model allocation
 
-Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 25 current open
+Read `docs/MODEL_TASK_ALLOCATION.md` before the next task. All 24 current open
 tracker items have primary/support/review assignments. CTX-003: hold pending
 verified deployment evidence; Sol/high implementation and Astra/high review
 only after the gate. Luna can collate bounded evidence. Luna is for bounded
@@ -298,7 +299,9 @@ records the completed static review and a proposed measurable acceptance gate.
 - The blocked protocol specifies 100 held-out synthetic/public matched cases
   across five strata and 200 calls: category allocation versus all-Astra/high.
 - Allocation needs 94/100 passes for a Wilson 95% lower bound above 87%, zero
-  critical failures, all pairs graded, and a 3-point paired noninferiority gate.
+  critical failures and all pairs graded. Its original 3-point margin was a
+  draft value, superseded by DEC-006's owner-approved 5-point margin on
+  2026-09-26.
 - Savings requires quality first, complete candidate/overhead usage, applicable
   billing evidence and at least 25% lower matched cost. Unknowns never become
   zero.
@@ -318,7 +321,8 @@ records the completed static review and a proposed measurable acceptance gate.
   allocation-minus-baseline paired proportions and a strict lower-bound
   noninferiority decision.
 - The grader emits the paired gate only for complete pairs and gets its
-  three-point margin from ready, manifest-bound governance. V3 grading now
+  explicit margin from ready, manifest-bound governance (currently five points
+  under DEC-006). V3 grading now
   rejects absent, incomplete, or mismatched governance.
 - Six published Table III examples serve as deterministic reference vectors;
   boundary and invalid-input tests fail closed.
@@ -393,3 +397,19 @@ records the completed static review and a proposed measurable acceptance gate.
 - Final verification: 466 offline tests passed, 8 external integrations were
   deselected; Ruff, Mypy across 120 sources, compileall, three schema JSON
   parses, `git diff --check`, and the repository credential-pattern scan passed.
+
+## DEC-006 benchmark policy review (2026-09-26)
+
+- DEC-006 is DONE as a policy decision: public version-pinned repositories plus
+  synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero
+  critical failures, a five-point paired noninferiority margin, and 25% all-in
+  savings are the approved conjunctive gates.
+- The machine-readable governance margin is now `0.05`, correcting the older
+  three-point draft. The paired-statistics algorithm was not changed.
+- EVAL-010 owns the exact repository commits, sealed manifest, named independent
+  curator/reviewer, protocol freeze, and trust-chain review. It remains on HOLD
+  until the offline build-completion gate; v3 governance remains blocked.
+- Review: `docs/reports/DEC-006-benchmark-policy-review-2026-09-26.md`.
+- No benchmark, model/provider call, credential use, spending, or production
+  activation occurred. No tracker item is READY; reopen DEC-004 or explicitly
+  authorize a different recorded phase gate before the next implementation.

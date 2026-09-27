@@ -27,7 +27,7 @@
     "minimum_allocation_passes": 94,
     "critical_failures_allowed": 0,
     "all_pairs_must_be_graded": true,
-    "noninferiority_margin": 0.03,
+    "noninferiority_margin": 0.05,
     "paired_interval_method": "Newcombe score interval for paired proportions"
   },
   "savings_gate": {

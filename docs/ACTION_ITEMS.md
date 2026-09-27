@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-26
 **Current milestone:** Product decisions and full-project completion sequencing
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** No item is READY after WF-017. Reopen DEC-004 to authorize the controlled Phase 2B access path, or explicitly approve a different recorded phase gate; DEC-006 corpus pinning remains REVIEW and evaluation execution remains deferred until the build-completion gate
+**Next session starts with:** No item is READY after DEC-006 review. Reopen DEC-004 to authorize the controlled Phase 2B access path, or explicitly approve a different recorded phase gate; EVAL-010 owns deferred corpus pinning after the offline build-completion gate
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -57,7 +57,7 @@ the existence of configuration fields or integration tests.
 | DEC-003 | DONE | Define data classification, residency, retention, and provider-disclosure constraints | Owner approved all-class product scope, tenant/legal region constraints, mandatory per-class retention/deletion policy, no provider training and explicit provider/model disclosure on 2026-09-26; activation remains evidence-gated; `docs/decisions/DEC-003-data-governance.md` |
 | DEC-004 | HOLD | Approve credentials, secret mechanism, hardware, and budget | Owner deferred provider credentials, secret management, hardware/access and spending authorization on 2026-09-26; reopen before live provider work; `docs/decisions/DEC-004-provider-access-deferred.md` |
 | DEC-005 | DONE | Define acceptable identity evidence for opaque hosted endpoints | Owner accepted observed catalog attribution for synthetic/public offline work; no artifact verification claim; live activation policy remains DEC-007 |
-| DEC-006 | REVIEW | Select benchmark repositories/tasks and acceptance thresholds | Owner approved public version-pinned repositories, synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, 5-point paired noninferiority margin, 25% all-in savings gate and owner final acceptance on 2026-09-26; exact repositories/revisions, sealed manifest and independent reviewers remain pending; `docs/decisions/DEC-006-benchmark-policy.md` |
+| DEC-006 | DONE | Select benchmark source policy and acceptance thresholds | Owner approved public version-pinned repositories plus synthetic Ryuk tasks, at least 100 held-out matched cases, 87% success, zero critical failures, a 5-point paired noninferiority margin, a 25% all-in savings gate and owner final acceptance on 2026-09-26; exact run sources, revisions, sealed cases and named independent people are correctly deferred to EVAL-010; `docs/decisions/DEC-006-benchmark-policy.md`; `docs/reports/DEC-006-benchmark-policy-review-2026-09-26.md` |
 | DEC-007 | DONE | Approve identity evidence for live hosted activation | Owner approved exact configuration/response identity agreement plus independent provider catalog/dashboard mapping and timestamped sanitized endpoint/account evidence on 2026-09-26; mismatches fail closed and claims remain provider-attested, not weight-verified; `docs/decisions/DEC-007-live-hosted-identity.md` |
 | DEC-008 | DONE | Select initial-release feature scope | Owner included multi-step workflows, governed tools, persistent memory and caching; deferred collaboration, specialist modalities and HA until after initial certification on 2026-09-26; `docs/decisions/DEC-008-initial-release-feature-scope.md` |
 
@@ -112,7 +112,7 @@ blocked until Phase 2B passes.
 | EVAL-007 | DONE | Define the sealed held-out case curation contract | EVAL-006 | Case schema, validator/compiler, curation packet, matched grading fixes, and `docs/reports/model-allocation-v3-curation-contract-review-2026-09-26.md`; no cases or calls |
 | EVAL-008 | DONE | Define blinded-review and all-in savings evidence contracts | EVAL-007 | Hash-bound review/savings schemas and validators, grader integration, and `docs/reports/model-allocation-v3-review-savings-contract-review-2026-09-26.md`; no external evidence or calls |
 | EVAL-009 | DONE | Add unified pre/post-run readiness-bundle validation | EVAL-008 | Bundle/access/approval schemas, cross-bound preflight, runner enforcement, one-attempt ceiling, and `docs/reports/model-allocation-v3-readiness-preflight-review-2026-09-26.md` |
-| EVAL-010 | HOLD | Adversarially audit and freeze the offline v3 evaluation protocol | Offline build-completion gate selected by owner on 2026-09-26 | Versioned protocol freeze and trust-chain review; no evaluation execution before the build-completion gate |
+| EVAL-010 | HOLD | Adversarially audit and freeze the offline v3 evaluation protocol and corpus | Offline build-completion gate selected by owner on 2026-09-26 | Exact public repositories and commit hashes, sealed 100-case manifest, named independent curator/reviewer, versioned protocol freeze and trust-chain review; no evaluation execution before the build-completion gate |
 
 ## Control-plane hardening
 

@@ -1,7 +1,7 @@
 # Ryuk project-completion priorities
 
 Date: 2026-09-26  
-Status: DEC-001 through DEC-003 and DEC-007 selected; DEC-004 deferred; DEC-006 corpus review and scope decisions pending
+Status: DEC-001 through DEC-003 and DEC-006 through DEC-008 selected; DEC-004 deferred
 
 ## Selected delivery sequence
 
@@ -34,10 +34,11 @@ Resolve these before implementation branches diverge:
 4. DEC-004 — HOLD by owner: secret mechanism, hardware/access path and spending
    ceiling are deferred until live provider work is needed; no provider spend
    or credential use is currently authorized.
-5. DEC-006 — REVIEW: public version-pinned repositories, synthetic Ryuk tasks,
-   100+ held-out matched cases, 87% success, zero critical failures, five-point
-   paired noninferiority margin and 25% all-in savings gate are approved; exact
-   revisions, sealed manifest and independent reviewers remain to be recorded.
+5. DEC-006 — DONE: public version-pinned repositories plus synthetic Ryuk
+   tasks, 100+ held-out matched cases, 87% success, zero critical failures,
+   five-point paired noninferiority margin and 25% all-in savings gate are
+   approved. EVAL-010 must freeze exact revisions, sealed cases and named
+   independent people after the offline build-completion gate.
 6. DEC-007 — DONE: exact endpoint configuration/live-response agreement plus
    independent provider catalog/dashboard mapping and timestamped sanitized
    evidence; mismatches fail closed and weight identity remains unverified.
@@ -90,8 +91,8 @@ claim.
 
 ## Current count
 
-Twenty-five tracker items remain non-DONE: 16 HOLD (including deferred
-EVAL-010), 8 BLOCKED and 1 REVIEW. No item is READY while DEC-004 and the
+Twenty-four tracker items remain non-DONE: 16 HOLD (including deferred
+EVAL-010) and 8 BLOCKED. No item is READY while DEC-004 and the
 recorded phase gates remain deferred. Several broad items must be split after scope
-decisions, so 25 is a lower bound on implementation change sets, not a schedule
+decisions, so 24 is a lower bound on implementation change sets, not a schedule
 estimate.
