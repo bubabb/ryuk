@@ -1,0 +1,71 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "client_cancellation": [
+    {
+      "cancellation_deadline_seconds": 2.0,
+      "client_cancelled": true,
+      "client_stream_closed": true,
+      "elapsed_ms": 2005.531,
+      "failure_type": null,
+      "late_result_observed": null,
+      "model": "moonshotai/kimi-k3",
+      "observed_at": "2026-09-28T21:31:12.893496+00:00",
+      "provider_cancellation_acknowledged": null,
+      "provider_execution_stopped": null,
+      "response_headers_observed": false,
+      "status_code": null
+    },
+    {
+      "cancellation_deadline_seconds": 2.0,
+      "client_cancelled": true,
+      "client_stream_closed": true,
+      "elapsed_ms": 2005.901,
+      "failure_type": null,
+      "late_result_observed": null,
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "observed_at": "2026-09-28T21:31:12.893958+00:00",
+      "provider_cancellation_acknowledged": null,
+      "provider_execution_stopped": null,
+      "response_headers_observed": false,
+      "status_code": null
+    }
+  ],
+  "completed_at": "2026-09-28T21:31:12.894743+00:00",
+  "malformed_requests": [
+    {
+      "elapsed_ms": 30095.123,
+      "error_shape": {
+        "error_code_present": false,
+        "error_object_present": false,
+        "error_type_present": false
+      },
+      "failure_type": "ReadTimeout",
+      "model": "moonshotai/kimi-k3",
+      "observed_at": "2026-09-28T21:31:10.887709+00:00",
+      "rejected": false,
+      "status_code": null
+    },
+    {
+      "elapsed_ms": 30088.346,
+      "error_shape": {
+        "error_code_present": false,
+        "error_object_present": false,
+        "error_type_present": false
+      },
+      "failure_type": "ReadTimeout",
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "observed_at": "2026-09-28T21:31:10.887117+00:00",
+      "rejected": false,
+      "status_code": null
+    }
+  ],
+  "probe": "p2b-004-hosted-failures",
+  "schema_version": 1,
+  "settings": {
+    "cancellation_seconds": 2.0,
+    "overload_induced": false,
+    "request_timeout_seconds": 30.0,
+    "synthetic_public_input": true
+  },
+  "started_at": "2026-09-28T21:30:40.717082+00:00"
+}

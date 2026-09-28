@@ -1,7 +1,9 @@
 # NVIDIA Hosted NIM Compatibility Boundary
 
-**Checked:** 2026-09-26
-**Status:** Phase 2A offline contracts plus P2B-001 authenticated catalog inventory; generation not externally certified
+**Checked:** 2026-09-28
+**Status:** Phase 2B in progress; DeepSeek has one bounded generation success,
+while Kimi generation and provider-side failure/cancellation contracts remain
+uncertified
 
 `NVIDIAHostedNIMEngine` contains NVIDIA API Catalog chat-completion details at
 the adapter boundary. Ryuk's typed task, result, reasoning, usage, failure, and
@@ -55,6 +57,20 @@ account-visible catalog access, not generation readiness, served response
 identity, model-weight identity, runtime identity, or separate physical
 deployments. See
 `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md`.
+
+## Bounded live observations
+
+P2B-003 observed one successful DeepSeek V4.1 Flash response at a
+41-character synthetic prompt and 64-token output cap. Kimi K3 timed out after
+300 seconds. This is a tested DeepSeek lower bound, not a maximum-limit claim.
+
+P2B-004 observed both exact routes timing out after 30 seconds on an
+intentionally malformed `messages` value rather than returning an HTTP
+validation response. Separate streaming requests were closed by the client at
+two seconds before response headers. The provider exposed no cancellation
+acknowledgment or late-result channel, so execution termination remains unknown.
+No overload was deliberately induced. See the dated reports and sanitized JSON
+records under `docs/reports/` and `evidence/phase2b/`.
 
 ## Offline evidence
 

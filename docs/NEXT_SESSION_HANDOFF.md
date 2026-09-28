@@ -14,8 +14,8 @@ headers were not printed or stored. This is account-visible catalog evidence,
 not generation certification, proof of two physical deployments, runtime or
 hardware identity, or model-weight verification.
 
-**Continue P2B-002 and P2B-003, then proceed to P2B-004 and P2B-005 only with
-bounded, preregistered calls.** A sanitizer-first identity probe now exists with
+**Continue P2B-002 through P2B-004, then proceed to P2B-005 only with bounded,
+preregistered calls.** A sanitizer-first identity probe now exists with
 unit coverage. Its first live invocation on 2026-09-28 was interrupted by a
 controller restart before any sanitized result was captured; that unknown
 outcome was not automatically replayed. After the owner explicitly requested
@@ -33,6 +33,16 @@ incomplete. Do not automatically retry or increase limits. See
 `docs/reports/P2B-002-hosted-identity-progress-2026-09-28.md`,
 `docs/reports/P2B-003-hosted-generation-progress-2026-09-28.md`, and the two
 sanitized JSON records under `evidence/phase2b/`.
+
+P2B-004 now also has a bounded live failure probe. Both intentionally malformed
+requests timed out after about 30 seconds without returning an HTTP validation
+response. Both streaming requests were cancelled locally at about two seconds,
+before response headers. This proves only local bounding/closure: the provider
+did not acknowledge cancellation, provider execution termination is unknown,
+and there is no late-result observation channel. No overload was deliberately
+induced. P2B-004 remains in progress; see
+`docs/reports/P2B-004-hosted-failure-progress-2026-09-28.md` and
+`evidence/phase2b/p2b-004-hosted-failures-2026-09-28.json`.
 
 This is the highest-leverage sequence because it supplies the real-provider
 identity, generation, limits, cancellation, usage, structured-output, and tool
@@ -106,9 +116,9 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 510 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 521 passed, 8 deselected
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
--m mypy backend tests scripts: success, 129 source files
+-m mypy backend tests scripts: success, 135 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 changed deployment/fixture JSON parses: passed
@@ -120,8 +130,9 @@ Offline pytest ran outside the sandbox under approval because sandboxed API
 tests stalled. The first in-process run inherited `NVIDIA_API_KEY`; five
 production configuration tests correctly rejected a direct production
 credential. The passing run explicitly removed the variable from only the test
-process. No live Ryuk integration test or generation/GPU certification ran.
-P2B-001 used only the separate authenticated catalog inventory described above.
+process. No general live Ryuk integration suite or GPU certification ran. The
+separately bounded P2B-002 through P2B-004 probes and their incomplete results
+are described above; they do not establish production activation.
 
 ## Next actions and limits
 
@@ -135,11 +146,14 @@ P2B-001 used only the separate authenticated catalog inventory described above.
 3. Extend P2B-003 limits only after ordinary generation is stable. Treat the
    DeepSeek 41-character/64-token-cap result as a tested lower bound, not a
    maximum context or output limit.
-4. Continue P2B-004 and P2B-005 in order with bounded test matrices. P2B-004
-   establishes failure, timeout, overload, cancellation and late-result
-   behavior; P2B-005 establishes positive or negative structured-output/tool
-   contracts.
-5. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
+4. Complete P2B-004 only from non-disruptive provider evidence: determine
+   whether a documented cancellation acknowledgment/late-result contract or a
+   naturally observed 429/503 exists. Do not generate artificial provider load.
+   A real malformed response is still unobserved; malformed requests merely
+   timed out.
+5. Start P2B-005 with bounded positive and negative structured-output/tool
+   contracts. Outputting a tool call is never authority to execute it.
+6. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
    Do not infer tokenizer, billing, cancellation, structured-output, or tool
    support from catalog visibility.
 
