@@ -1,0 +1,105 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "completed_at": "2026-09-28T21:47:09.553883+00:00",
+  "probe": "p2b-005-hosted-structured-tools",
+  "schema_version": 1,
+  "settings": {
+    "max_tokens": 128,
+    "stream": false,
+    "synthetic_public_input": true,
+    "temperature": 0,
+    "timeout_seconds": 180.0,
+    "tools_executed": false
+  },
+  "started_at": "2026-09-28T21:44:09.337764+00:00",
+  "structured_output": [
+    {
+      "content_characters": null,
+      "content_present": false,
+      "contract_valid": false,
+      "elapsed_ms": 180140.721,
+      "error_object_present": false,
+      "failure_type": "ReadTimeout",
+      "identity_matches": false,
+      "json_object_valid": false,
+      "model": "moonshotai/kimi-k3",
+      "observed_at": "2026-09-28T21:47:09.553295+00:00",
+      "response_model": null,
+      "status_code": null,
+      "support_decision": "not_verified",
+      "usage": {
+        "completion_tokens": null,
+        "prompt_tokens": null,
+        "total_tokens": null
+      }
+    },
+    {
+      "content_characters": null,
+      "content_present": false,
+      "contract_valid": false,
+      "elapsed_ms": 75704.061,
+      "error_object_present": false,
+      "failure_type": null,
+      "identity_matches": true,
+      "json_object_valid": false,
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "observed_at": "2026-09-28T21:45:25.123580+00:00",
+      "response_model": "deepseek-ai/deepseek-v4.1-flash",
+      "status_code": 200,
+      "support_decision": "not_verified",
+      "usage": {
+        "completion_tokens": 11,
+        "prompt_tokens": 41,
+        "total_tokens": 52
+      }
+    }
+  ],
+  "tool_calls": [
+    {
+      "arguments_contract_valid": false,
+      "arguments_json_valid": false,
+      "contract_valid": false,
+      "elapsed_ms": 180133.953,
+      "error_object_present": false,
+      "failure_type": "ReadTimeout",
+      "identity_matches": false,
+      "model": "moonshotai/kimi-k3",
+      "observed_at": "2026-09-28T21:47:09.552830+00:00",
+      "requested_tool_name_matches": false,
+      "response_model": null,
+      "status_code": null,
+      "support_decision": "not_verified",
+      "tool_call_count": 0,
+      "tool_calls_present": false,
+      "tool_executed": false,
+      "usage": {
+        "completion_tokens": null,
+        "prompt_tokens": null,
+        "total_tokens": null
+      }
+    },
+    {
+      "arguments_contract_valid": true,
+      "arguments_json_valid": true,
+      "contract_valid": true,
+      "elapsed_ms": 76007.472,
+      "error_object_present": false,
+      "failure_type": null,
+      "identity_matches": true,
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "observed_at": "2026-09-28T21:45:25.427556+00:00",
+      "requested_tool_name_matches": true,
+      "response_model": "deepseek-ai/deepseek-v4.1-flash",
+      "status_code": 200,
+      "support_decision": "supported",
+      "tool_call_count": 1,
+      "tool_calls_present": true,
+      "tool_executed": false,
+      "usage": {
+        "completion_tokens": 56,
+        "prompt_tokens": 306,
+        "total_tokens": 362
+      }
+    }
+  ]
+}

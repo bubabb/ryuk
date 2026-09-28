@@ -14,8 +14,8 @@ headers were not printed or stored. This is account-visible catalog evidence,
 not generation certification, proof of two physical deployments, runtime or
 hardware identity, or model-weight verification.
 
-**Continue P2B-002 through P2B-004, then proceed to P2B-005 only with bounded,
-preregistered calls.** A sanitizer-first identity probe now exists with
+**Continue the incomplete P2B-002 through P2B-005 evidence gates. Do not start
+P2B-006 failover.** A sanitizer-first identity probe now exists with
 unit coverage. Its first live invocation on 2026-09-28 was interrupted by a
 controller restart before any sanitized result was captured; that unknown
 outcome was not automatically replayed. After the owner explicitly requested
@@ -43,6 +43,15 @@ and there is no late-result observation channel. No overload was deliberately
 induced. P2B-004 remains in progress; see
 `docs/reports/P2B-004-hosted-failure-progress-2026-09-28.md` and
 `evidence/phase2b/p2b-004-hosted-failures-2026-09-28.json`.
+
+P2B-005 now has a bounded structured-output/tool matrix. DeepSeek V4.1 Flash
+returned one exact, schema-valid `lookup_status` tool proposal with exact model
+identity and usage; the probe did not execute it. DeepSeek structured output
+returned HTTP 200 with no content and therefore remains unverified. Both Kimi
+cases timed out at 180 seconds. P2B-005 remains in progress, and the deployment
+registry remains unchanged. See
+`docs/reports/P2B-005-hosted-structured-tools-progress-2026-09-28.md` and
+`evidence/phase2b/p2b-005-hosted-structured-tools-2026-09-28.json`.
 
 This is the highest-leverage sequence because it supplies the real-provider
 identity, generation, limits, cancellation, usage, structured-output, and tool
@@ -116,9 +125,9 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 521 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 529 passed, 8 deselected
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
--m mypy backend tests scripts: success, 135 source files
+-m mypy backend tests scripts: success, 137 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 changed deployment/fixture JSON parses: passed
@@ -151,8 +160,10 @@ are described above; they do not establish production activation.
    naturally observed 429/503 exists. Do not generate artificial provider load.
    A real malformed response is still unobserved; malformed requests merely
    timed out.
-5. Start P2B-005 with bounded positive and negative structured-output/tool
-   contracts. Outputting a tool call is never authority to execute it.
+5. Continue P2B-005 without repeating the completed DeepSeek tool-proposal case.
+   Resolve Kimi responsiveness and DeepSeek's HTTP-200/no-content structured
+   result before changing capabilities. Tool execution, continuation and
+   authority remain out of scope.
 6. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
    Do not infer tokenizer, billing, cancellation, structured-output, or tool
    support from catalog visibility.

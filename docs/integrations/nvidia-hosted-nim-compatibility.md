@@ -72,6 +72,14 @@ acknowledgment or late-result channel, so execution termination remains unknown.
 No overload was deliberately induced. See the dated reports and sanitized JSON
 records under `docs/reports/` and `evidence/phase2b/`.
 
+P2B-005 verified one DeepSeek V4.1 Flash tool proposal: the provider returned
+the exact model ID and one requested function call with schema-valid arguments.
+Ryuk validated the proposal as data and did not execute it. DeepSeek structured
+output returned HTTP 200 but no content at the tested 128-token cap, so the
+structured contract remains unverified. Both Kimi structured/tool requests
+timed out at 180 seconds. These observations do not yet authorize enabling
+structured output or tool calls in the deployment registry.
+
 ## Offline evidence
 
 The sanitized Phase 2A fixtures exercise exact request shapes, both reasoning
