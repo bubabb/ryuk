@@ -1,7 +1,7 @@
 # Ryuk Action Tracker
 
-**Last updated:** 2026-09-26
-**Current milestone:** Phase 2B authorized endpoint inventory
+**Last updated:** 2026-09-28
+**Current milestone:** Phase 2B hosted identity verification
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
 **Next session starts with:** P2B-002 verifies authentication, readiness, and exact served-model identity for Kimi K3 and DeepSeek V4.1 Flash; then run P2B-003 through P2B-005 as the highest-leverage provider-contract sequence
 
@@ -67,8 +67,8 @@ the existence of configuration fields or integration tests.
 | ID | Status | Action | Dependency | Completion evidence |
 | --- | --- | --- | --- | --- |
 | P2B-001 | DONE | Identify the two exact authorized NVIDIA Developer Program model routes on the shared hosted API | Protected credential or authenticated account surface; all decision dependencies complete | Authenticated `GET /v1/models` returned HTTP 200 and both exact approved IDs without a generation or paid-resource request; `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md` |
-| P2B-002 | READY | Verify authentication, readiness, and served-model identity | P2B-001 | Sanitized observations for each exact model route; independent catalog/dashboard mapping; no artifact-identity claim |
-| P2B-003 | READY | Measure ordinary generation and safe input/output limits | P2B-001 | Reproducible contract report with model settings and limits |
+| P2B-002 | IN PROGRESS | Verify authentication, readiness, and served-model identity | P2B-001 | Sanitizer-first bounded probe and unit tests added; after an interrupted unknown-outcome attempt, an explicitly resumed run reconfirmed HTTP 200 catalog access and both exact IDs but both generation requests reached the 120-second read timeout; P2B-003 later observed exact DeepSeek response identity, while Kimi still timed out and sanitized account/dashboard mapping remains incomplete; `docs/reports/P2B-002-hosted-identity-progress-2026-09-28.md`; `evidence/phase2b/p2b-002-hosted-identity-2026-09-28.json` |
+| P2B-003 | IN PROGRESS | Measure ordinary generation and safe input/output limits | P2B-001 | Reproducible bounded harness and sanitized run evidence; DeepSeek ordinary generation passed at the tested 41-character/64-token-cap point with usage, while Kimi timed out at 300 seconds and maximum safe limits remain unknown; `docs/reports/P2B-003-hosted-generation-progress-2026-09-28.md`; `evidence/phase2b/p2b-003-hosted-generation-2026-09-28.json` |
 | P2B-004 | READY | Exercise timeout, overload, malformed response, and cancellation behavior | P2B-001 | Normalized failure evidence and cancellation/late-result observations |
 | P2B-005 | READY | Verify structured output and tool behavior instead of assuming support | P2B-001 | Per-profile support decision with passing or negative contracts |
 | P2B-006 | BLOCKED | Run real cross-deployment failover | P2B-002 through P2B-004 | Both attempts recorded with correct identity, usage, and provenance |

@@ -1,0 +1,61 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "catalog": {
+    "approved_models_present": {
+      "deepseek-ai/deepseek-v4.1-flash": true,
+      "moonshotai/kimi-k3": true
+    },
+    "elapsed_ms": 84.455,
+    "failure_type": null,
+    "observed_at": "2026-09-28T21:09:56.242733+00:00",
+    "status_code": 200
+  },
+  "completed_at": "2026-09-28T21:13:56.411790+00:00",
+  "generation": [
+    {
+      "choices_present": false,
+      "configured_model": "moonshotai/kimi-k3",
+      "elapsed_ms": 120102.765,
+      "failure_type": "ReadTimeout",
+      "finish_reason": null,
+      "identity_matches": false,
+      "observed_at": "2026-09-28T21:11:56.345537+00:00",
+      "response_id_present": false,
+      "response_model": null,
+      "status_code": null,
+      "usage_fields_present": {
+        "completion_tokens": false,
+        "prompt_tokens": false,
+        "total_tokens": false,
+        "usage_object": false
+      }
+    },
+    {
+      "choices_present": false,
+      "configured_model": "deepseek-ai/deepseek-v4.1-flash",
+      "elapsed_ms": 120065.645,
+      "failure_type": "ReadTimeout",
+      "finish_reason": null,
+      "identity_matches": false,
+      "observed_at": "2026-09-28T21:13:56.411259+00:00",
+      "response_id_present": false,
+      "response_model": null,
+      "status_code": null,
+      "usage_fields_present": {
+        "completion_tokens": false,
+        "prompt_tokens": false,
+        "total_tokens": false,
+        "usage_object": false
+      }
+    }
+  ],
+  "probe": "p2b-002-hosted-identity",
+  "request_settings": {
+    "max_tokens": 8,
+    "stream": false,
+    "synthetic_public_input": true,
+    "temperature": 0
+  },
+  "schema_version": 1,
+  "started_at": "2026-09-28T21:09:56.078710+00:00"
+}

@@ -1,6 +1,6 @@
 # Ryuk next-session handoff
 
-Date: 2026-09-26
+Date: 2026-09-28
 Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
@@ -14,7 +14,26 @@ headers were not printed or stored. This is account-visible catalog evidence,
 not generation certification, proof of two physical deployments, runtime or
 hardware identity, or model-weight verification.
 
-**Start the next session with P2B-002, then continue P2B-003 through P2B-005.**
+**Continue P2B-002 and P2B-003, then proceed to P2B-004 and P2B-005 only with
+bounded, preregistered calls.** A sanitizer-first identity probe now exists with
+unit coverage. Its first live invocation on 2026-09-28 was interrupted by a
+controller restart before any sanitized result was captured; that unknown
+outcome was not automatically replayed. After the owner explicitly requested
+continuation, a fresh bounded run reconfirmed HTTP 200 catalog access and both
+exact IDs, but both generation requests reached the 120-second read timeout.
+
+The next authorized P2B-003 run used concurrent 300-second requests with a
+64-token cap. DeepSeek V4.1 Flash returned HTTP 200 in 56.956 seconds with exact
+response identity, a non-empty stopped output and complete usage (38 prompt, 14
+completion, 52 total tokens). Kimi K3 again timed out, this time at 300.133
+seconds. P2B-002 and P2B-003 therefore remain in progress: DeepSeek has one
+tested safe point and live identity observation; Kimi has neither, maximum safe
+limits are unknown, and DEC-007's sanitized account/dashboard mapping remains
+incomplete. Do not automatically retry or increase limits. See
+`docs/reports/P2B-002-hosted-identity-progress-2026-09-28.md`,
+`docs/reports/P2B-003-hosted-generation-progress-2026-09-28.md`, and the two
+sanitized JSON records under `evidence/phase2b/`.
+
 This is the highest-leverage sequence because it supplies the real-provider
 identity, generation, limits, cancellation, usage, structured-output, and tool
 evidence needed to unblock CTX-003, WF-012, and WF-013. Use synthetic/public
@@ -106,21 +125,21 @@ P2B-001 used only the separate authenticated catalog inventory described above.
 
 ## Next actions and limits
 
-1. Mark P2B-002 `IN PROGRESS` and define a bounded, sanitized live contract for
-   authentication, readiness, exact response identity, and independent
-   catalog/dashboard mapping for both approved model routes.
-2. Run the smallest synthetic generation probes needed for P2B-002. Record
-   exact settings, timestamps, status, response model ID, usage-field presence,
-   and sanitized failures; never record response content, credentials,
-   authorization headers, or sensitive headers.
-3. Review P2B-002 evidence against DEC-007. Fail closed on any configured,
-   catalog, or response model mismatch. Keep the identity claim
-   provider-attested/observed rather than artifact-verified.
-4. Continue P2B-003, P2B-004, and P2B-005 in order with bounded test matrices.
-   P2B-003 establishes ordinary generation and safe limits; P2B-004 establishes
-   failure, timeout, overload, cancellation, and late-result behavior; P2B-005
-   establishes positive or negative structured-output/tool contracts.
-5. Reassess CTX-003, WF-012, and WF-013 after the relevant evidence lands.
+1. Investigate Kimi's repeated 120-second and 300-second read timeouts without
+   automatic replay. Before another call, confirm the provider's current free
+   route contract and whether streaming or a model-specific request parameter is
+   required; preserve the USD 0 ceiling.
+2. Complete DEC-007's sanitized account/dashboard mapping. Fail closed on any
+   configured, catalog or response-model mismatch and keep the identity claim
+   provider-attested rather than artifact-verified.
+3. Extend P2B-003 limits only after ordinary generation is stable. Treat the
+   DeepSeek 41-character/64-token-cap result as a tested lower bound, not a
+   maximum context or output limit.
+4. Continue P2B-004 and P2B-005 in order with bounded test matrices. P2B-004
+   establishes failure, timeout, overload, cancellation and late-result
+   behavior; P2B-005 establishes positive or negative structured-output/tool
+   contracts.
+5. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
    Do not infer tokenizer, billing, cancellation, structured-output, or tool
    support from catalog visibility.
 
