@@ -27,15 +27,25 @@ def test_structured_observation_validates_schema_without_retaining_content() -> 
         payload={
             "id": "private-id",
             "model": "deepseek-ai/deepseek-v4.1-flash",
-            "choices": [{"message": {"content": '{"status":"ready"}'}}],
+            "choices": [
+                {
+                    "message": {
+                        "content": '{"status":"ready"}',
+                        "reasoning_content": "private reasoning",
+                    }
+                }
+            ],
             "usage": {"prompt_tokens": 4, "completion_tokens": 5, "total_tokens": 9},
         },
     )
 
     assert observation["contract_valid"] is True
     assert observation["support_decision"] == "supported"
+    assert observation["request_mode"] == "json_object"
     assert observation["content_characters"] == 18
+    assert observation["reasoning_present"] is True
     assert '{"status":"ready"}' not in str(observation)
+    assert "private reasoning" not in str(observation)
     assert "private-id" not in str(observation)
 
 
@@ -188,6 +198,36 @@ async def test_contract_probe_scopes_reasoning_effort_to_kimi() -> None:
 
 
 @pytest.mark.asyncio
+async def test_prompt_only_structured_request_omits_response_format() -> None:
+    requests: list[dict[str, object]] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "model": "deepseek-ai/deepseek-v4.1-flash",
+                "choices": [{"message": {"content": '{"status":"ready"}'}}],
+            },
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        observation = await _post_contract(
+            client,
+            model="deepseek-ai/deepseek-v4.1-flash",
+            kind="structured",
+            max_tokens=256,
+            temperature=0,
+            kimi_reasoning_effort=None,
+            structured_request_mode="prompt_only",
+        )
+
+    assert "response_format" not in requests[0]
+    assert observation["contract_valid"] is True
+    assert observation["request_mode"] == "prompt_only"
+
+
+@pytest.mark.asyncio
 async def test_probe_rejects_invalid_bounds() -> None:
     with pytest.raises(ValueError, match="max_tokens"):
         await collect_structured_tool_evidence("key", max_tokens=0)
@@ -197,7 +237,15 @@ async def test_probe_rejects_invalid_bounds() -> None:
         await collect_structured_tool_evidence("key", models=())
     with pytest.raises(ValueError, match="approved"):
         await collect_structured_tool_evidence("key", models=("unapproved",))
+    with pytest.raises(ValueError, match="kinds"):
+        await collect_structured_tool_evidence("key", kinds=())
+    with pytest.raises(ValueError, match="contract kinds"):
+        await collect_structured_tool_evidence("key", kinds=("unapproved",))
     with pytest.raises(ValueError, match="temperature"):
         await collect_structured_tool_evidence("key", temperature=-1)
     with pytest.raises(ValueError, match="kimi_reasoning_effort"):
         await collect_structured_tool_evidence("key", kimi_reasoning_effort="medium")
+    with pytest.raises(ValueError, match="structured_request_mode"):
+        await collect_structured_tool_evidence(
+            "key", structured_request_mode="unapproved"
+        )

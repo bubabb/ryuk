@@ -64,6 +64,14 @@ registry remains unchanged. See
 `docs/reports/P2B-005-hosted-structured-tools-progress-2026-09-28.md` and
 `evidence/phase2b/p2b-005-hosted-structured-tools-2026-09-28.json`.
 
+A DeepSeek-only structured follow-up omitted the ambiguous `response_format`
+field and used prompt-constrained exact JSON plus deterministic validation. It
+returned HTTP 200 in 152.004 seconds with exact identity, the exact 18-character
+JSON object and complete usage (41 prompt, 20 completion, 61 total). Reasoning
+was present but not retained. This verifies a prompt-constrained JSON fallback,
+not provider-enforced structured output. See
+`evidence/phase2b/p2b-005-deepseek-prompt-json-2026-09-28.json`.
+
 This is the highest-leverage sequence because it supplies the real-provider
 identity, generation, limits, cancellation, usage, structured-output, and tool
 evidence needed to unblock CTX-003, WF-012, and WF-013. Use synthetic/public
@@ -136,7 +144,7 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 531 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 532 passed, 8 deselected
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
 -m mypy backend tests scripts: success, 137 source files
 -m ruff check backend tests scripts: all checks passed
@@ -174,8 +182,10 @@ are described above; they do not establish production activation.
    timed out.
 5. Continue P2B-005 without repeating the completed DeepSeek tool-proposal case
    or launching Kimi advanced-capability calls before ordinary generation works.
-   Resolve DeepSeek's HTTP-200/no-content structured result before changing
-   capabilities. Tool execution, continuation and authority remain out of scope.
+   The prompt-constrained DeepSeek JSON fallback now passes, but the earlier
+   HTTP-200/no-content `response_format` result remains unverified. Do not enable
+   a provider-enforced structured-output capability. Tool execution,
+   continuation and authority remain out of scope.
 6. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
    Do not infer tokenizer, billing, cancellation, structured-output, or tool
    support from catalog visibility.
@@ -493,5 +503,6 @@ records the completed static review and a proposed measurable acceptance gate.
   artifact-verified weights.
 - No generation, provisioning, subscription, payment, or paid-resource request
   occurred. No credential value or sensitive header was recorded.
-- P2B-001 is DONE. P2B-002 through P2B-005 are READY.
+- P2B-001 is DONE. P2B-002 through P2B-005 are in progress; P2B-006 through
+  P2B-008 remain blocked.
 - Review: `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md`.

@@ -1,0 +1,49 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "completed_at": "2026-09-28T22:07:19.713762+00:00",
+  "probe": "p2b-005-hosted-structured-tools",
+  "schema_version": 1,
+  "settings": {
+    "kimi_reasoning_effort": null,
+    "kinds": [
+      "structured"
+    ],
+    "max_tokens": 256,
+    "models": [
+      "deepseek-ai/deepseek-v4.1-flash"
+    ],
+    "stream": false,
+    "structured_request_mode": "prompt_only",
+    "synthetic_public_input": true,
+    "temperature": 0.0,
+    "timeout_seconds": 300.0,
+    "tools_executed": false
+  },
+  "started_at": "2026-09-28T22:04:47.654892+00:00",
+  "structured_output": [
+    {
+      "content_characters": 18,
+      "content_present": true,
+      "contract_valid": true,
+      "elapsed_ms": 152003.625,
+      "error_object_present": false,
+      "failure_type": null,
+      "identity_matches": true,
+      "json_object_valid": true,
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "observed_at": "2026-09-28T22:07:19.712841+00:00",
+      "reasoning_characters": 58,
+      "reasoning_present": true,
+      "request_mode": "prompt_only",
+      "response_model": "deepseek-ai/deepseek-v4.1-flash",
+      "status_code": 200,
+      "support_decision": "supported",
+      "usage": {
+        "completion_tokens": 20,
+        "prompt_tokens": 41,
+        "total_tokens": 61
+      }
+    }
+  ],
+  "tool_calls": []
+}

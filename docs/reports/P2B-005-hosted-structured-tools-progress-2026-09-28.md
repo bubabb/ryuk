@@ -1,7 +1,7 @@
 # P2B-005 hosted structured-output and tool behavior — progress record
 
 Date: 2026-09-28
-Status: in progress; one DeepSeek tool-proposal contract verified
+Status: in progress; DeepSeek tool-proposal and prompt-JSON contracts verified
 
 ## Provider contract basis
 
@@ -54,6 +54,24 @@ DeepSeek tool result verifies proposal serialization only; it does not verify
 tool execution, multi-turn tool-result continuation, preserved reasoning/tool
 history, authority, safety or production eligibility.
 
+## DeepSeek prompt-constrained JSON follow-up
+
+To distinguish provider-enforced `response_format` behavior from basic JSON
+generation, one DeepSeek-only request omitted `response_format` while retaining
+the exact JSON prompt and deterministic validator. It used temperature zero, a
+256-token cap and a 300-second timeout. The sanitized result is
+`evidence/phase2b/p2b-005-deepseek-prompt-json-2026-09-28.json`.
+
+The provider returned HTTP 200 after 152.004 seconds with exact model identity,
+exactly 18 answer characters, valid JSON and the exact
+`{"status":"ready"}` contract. Usage was 41 prompt, 20 completion and 61 total
+tokens. Reasoning was present (58 characters) but its content was not retained.
+
+This verifies prompt-constrained, deterministically validated JSON at one tested
+point. It does not verify provider-enforced `response_format`, arbitrary JSON
+schemas, retries, or production eligibility. The evidence explicitly records
+`request_mode: prompt_only` to prevent that stronger interpretation.
+
 ## Review
 
 The implementation review added regression cases proving that valid-looking
@@ -62,6 +80,7 @@ arguments fail the exact contract. Existing tests prove response content,
 reasoning, tool arguments, IDs and provider error messages are not retained.
 The four operations are bounded, concurrent and never retried automatically.
 
-P2B-005 remains `IN PROGRESS`. Kimi structured/tool behavior and DeepSeek
-structured output remain unverified. The deployment registry continues to
-declare structured output unsupported, and no tool execution path was enabled.
+P2B-005 remains `IN PROGRESS`. Kimi structured/tool behavior and DeepSeek's
+provider-enforced `response_format` remain unverified. The deployment registry
+continues to declare structured output unsupported, and no tool execution path
+was enabled.

@@ -17,6 +17,8 @@ APPROVED_MODELS = (
     "moonshotai/kimi-k3",
     "deepseek-ai/deepseek-v4.1-flash",
 )
+CONTRACT_KINDS = ("structured", "tool")
+STRUCTURED_REQUEST_MODES = ("json_object", "prompt_only")
 TOOL_NAME = "lookup_status"
 STRUCTURED_PROMPT = 'Return exactly this JSON object: {"status":"ready"}'
 TOOL_PROMPT = "Call lookup_status once with item set to ryuk."
@@ -81,6 +83,7 @@ def sanitize_structured_observation(
     elapsed_ms: float,
     payload: object = None,
     failure_type: str | None = None,
+    request_mode: str = "json_object",
 ) -> dict[str, Any]:
     observation = _base_observation(
         model=model,
@@ -91,6 +94,7 @@ def sanitize_structured_observation(
     )
     _, message = _response_parts(payload)
     content = message.get("content")
+    reasoning = message.get("reasoning_content", message.get("reasoning"))
     parsed: object = None
     if isinstance(content, str):
         try:
@@ -106,6 +110,11 @@ def sanitize_structured_observation(
         {
             "content_present": isinstance(content, str) and bool(content),
             "content_characters": len(content) if isinstance(content, str) else None,
+            "reasoning_present": isinstance(reasoning, str) and bool(reasoning),
+            "reasoning_characters": (
+                len(reasoning) if isinstance(reasoning, str) else None
+            ),
+            "request_mode": request_mode,
             "json_object_valid": isinstance(parsed, dict),
             "contract_valid": contract_valid,
             "support_decision": (
@@ -174,6 +183,34 @@ def sanitize_tool_observation(
     return observation
 
 
+def _sanitize_contract_observation(
+    *,
+    kind: str,
+    structured_request_mode: str,
+    model: str,
+    status_code: int | None,
+    elapsed_ms: float,
+    payload: object = None,
+    failure_type: str | None = None,
+) -> dict[str, Any]:
+    if kind == "structured":
+        return sanitize_structured_observation(
+            model=model,
+            status_code=status_code,
+            elapsed_ms=elapsed_ms,
+            payload=payload,
+            failure_type=failure_type,
+            request_mode=structured_request_mode,
+        )
+    return sanitize_tool_observation(
+        model=model,
+        status_code=status_code,
+        elapsed_ms=elapsed_ms,
+        payload=payload,
+        failure_type=failure_type,
+    )
+
+
 async def _post_contract(
     client: httpx.AsyncClient,
     *,
@@ -182,6 +219,7 @@ async def _post_contract(
     max_tokens: int,
     temperature: float,
     kimi_reasoning_effort: str | None,
+    structured_request_mode: str = "json_object",
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model,
@@ -200,10 +238,10 @@ async def _post_contract(
                         "content": STRUCTURED_PROMPT,
                     }
                 ],
-                "response_format": {"type": "json_object"},
             }
         )
-        sanitizer = sanitize_structured_observation
+        if structured_request_mode == "json_object":
+            payload["response_format"] = {"type": "json_object"}
     elif kind == "tool":
         payload.update(
             {
@@ -230,7 +268,6 @@ async def _post_contract(
                 ],
             }
         )
-        sanitizer = sanitize_tool_observation
     else:  # pragma: no cover
         raise ValueError("unknown contract kind")
 
@@ -241,7 +278,9 @@ async def _post_contract(
             response_payload = response.json()
         except ValueError:
             response_payload = None
-        return sanitizer(
+        return _sanitize_contract_observation(
+            kind=kind,
+            structured_request_mode=structured_request_mode,
             model=model,
             status_code=response.status_code,
             elapsed_ms=(time.perf_counter() - started) * 1000,
@@ -251,7 +290,9 @@ async def _post_contract(
             ),
         )
     except httpx.HTTPError as exc:
-        return sanitizer(
+        return _sanitize_contract_observation(
+            kind=kind,
+            structured_request_mode=structured_request_mode,
             model=model,
             status_code=None,
             elapsed_ms=(time.perf_counter() - started) * 1000,
@@ -263,10 +304,12 @@ async def collect_structured_tool_evidence(
     api_key: str,
     *,
     models: tuple[str, ...] = APPROVED_MODELS,
+    kinds: tuple[str, ...] = CONTRACT_KINDS,
     max_tokens: int = 128,
     timeout_seconds: float = 180.0,
     temperature: float = 0,
     kimi_reasoning_effort: str | None = None,
+    structured_request_mode: str = "json_object",
 ) -> dict[str, Any]:
     if max_tokens < 1:
         raise ValueError("max_tokens must be positive")
@@ -276,10 +319,16 @@ async def collect_structured_tool_evidence(
         raise ValueError("models must be non-empty and unique")
     if any(model not in APPROVED_MODELS for model in models):
         raise ValueError("models must contain only approved model IDs")
+    if not kinds or len(set(kinds)) != len(kinds):
+        raise ValueError("kinds must be non-empty and unique")
+    if any(kind not in CONTRACT_KINDS for kind in kinds):
+        raise ValueError("kinds must contain only approved contract kinds")
     if not 0 <= temperature <= 1:
         raise ValueError("temperature must be between zero and one")
     if kimi_reasoning_effort not in {None, "low", "high", "max"}:
         raise ValueError("kimi_reasoning_effort must be low, high, max, or omitted")
+    if structured_request_mode not in STRUCTURED_REQUEST_MODES:
+        raise ValueError("structured_request_mode is invalid")
     evidence: dict[str, Any] = {
         "schema_version": 1,
         "probe": "p2b-005-hosted-structured-tools",
@@ -293,9 +342,12 @@ async def collect_structured_tool_evidence(
             "synthetic_public_input": True,
             "tools_executed": False,
             "models": list(models),
+            "kinds": list(kinds),
             "kimi_reasoning_effort": kimi_reasoning_effort,
+            "structured_request_mode": structured_request_mode,
         },
     }
+    pairs = [(model, kind) for model in models for kind in kinds]
     timeout = httpx.Timeout(timeout_seconds, connect=10.0, pool=10.0)
     headers = {"Authorization": f"Bearer {api_key}"}
     async with httpx.AsyncClient(headers=headers, timeout=timeout) as client:
@@ -308,13 +360,21 @@ async def collect_structured_tool_evidence(
                     max_tokens=max_tokens,
                     temperature=temperature,
                     kimi_reasoning_effort=kimi_reasoning_effort,
+                    structured_request_mode=structured_request_mode,
                 )
-                for model in models
-                for kind in ("structured", "tool")
+                for model, kind in pairs
             )
         )
-    evidence["structured_output"] = results[::2]
-    evidence["tool_calls"] = results[1::2]
+    evidence["structured_output"] = [
+        result
+        for (_, kind), result in zip(pairs, results, strict=True)
+        if kind == "structured"
+    ]
+    evidence["tool_calls"] = [
+        result
+        for (_, kind), result in zip(pairs, results, strict=True)
+        if kind == "tool"
+    ]
     evidence["completed_at"] = _timestamp()
     return evidence
 
@@ -328,7 +388,13 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model", action="append", choices=APPROVED_MODELS, dest="models"
     )
+    parser.add_argument("--kind", action="append", choices=CONTRACT_KINDS, dest="kinds")
     parser.add_argument("--kimi-reasoning-effort", choices=("low", "high", "max"))
+    parser.add_argument(
+        "--structured-request-mode",
+        choices=STRUCTURED_REQUEST_MODES,
+        default="json_object",
+    )
     return parser.parse_args()
 
 
@@ -341,10 +407,12 @@ def main() -> int:
         collect_structured_tool_evidence(
             api_key,
             models=tuple(args.models or APPROVED_MODELS),
+            kinds=tuple(args.kinds or CONTRACT_KINDS),
             max_tokens=args.max_tokens,
             timeout_seconds=args.timeout_seconds,
             temperature=args.temperature,
             kimi_reasoning_effort=args.kimi_reasoning_effort,
+            structured_request_mode=args.structured_request_mode,
         )
     )
     with open(args.output, "x", encoding="utf-8") as output:

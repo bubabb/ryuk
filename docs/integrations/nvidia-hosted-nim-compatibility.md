@@ -83,6 +83,13 @@ structured contract remains unverified. Both Kimi structured/tool requests
 timed out at 180 seconds. These observations do not yet authorize enabling
 structured output or tool calls in the deployment registry.
 
+A DeepSeek-only follow-up omitted `response_format` and required exact JSON by
+prompt plus deterministic validation. It returned the exact
+`{"status":"ready"}` object with matching model identity and usage. This
+verifies a prompt-constrained JSON fallback at the tested point, not
+provider-enforced structured output. The earlier `response_format` request
+remains unverified because its HTTP 200 response contained no answer content.
+
 ## Offline evidence
 
 The sanitized Phase 2A fixtures exercise exact request shapes, both reasoning
