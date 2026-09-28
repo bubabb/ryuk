@@ -1,6 +1,7 @@
 import pytest
 
 from backend.inference.errors import (
+    AsynchronousResultPendingFailure,
     CancelledFailure,
     CapabilityMismatchFailure,
     CapacityExceededFailure,
@@ -46,6 +47,12 @@ from backend.inference.errors import (
             "deadline_exceeded",
             504,
             RetryClassification.OTHER_DEPLOYMENT,
+        ),
+        (
+            AsynchronousResultPendingFailure,
+            "asynchronous_result_pending",
+            503,
+            RetryClassification.NEVER,
         ),
         (
             UpstreamProtocolFailure,

@@ -24,6 +24,7 @@ from backend.inference.deployment import DeploymentRef, ModelRef
 from backend.inference.engines.dynamo import DynamoEngine
 from backend.inference.engines.nim import NIMEngine, NVIDIAHostedNIMEngine
 from backend.inference.errors import (
+    AsynchronousResultPendingFailure,
     CapacityExceededFailure,
     UnsupportedTaskFailure,
     UpstreamProtocolFailure,
@@ -216,6 +217,55 @@ async def test_hosted_nim_rejects_malformed_reasoning_without_leaking_it() -> No
         )
     assert raised.value.context["reason"] == "invalid_reasoning"
     assert "private" not in str(raised.value)
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_fails_closed_on_async_pending_without_request_id_leak() -> (
+    None
+):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(202, json={"requestId": "private-provider-request-id"})
+
+    adapter = NVIDIAHostedNIMEngine(
+        "https://integrate.api.nvidia.com",
+        model="moonshotai/kimi-k3",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+    )
+
+    with pytest.raises(AsynchronousResultPendingFailure) as raised:
+        await adapter.generate_task(
+            task(ChatInput((ChatMessage(ChatRole.USER, "reply ready"),)))
+        )
+
+    assert raised.value.retryable is False
+    assert raised.value.context == {
+        "operation": "generation",
+        "status": 202,
+        "request_id_present": True,
+        "response_json_valid": True,
+    }
+    assert "private-provider-request-id" not in str(raised.value.context)
+
+
+@pytest.mark.asyncio
+async def test_hosted_nim_classifies_empty_async_pending_response() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(202, content=b"")
+
+    adapter = NVIDIAHostedNIMEngine(
+        "https://integrate.api.nvidia.com",
+        model="moonshotai/kimi-k3",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+    )
+
+    with pytest.raises(AsynchronousResultPendingFailure) as raised:
+        await adapter.generate_task(
+            task(ChatInput((ChatMessage(ChatRole.USER, "reply ready"),)))
+        )
+
+    assert raised.value.retryable is False
+    assert raised.value.context["request_id_present"] is False
+    assert raised.value.context["response_json_valid"] is False
 
 
 @pytest.mark.asyncio

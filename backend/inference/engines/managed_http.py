@@ -25,6 +25,7 @@ from backend.inference.deployment import (
     ModelRef,
 )
 from backend.inference.errors import (
+    AsynchronousResultPendingFailure,
     CapacityExceededFailure,
     DeadlineExceededFailure,
     DeploymentUnavailableFailure,
@@ -177,11 +178,13 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
     async def _json(
         self, method: str, path: str, operation: str, **kwargs: Any
     ) -> dict[str, Any]:
+        status_code: int | None = None
         try:
             async with self._client.stream(
                 method, f"{self.base_url}{path}", **kwargs
             ) as response:
-                self._raise_for_status(response.status_code, operation)
+                status_code = response.status_code
+                self._raise_for_status(status_code, operation)
                 body = bytearray()
                 async for chunk in response.aiter_bytes():
                     body.extend(chunk)
@@ -201,7 +204,27 @@ class ManagedHTTPInferenceEngine(InferenceEngine):
         try:
             result = json.loads(body)
         except (ValueError, UnicodeError) as exc:
+            if status_code == 202:
+                raise AsynchronousResultPendingFailure(
+                    context={
+                        "operation": operation,
+                        "status": status_code,
+                        "request_id_present": False,
+                        "response_json_valid": False,
+                    }
+                ) from exc
             raise self._protocol(operation, "invalid_json") from exc
+        if status_code == 202:
+            request_id = result.get("requestId") if isinstance(result, dict) else None
+            raise AsynchronousResultPendingFailure(
+                context={
+                    "operation": operation,
+                    "status": status_code,
+                    "request_id_present": isinstance(request_id, str)
+                    and bool(request_id),
+                    "response_json_valid": True,
+                }
+            )
         if not isinstance(result, dict):
             raise self._protocol(operation, "non_object_json")
         return result

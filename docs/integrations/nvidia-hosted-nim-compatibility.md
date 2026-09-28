@@ -90,6 +90,21 @@ verifies a prompt-constrained JSON fallback at the tested point, not
 provider-enforced structured output. The earlier `response_format` request
 remains unverified because its HTTP 200 response contained no answer content.
 
+## Documented asynchronous outcomes
+
+NVIDIA's current Kimi endpoint reference documents HTTP 202 pending responses
+containing a request ID and a corresponding authenticated
+`GET /v1/status/{requestId}` polling route. None of Ryuk's live Kimi attempts
+received response headers or a request ID, so there is no saved operation to
+poll and the documentation does not explain the timeouts.
+
+The managed HTTP adapter now classifies any future HTTP 202 as
+`asynchronous_result_pending`. This failure is non-retryable because the
+provider may already be executing the accepted request. Ryuk records only
+whether a request ID was present and whether the body was valid JSON; it never
+stores the provider request ID. Automatic polling is deliberately absent until
+durable reconciliation, cancellation and late-result semantics are designed.
+
 ## Offline evidence
 
 The sanitized Phase 2A fixtures exercise exact request shapes, both reasoning

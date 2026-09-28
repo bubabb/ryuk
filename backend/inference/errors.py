@@ -92,6 +92,14 @@ class DeadlineExceededFailure(InferenceFailure):
     retry = RetryClassification.OTHER_DEPLOYMENT
 
 
+class AsynchronousResultPendingFailure(InferenceFailure):
+    """The provider accepted work but Ryuk cannot safely reconcile its result."""
+
+    code = "asynchronous_result_pending"
+    public_message = "Inference was accepted asynchronously and remains pending."
+    http_status = 503
+
+
 class WorkflowBudgetExceededFailure(DeadlineExceededFailure):
     code = "workflow_budget_exceeded"
     public_message = "The workflow execution budget was exceeded."

@@ -55,6 +55,16 @@ induced. P2B-004 remains in progress; see
 `docs/reports/P2B-004-hosted-failure-progress-2026-09-28.md` and
 `evidence/phase2b/p2b-004-hosted-failures-2026-09-28.json`.
 
+The subsequent non-inference Kimi contract review confirmed NVIDIA documents
+HTTP 202 plus authenticated `/v1/status/{requestId}` polling. Prior Ryuk calls
+never received headers/request IDs, so they cannot be polled. Ryuk now maps any
+future 202 to a sanitized, non-retryable `asynchronous_result_pending` failure;
+it does not store the provider ID, poll, fail over or replay. NVIDIA's current
+Build partial-outage notice concerns SMS verification in China while Cloud
+Functions is operational, so it does not explain the timeouts. The browser
+control surface was unavailable, leaving DEC-007's account/dashboard mapping
+open. See `docs/reports/P2B-004-kimi-async-contract-review-2026-09-28.md`.
+
 P2B-005 now has a bounded structured-output/tool matrix. DeepSeek V4.1 Flash
 returned one exact, schema-valid `lookup_status` tool proposal with exact model
 identity and usage; the probe did not execute it. DeepSeek structured output
@@ -144,7 +154,7 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 532 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 535 passed, 8 deselected
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
 -m mypy backend tests scripts: success, 137 source files
 -m ruff check backend tests scripts: all checks passed
@@ -169,6 +179,9 @@ are described above; they do not establish production activation.
    has now also failed. Use the account dashboard or provider support/status
    evidence to confirm entitlement, readiness, queue behavior and any async
    polling contract; preserve the USD 0 ceiling.
+   The public documentation and service-status review is complete; the next
+   evidence must come from an authenticated dashboard/recent-request view or
+   provider support, not another generation request.
 2. Complete DEC-007's sanitized account/dashboard mapping. Fail closed on any
    configured, catalog or response-model mismatch and keep the identity claim
    provider-attested rather than artifact-verified.
@@ -179,7 +192,8 @@ are described above; they do not establish production activation.
    whether a documented cancellation acknowledgment/late-result contract or a
    naturally observed 429/503 exists. Do not generate artificial provider load.
    A real malformed response is still unobserved; malformed requests merely
-   timed out.
+   timed out. The documented 202 path now fails closed but has not been observed
+   live; do not add automatic polling without durable reconciliation design.
 5. Continue P2B-005 without repeating the completed DeepSeek tool-proposal case
    or launching Kimi advanced-capability calls before ordinary generation works.
    The prompt-constrained DeepSeek JSON fallback now passes, but the earlier
