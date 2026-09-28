@@ -34,6 +34,17 @@ incomplete. Do not automatically retry or increase limits. See
 `docs/reports/P2B-003-hosted-generation-progress-2026-09-28.md`, and the two
 sanitized JSON records under `evidence/phase2b/`.
 
+A subsequent Kimi-only diagnostic tested NVIDIA's documented
+`reasoning_effort: low`, recommended temperature 1 and a larger 256-token cap.
+It also timed out after 300.189 seconds without response headers, identity or
+usage. This weakens the hypothesis that the hosted default `max` effort alone
+caused the prior timeouts. No Kimi structured/tool follow-up was launched because
+ordinary generation remains unstable. Do not make another Kimi inference call
+until account/dashboard or provider evidence clarifies readiness, entitlement,
+queue behavior and any asynchronous contract. See
+`docs/reports/P2B-003-kimi-low-reasoning-followup-2026-09-28.md` and
+`evidence/phase2b/p2b-003-kimi-low-generation-2026-09-28.json`.
+
 P2B-004 now also has a bounded live failure probe. Both intentionally malformed
 requests timed out after about 30 seconds without returning an HTTP validation
 response. Both streaming requests were cancelled locally at about two seconds,
@@ -125,7 +136,7 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 529 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 531 passed, 8 deselected
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
 -m mypy backend tests scripts: success, 137 source files
 -m ruff check backend tests scripts: all checks passed
@@ -146,9 +157,10 @@ are described above; they do not establish production activation.
 ## Next actions and limits
 
 1. Investigate Kimi's repeated 120-second and 300-second read timeouts without
-   automatic replay. Before another call, confirm the provider's current free
-   route contract and whether streaming or a model-specific request parameter is
-   required; preserve the USD 0 ceiling.
+   another inference call. The documented low-reasoning/temperature-1 setting
+   has now also failed. Use the account dashboard or provider support/status
+   evidence to confirm entitlement, readiness, queue behavior and any async
+   polling contract; preserve the USD 0 ceiling.
 2. Complete DEC-007's sanitized account/dashboard mapping. Fail closed on any
    configured, catalog or response-model mismatch and keep the identity claim
    provider-attested rather than artifact-verified.
@@ -160,10 +172,10 @@ are described above; they do not establish production activation.
    naturally observed 429/503 exists. Do not generate artificial provider load.
    A real malformed response is still unobserved; malformed requests merely
    timed out.
-5. Continue P2B-005 without repeating the completed DeepSeek tool-proposal case.
-   Resolve Kimi responsiveness and DeepSeek's HTTP-200/no-content structured
-   result before changing capabilities. Tool execution, continuation and
-   authority remain out of scope.
+5. Continue P2B-005 without repeating the completed DeepSeek tool-proposal case
+   or launching Kimi advanced-capability calls before ordinary generation works.
+   Resolve DeepSeek's HTTP-200/no-content structured result before changing
+   capabilities. Tool execution, continuation and authority remain out of scope.
 6. Reassess CTX-003, WF-012 and WF-013 after the relevant evidence lands.
    Do not infer tokenizer, billing, cancellation, structured-output, or tool
    support from catalog visibility.

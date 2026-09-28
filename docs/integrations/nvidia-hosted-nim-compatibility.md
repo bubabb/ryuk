@@ -62,7 +62,10 @@ deployments. See
 
 P2B-003 observed one successful DeepSeek V4.1 Flash response at a
 41-character synthetic prompt and 64-token output cap. Kimi K3 timed out after
-300 seconds. This is a tested DeepSeek lower bound, not a maximum-limit claim.
+300 seconds. A Kimi-only follow-up using NVIDIA's documented
+`reasoning_effort: low`, recommended temperature 1 and a 256-token cap also
+timed out after 300 seconds. This is a tested DeepSeek lower bound, not a
+maximum-limit claim, and the Kimi observations are not proof of unavailability.
 
 P2B-004 observed both exact routes timing out after 30 seconds on an
 intentionally malformed `messages` value rather than returning an HTTP

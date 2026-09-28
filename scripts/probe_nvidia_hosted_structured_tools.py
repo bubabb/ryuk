@@ -180,13 +180,17 @@ async def _post_contract(
     model: str,
     kind: str,
     max_tokens: int,
+    temperature: float,
+    kimi_reasoning_effort: str | None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model,
-        "temperature": 0,
+        "temperature": temperature,
         "max_tokens": max_tokens,
         "stream": False,
     }
+    if model == "moonshotai/kimi-k3" and kimi_reasoning_effort is not None:
+        payload["reasoning_effort"] = kimi_reasoning_effort
     if kind == "structured":
         payload.update(
             {
@@ -256,12 +260,26 @@ async def _post_contract(
 
 
 async def collect_structured_tool_evidence(
-    api_key: str, *, max_tokens: int = 128, timeout_seconds: float = 180.0
+    api_key: str,
+    *,
+    models: tuple[str, ...] = APPROVED_MODELS,
+    max_tokens: int = 128,
+    timeout_seconds: float = 180.0,
+    temperature: float = 0,
+    kimi_reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
     if max_tokens < 1:
         raise ValueError("max_tokens must be positive")
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
+    if not models or len(set(models)) != len(models):
+        raise ValueError("models must be non-empty and unique")
+    if any(model not in APPROVED_MODELS for model in models):
+        raise ValueError("models must contain only approved model IDs")
+    if not 0 <= temperature <= 1:
+        raise ValueError("temperature must be between zero and one")
+    if kimi_reasoning_effort not in {None, "low", "high", "max"}:
+        raise ValueError("kimi_reasoning_effort must be low, high, max, or omitted")
     evidence: dict[str, Any] = {
         "schema_version": 1,
         "probe": "p2b-005-hosted-structured-tools",
@@ -270,10 +288,12 @@ async def collect_structured_tool_evidence(
         "settings": {
             "max_tokens": max_tokens,
             "timeout_seconds": timeout_seconds,
-            "temperature": 0,
+            "temperature": temperature,
             "stream": False,
             "synthetic_public_input": True,
             "tools_executed": False,
+            "models": list(models),
+            "kimi_reasoning_effort": kimi_reasoning_effort,
         },
     }
     timeout = httpx.Timeout(timeout_seconds, connect=10.0, pool=10.0)
@@ -281,8 +301,15 @@ async def collect_structured_tool_evidence(
     async with httpx.AsyncClient(headers=headers, timeout=timeout) as client:
         results = await asyncio.gather(
             *(
-                _post_contract(client, model=model, kind=kind, max_tokens=max_tokens)
-                for model in APPROVED_MODELS
+                _post_contract(
+                    client,
+                    model=model,
+                    kind=kind,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    kimi_reasoning_effort=kimi_reasoning_effort,
+                )
+                for model in models
                 for kind in ("structured", "tool")
             )
         )
@@ -297,6 +324,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--output", required=True)
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--timeout-seconds", type=float, default=180.0)
+    parser.add_argument("--temperature", type=float, default=0)
+    parser.add_argument(
+        "--model", action="append", choices=APPROVED_MODELS, dest="models"
+    )
+    parser.add_argument("--kimi-reasoning-effort", choices=("low", "high", "max"))
     return parser.parse_args()
 
 
@@ -308,8 +340,11 @@ def main() -> int:
     evidence = asyncio.run(
         collect_structured_tool_evidence(
             api_key,
+            models=tuple(args.models or APPROVED_MODELS),
             max_tokens=args.max_tokens,
             timeout_seconds=args.timeout_seconds,
+            temperature=args.temperature,
+            kimi_reasoning_effort=args.kimi_reasoning_effort,
         )
     )
     with open(args.output, "x", encoding="utf-8") as output:

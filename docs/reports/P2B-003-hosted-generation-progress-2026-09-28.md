@@ -35,6 +35,11 @@ safe.
 Kimi has no positive ordinary-generation observation. The timeout does not prove
 the route unavailable, and the request was not automatically retried.
 
+A later Kimi-only diagnostic used NVIDIA's documented `reasoning_effort: low`,
+temperature 1 and a larger 256-token cap. It also reached the 300-second read
+timeout without response headers, identity or usage. See
+`docs/reports/P2B-003-kimi-low-reasoning-followup-2026-09-28.md`.
+
 ## Review
 
 The implementation review found and fixed a direct-script import-path failure

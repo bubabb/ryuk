@@ -58,8 +58,7 @@ def sanitize_generation_measurement(
         "identity_matches": response_model == model,
         "finish_reason": (
             choice.get("finish_reason")
-            if isinstance(choice, dict)
-            and isinstance(choice.get("finish_reason"), str)
+            if isinstance(choice, dict) and isinstance(choice.get("finish_reason"), str)
             else None
         ),
         "output_text_present": isinstance(content, str) and bool(content),
@@ -74,19 +73,26 @@ def sanitize_generation_measurement(
 
 
 async def _probe_model(
-    client: httpx.AsyncClient, model: str, max_tokens: int
+    client: httpx.AsyncClient,
+    model: str,
+    max_tokens: int,
+    temperature: float,
+    kimi_reasoning_effort: str | None,
 ) -> dict[str, Any]:
+    request: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": PROMPT}],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    if model == "moonshotai/kimi-k3" and kimi_reasoning_effort is not None:
+        request["reasoning_effort"] = kimi_reasoning_effort
     started = time.perf_counter()
     try:
         response = await client.post(
             f"{BASE_URL}/v1/chat/completions",
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": PROMPT}],
-                "temperature": 0,
-                "max_tokens": max_tokens,
-                "stream": False,
-            },
+            json=request,
         )
         try:
             payload = response.json()
@@ -111,24 +117,40 @@ async def _probe_model(
 
 
 async def collect_generation_evidence(
-    api_key: str, *, max_tokens: int = 64, timeout_seconds: float = 300.0
+    api_key: str,
+    *,
+    models: tuple[str, ...] = APPROVED_MODELS,
+    max_tokens: int = 64,
+    timeout_seconds: float = 300.0,
+    temperature: float = 0,
+    kimi_reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
     if max_tokens < 1:
         raise ValueError("max_tokens must be positive")
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
+    if not models or len(set(models)) != len(models):
+        raise ValueError("models must be non-empty and unique")
+    if any(model not in APPROVED_MODELS for model in models):
+        raise ValueError("models must contain only approved model IDs")
+    if not 0 <= temperature <= 1:
+        raise ValueError("temperature must be between zero and one")
+    if kimi_reasoning_effort not in {None, "low", "high", "max"}:
+        raise ValueError("kimi_reasoning_effort must be low, high, max, or omitted")
     evidence: dict[str, Any] = {
         "schema_version": 1,
         "probe": "p2b-003-hosted-generation",
         "base_url": BASE_URL,
         "started_at": _timestamp(),
         "request_settings": {
-            "temperature": 0,
+            "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": False,
             "prompt_characters": len(PROMPT),
             "synthetic_public_input": True,
             "requests_concurrent": True,
+            "models": list(models),
+            "kimi_reasoning_effort": kimi_reasoning_effort,
         },
         "generation": [],
     }
@@ -136,7 +158,16 @@ async def collect_generation_evidence(
     headers = {"Authorization": f"Bearer {api_key}"}
     async with httpx.AsyncClient(headers=headers, timeout=timeout) as client:
         evidence["generation"] = await asyncio.gather(
-            *(_probe_model(client, model, max_tokens) for model in APPROVED_MODELS)
+            *(
+                _probe_model(
+                    client,
+                    model,
+                    max_tokens,
+                    temperature,
+                    kimi_reasoning_effort,
+                )
+                for model in models
+            )
         )
     evidence["completed_at"] = _timestamp()
     return evidence
@@ -147,6 +178,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--output", required=True)
     parser.add_argument("--max-tokens", type=int, default=64)
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
+    parser.add_argument("--temperature", type=float, default=0)
+    parser.add_argument(
+        "--model", action="append", choices=APPROVED_MODELS, dest="models"
+    )
+    parser.add_argument("--kimi-reasoning-effort", choices=("low", "high", "max"))
     return parser.parse_args()
 
 
@@ -158,8 +194,11 @@ def main() -> int:
     evidence = asyncio.run(
         collect_generation_evidence(
             api_key,
+            models=tuple(args.models or APPROVED_MODELS),
             max_tokens=args.max_tokens,
             timeout_seconds=args.timeout_seconds,
+            temperature=args.temperature,
+            kimi_reasoning_effort=args.kimi_reasoning_effort,
         )
     )
     with open(args.output, "x", encoding="utf-8") as output:

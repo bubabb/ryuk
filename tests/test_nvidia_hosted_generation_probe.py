@@ -1,7 +1,11 @@
+import json
+
+import httpx
 import pytest
 
 from scripts.probe_nvidia_hosted_generation import (
     APPROVED_MODELS,
+    _probe_model,
     collect_generation_evidence,
     sanitize_generation_measurement,
 )
@@ -82,8 +86,39 @@ def test_generation_measurement_rejects_invalid_metadata_types() -> None:
 
 
 @pytest.mark.asyncio
+async def test_generation_probe_scopes_reasoning_effort_to_kimi() -> None:
+    requests: list[dict[str, object]] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(json.loads(request.content))
+        model = requests[-1]["model"]
+        return httpx.Response(
+            200,
+            json={
+                "model": model,
+                "choices": [{"finish_reason": "stop", "message": {"content": "x"}}],
+            },
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        await _probe_model(client, APPROVED_MODELS[0], 64, 1, "low")
+        await _probe_model(client, APPROVED_MODELS[1], 64, 1, "low")
+
+    assert requests[0]["reasoning_effort"] == "low"
+    assert "reasoning_effort" not in requests[1]
+
+
+@pytest.mark.asyncio
 async def test_generation_probe_rejects_invalid_bounds() -> None:
     with pytest.raises(ValueError, match="max_tokens"):
         await collect_generation_evidence("key", max_tokens=0)
     with pytest.raises(ValueError, match="timeout_seconds"):
         await collect_generation_evidence("key", timeout_seconds=0)
+    with pytest.raises(ValueError, match="models"):
+        await collect_generation_evidence("key", models=())
+    with pytest.raises(ValueError, match="approved"):
+        await collect_generation_evidence("key", models=("unapproved",))
+    with pytest.raises(ValueError, match="temperature"):
+        await collect_generation_evidence("key", temperature=2)
+    with pytest.raises(ValueError, match="kimi_reasoning_effort"):
+        await collect_generation_evidence("key", kimi_reasoning_effort="medium")

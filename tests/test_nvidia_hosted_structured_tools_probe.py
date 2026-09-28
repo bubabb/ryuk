@@ -1,3 +1,6 @@
+import json
+
+import httpx
 import pytest
 
 from scripts.probe_nvidia_hosted_failures import (
@@ -5,6 +8,7 @@ from scripts.probe_nvidia_hosted_failures import (
 )
 from scripts.probe_nvidia_hosted_structured_tools import (
     APPROVED_MODELS,
+    _post_contract,
     collect_structured_tool_evidence,
     sanitize_structured_observation,
     sanitize_tool_observation,
@@ -147,8 +151,53 @@ def test_error_body_is_not_retained() -> None:
 
 
 @pytest.mark.asyncio
+async def test_contract_probe_scopes_reasoning_effort_to_kimi() -> None:
+    requests: list[dict[str, object]] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(json.loads(request.content))
+        model = requests[-1]["model"]
+        return httpx.Response(
+            200,
+            json={
+                "model": model,
+                "choices": [{"message": {"content": '{"status":"ready"}'}}],
+            },
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        await _post_contract(
+            client,
+            model=APPROVED_MODELS[0],
+            kind="structured",
+            max_tokens=128,
+            temperature=1,
+            kimi_reasoning_effort="low",
+        )
+        await _post_contract(
+            client,
+            model=APPROVED_MODELS[1],
+            kind="structured",
+            max_tokens=128,
+            temperature=1,
+            kimi_reasoning_effort="low",
+        )
+
+    assert requests[0]["reasoning_effort"] == "low"
+    assert "reasoning_effort" not in requests[1]
+
+
+@pytest.mark.asyncio
 async def test_probe_rejects_invalid_bounds() -> None:
     with pytest.raises(ValueError, match="max_tokens"):
         await collect_structured_tool_evidence("key", max_tokens=0)
     with pytest.raises(ValueError, match="timeout_seconds"):
         await collect_structured_tool_evidence("key", timeout_seconds=0)
+    with pytest.raises(ValueError, match="models"):
+        await collect_structured_tool_evidence("key", models=())
+    with pytest.raises(ValueError, match="approved"):
+        await collect_structured_tool_evidence("key", models=("unapproved",))
+    with pytest.raises(ValueError, match="temperature"):
+        await collect_structured_tool_evidence("key", temperature=-1)
+    with pytest.raises(ValueError, match="kimi_reasoning_effort"):
+        await collect_structured_tool_evidence("key", kimi_reasoning_effort="medium")

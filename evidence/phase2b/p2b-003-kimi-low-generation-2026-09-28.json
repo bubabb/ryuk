@@ -1,0 +1,38 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "completed_at": "2026-09-28T21:57:27.507326+00:00",
+  "generation": [
+    {
+      "configured_model": "moonshotai/kimi-k3",
+      "elapsed_ms": 300188.78,
+      "failure_type": "ReadTimeout",
+      "finish_reason": null,
+      "identity_matches": false,
+      "observed_at": "2026-09-28T21:57:27.506748+00:00",
+      "output_characters": null,
+      "output_text_present": false,
+      "response_model": null,
+      "status_code": null,
+      "usage": {
+        "completion_tokens": null,
+        "prompt_tokens": null,
+        "total_tokens": null
+      }
+    }
+  ],
+  "probe": "p2b-003-hosted-generation",
+  "request_settings": {
+    "kimi_reasoning_effort": "low",
+    "max_tokens": 256,
+    "models": [
+      "moonshotai/kimi-k3"
+    ],
+    "prompt_characters": 41,
+    "requests_concurrent": true,
+    "stream": false,
+    "synthetic_public_input": true,
+    "temperature": 1.0
+  },
+  "schema_version": 1,
+  "started_at": "2026-09-28T21:52:27.248398+00:00"
+}
