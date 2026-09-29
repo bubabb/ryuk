@@ -51,6 +51,17 @@ hash-only references and stop conditions. Public NGC documentation did not
 identify a supported read-only endpoint for the required mapping, so do not
 probe undocumented account APIs; use the authenticated UI or provider support.
 
+The bounded P2B-003 live-test manifest validator is also ready at
+`scripts/validate_phase2b_live_test_manifest.py`. It accepts only one
+synthetic/public, USD-0, non-streaming, non-retrying request with concurrency
+one, bounded timeout/tokens, mandatory stop conditions, a maximum 24-hour
+window, and distinct SHA-256 bindings for account evidence, a new hypothesis,
+owner approval and the prompt. The CLI also requires an independently supplied
+expected Git revision and rejects coercion of unsafe types. Twenty-three focused
+tests pass. It contains no provider client and does not prove the references
+authentic; a human must review them. No live manifest was created because
+P2B-002 evidence and a new diagnostic hypothesis are still absent.
+
 The next authorized P2B-003 run used concurrent 300-second requests with a
 64-token cap. DeepSeek V4.1 Flash returned HTTP 200 in 56.956 seconds with exact
 response identity, a non-empty stopped output and complete usage (38 prompt, 14
@@ -195,11 +206,12 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 550 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 573 passed, 8 deselected
+-m pytest -q tests/test_phase2b_live_test_manifest.py: 23 passed
 -m pytest -q tests/test_nvidia_account_evidence.py: 10 passed
 -m pytest -q tests/test_nvidia_hosted_limits_probe.py: 5 passed
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
--m mypy backend tests scripts: success, 141 source files
+-m mypy backend tests scripts: success, 143 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 changed deployment/fixture JSON parses: passed

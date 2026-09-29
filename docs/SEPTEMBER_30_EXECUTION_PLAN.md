@@ -114,6 +114,11 @@ two-profile certification.
   no-go; do not start P2B-006 or P2B-007.
 - Process any non-disruptive P2B-004/P2B-005 provider evidence in parallel.
 
+The offline live-test manifest validator is implemented at
+`scripts/validate_phase2b_live_test_manifest.py`. It does not authorize a call;
+the human reviewer must inspect the referenced account evidence, hypothesis and
+approval before execution.
+
 ## September 30 schedule
 
 ### Morning
