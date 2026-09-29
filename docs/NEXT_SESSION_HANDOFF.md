@@ -33,6 +33,16 @@ outcome was not automatically replayed. After the owner explicitly requested
 continuation, a fresh bounded run reconfirmed HTTP 200 catalog access and both
 exact IDs, but both generation requests reached the 120-second read timeout.
 
+The local P2B-002 intake path is ready for that missing external evidence.
+`scripts/validate_nvidia_account_evidence.py` accepts only a closed, sanitized
+dashboard/provider-support schema with SHA-256 account/artifact references,
+both exact routes, explicit free entitlement/readiness, and a timezone-aware
+timestamp. It rejects unknown fields, raw identifiers, route mismatches and
+unknown readiness, and its printed summary omits the hashes. Nine focused tests,
+including a CLI redaction regression, pass. A human must still obtain and
+sanitize the real provider record; the validator alone does not unblock
+P2B-002 or establish Kimi identity.
+
 The next authorized P2B-003 run used concurrent 300-second requests with a
 64-token cap. DeepSeek V4.1 Flash returned HTTP 200 in 56.956 seconds with exact
 response identity, a non-empty stopped output and complete usage (38 prompt, 14
@@ -177,10 +187,11 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 540 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 549 passed, 8 deselected
+-m pytest -q tests/test_nvidia_account_evidence.py: 9 passed
 -m pytest -q tests/test_nvidia_hosted_limits_probe.py: 5 passed
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
--m mypy backend tests scripts: success, 139 source files
+-m mypy backend tests scripts: success, 141 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 changed deployment/fixture JSON parses: passed

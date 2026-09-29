@@ -1,7 +1,7 @@
 # P2B-002 hosted identity verification — progress record
 
 Date: 2026-09-28
-Status: in progress; live evidence incomplete
+Status: blocked; live and account evidence incomplete
 
 ## Bounded contract
 
@@ -61,7 +61,7 @@ not retroactively change this attempt's timeout result.
 
 ## Gate assessment
 
-P2B-002 remains `IN PROGRESS`. The authenticated catalog/readiness portion was
+P2B-002 remains `BLOCKED`. The authenticated catalog/readiness portion was
 reconfirmed and P2B-003 later observed matching DeepSeek response identity.
 Kimi response identity and the required sanitized account/dashboard mapping are
 still incomplete. No artifact, weight, tokenizer, runtime or hardware identity
@@ -70,3 +70,33 @@ is claimed.
 P2B-003 through P2B-005 must not use the timed-out requests in this attempt as
 positive contract evidence. P2B-006 and P2B-007 remain blocked by their recorded
 prerequisites.
+
+## Sanitized account-evidence intake
+
+`scripts/validate_nvidia_account_evidence.py` now provides the missing local
+intake boundary for an authenticated dashboard or provider-support record. The
+closed schema requires:
+
+- the approved NVIDIA hosted API origin;
+- a timezone-aware observation timestamp;
+- SHA-256 references for the sanitized account and separately retained source
+  artifact rather than raw account identifiers, screenshots or support text;
+- exactly the two approved configured/provider route pairs;
+- explicit account visibility, free/paid/unknown entitlement, readiness and
+  recent-request disposition for each route; and
+- no unknown fields where credentials, authorization headers or free-form
+  provider content could be retained.
+
+The command prints a second sanitized summary that deliberately omits both
+hash references. It exits successfully only when both exact routes are visible,
+free-entitled and ready. Example invocation after a human prepares the JSON:
+
+```text
+python scripts/validate_nvidia_account_evidence.py /path/to/sanitized-evidence.json
+```
+
+Nine unit tests cover the passing contract, fail-closed unknown readiness,
+raw/invalid references, extra secret-like fields, route mismatch/duplication,
+wrong origin, naive timestamps, file loading and non-echoing CLI rejection. This
+implementation does not create the external record, inspect an account, prove
+live response identity or unblock P2B-002 by itself.
