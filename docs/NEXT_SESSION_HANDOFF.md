@@ -14,8 +14,11 @@ headers were not printed or stored. This is account-visible catalog evidence,
 not generation certification, proof of two physical deployments, runtime or
 hardware identity, or model-weight verification.
 
-**Continue the incomplete P2B-002 through P2B-005 evidence gates. Do not start
-P2B-006 failover.** A sanitizer-first identity probe now exists with
+**P2B-002 through P2B-008 are blocked; do not start P2B-006 failover or P2B-007
+benchmarking.** The consolidated dependency and correctness review is
+`docs/reports/phase-2b-blocker-review-2026-09-28.md`. Resume only when the named
+external evidence or owner-controlled prerequisites are available. A
+sanitizer-first identity probe now exists with
 unit coverage. Its first live invocation on 2026-09-28 was interrupted by a
 controller restart before any sanitized result was captured; that unknown
 outcome was not automatically replayed. After the owner explicitly requested
@@ -26,7 +29,7 @@ The next authorized P2B-003 run used concurrent 300-second requests with a
 64-token cap. DeepSeek V4.1 Flash returned HTTP 200 in 56.956 seconds with exact
 response identity, a non-empty stopped output and complete usage (38 prompt, 14
 completion, 52 total tokens). Kimi K3 again timed out, this time at 300.133
-seconds. P2B-002 and P2B-003 therefore remain in progress: DeepSeek has one
+seconds. P2B-002 and P2B-003 are therefore blocked: DeepSeek has one
 tested safe point and live identity observation; Kimi has neither, maximum safe
 limits are unknown, and DEC-007's sanitized account/dashboard mapping remains
 incomplete. Do not automatically retry or increase limits. See
@@ -59,7 +62,7 @@ response. Both streaming requests were cancelled locally at about two seconds,
 before response headers. This proves only local bounding/closure: the provider
 did not acknowledge cancellation, provider execution termination is unknown,
 and there is no late-result observation channel. No overload was deliberately
-induced. P2B-004 remains in progress; see
+induced. P2B-004 is blocked pending non-disruptive provider evidence; see
 `docs/reports/P2B-004-hosted-failure-progress-2026-09-28.md` and
 `evidence/phase2b/p2b-004-hosted-failures-2026-09-28.json`.
 
@@ -77,7 +80,8 @@ P2B-005 now has a bounded structured-output/tool matrix. DeepSeek V4.1 Flash
 returned one exact, schema-valid `lookup_status` tool proposal with exact model
 identity and usage; the probe did not execute it. DeepSeek structured output
 returned HTTP 200 with no content and therefore remains unverified. Both Kimi
-cases timed out at 180 seconds. P2B-005 remains in progress, and the deployment
+cases timed out at 180 seconds. P2B-005 is blocked pending stable ordinary
+generation and model-specific contract evidence, and the deployment
 registry remains unchanged. See
 `docs/reports/P2B-005-hosted-structured-tools-progress-2026-09-28.md` and
 `evidence/phase2b/p2b-005-hosted-structured-tools-2026-09-28.json`.
@@ -530,6 +534,6 @@ records the completed static review and a proposed measurable acceptance gate.
   artifact-verified weights.
 - No generation, provisioning, subscription, payment, or paid-resource request
   occurred. No credential value or sensitive header was recorded.
-- P2B-001 is DONE. P2B-002 through P2B-005 are in progress; P2B-006 through
-  P2B-008 remain blocked.
+- P2B-001 is DONE. P2B-002 through P2B-008 are blocked with named unblock
+  conditions in `docs/reports/phase-2b-blocker-review-2026-09-28.md`.
 - Review: `docs/reports/P2B-001-authorized-endpoint-inventory-2026-09-26.md`.

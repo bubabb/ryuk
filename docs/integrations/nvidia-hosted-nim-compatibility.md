@@ -1,9 +1,9 @@
 # NVIDIA Hosted NIM Compatibility Boundary
 
 **Checked:** 2026-09-28
-**Status:** Phase 2B in progress; DeepSeek has one bounded generation success,
-while Kimi generation and provider-side failure/cancellation contracts remain
-uncertified
+**Status:** Phase 2B blocked on external evidence and stable provider behavior;
+DeepSeek has one bounded generation success, while Kimi generation and
+provider-side failure/cancellation contracts remain uncertified
 
 `NVIDIAHostedNIMEngine` contains NVIDIA API Catalog chat-completion details at
 the adapter boundary. Ryuk's typed task, result, reasoning, usage, failure, and
