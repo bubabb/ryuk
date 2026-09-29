@@ -67,6 +67,14 @@ P2B-003 observed one successful DeepSeek V4.1 Flash response at a
 timed out after 300 seconds. This is a tested DeepSeek lower bound, not a
 maximum-limit claim, and the Kimi observations are not proof of unavailability.
 
+A subsequent DeepSeek-only boundary probe did not extend that safe point. A
+6,212-character synthetic prompt reached the 300-second read timeout. A separate
+256-token-cap request returned HTTP 200 after 278.248 seconds with exact model
+identity and complete usage, but `finish_reason: length` and no user-visible
+content. Both deterministic contracts failed. Treat these as failure-boundary
+observations, not supported input/output limits; do not infer success from HTTP
+status or token usage alone.
+
 P2B-004 observed both exact routes timing out after 30 seconds on an
 intentionally malformed `messages` value rather than returning an HTTP
 validation response. Separate streaming requests were closed by the client at

@@ -34,6 +34,14 @@ incomplete. Do not automatically retry or increase limits. See
 `docs/reports/P2B-003-hosted-generation-progress-2026-09-28.md`, and the two
 sanitized JSON records under `evidence/phase2b/`.
 
+A later DeepSeek-only boundary run tested a 6,212-character synthetic input and
+a separate 256-token output cap. The larger input timed out at 300.464 seconds.
+The longer-output request returned HTTP 200 after 278.248 seconds with exact
+identity and usage, but ended at the token cap with no user-visible content.
+Neither deterministic contract passed, so neither point extends the known safe
+range. The probe made no Kimi call and performed no retry. See the P2B-003
+report and `evidence/phase2b/p2b-003-deepseek-limits-2026-09-28.json`.
+
 A subsequent Kimi-only diagnostic tested NVIDIA's documented
 `reasoning_effort: low`, recommended temperature 1 and a larger 256-token cap.
 It also timed out after 300.189 seconds without response headers, identity or
@@ -154,9 +162,10 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 535 passed, 8 deselected
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 540 passed, 8 deselected
+-m pytest -q tests/test_nvidia_hosted_limits_probe.py: 5 passed
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
--m mypy backend tests scripts: success, 137 source files
+-m mypy backend tests scripts: success, 139 source files
 -m ruff check backend tests scripts: all checks passed
 -m compileall -q backend tests scripts: passed
 changed deployment/fixture JSON parses: passed
@@ -187,7 +196,8 @@ are described above; they do not establish production activation.
    provider-attested rather than artifact-verified.
 3. Extend P2B-003 limits only after ordinary generation is stable. Treat the
    DeepSeek 41-character/64-token-cap result as a tested lower bound, not a
-   maximum context or output limit.
+   maximum context or output limit. Do not repeat the failed 6,212-character or
+   256-token-cap boundary points without a new diagnostic hypothesis.
 4. Complete P2B-004 only from non-disruptive provider evidence: determine
    whether a documented cancellation acknowledgment/late-result contract or a
    naturally observed 429/503 exists. Do not generate artificial provider load.

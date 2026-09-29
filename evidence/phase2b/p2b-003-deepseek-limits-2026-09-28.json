@@ -1,0 +1,65 @@
+{
+  "base_url": "https://integrate.api.nvidia.com",
+  "completed_at": "2026-09-29T00:39:23.050561+00:00",
+  "model": "deepseek-ai/deepseek-v4.1-flash",
+  "observations": [
+    {
+      "case": "larger_input",
+      "contract_valid": false,
+      "elapsed_ms": 300464.22,
+      "failure_type": "ReadTimeout",
+      "finish_reason": null,
+      "identity_matches": false,
+      "observed_at": "2026-09-29T00:39:23.050023+00:00",
+      "output_characters": null,
+      "output_present": false,
+      "output_words": null,
+      "response_model": null,
+      "status_code": null,
+      "usage": {
+        "completion_tokens": null,
+        "prompt_tokens": null,
+        "total_tokens": null
+      }
+    },
+    {
+      "case": "longer_output",
+      "contract_valid": false,
+      "elapsed_ms": 278247.898,
+      "failure_type": null,
+      "finish_reason": "length",
+      "identity_matches": true,
+      "observed_at": "2026-09-29T00:39:00.837842+00:00",
+      "output_characters": null,
+      "output_present": false,
+      "output_words": null,
+      "response_model": "deepseek-ai/deepseek-v4.1-flash",
+      "status_code": 200,
+      "usage": {
+        "completion_tokens": 256,
+        "prompt_tokens": 49,
+        "total_tokens": 305
+      }
+    }
+  ],
+  "probe": "p2b-003-deepseek-safe-limits",
+  "schema_version": 1,
+  "settings": {
+    "larger_input": {
+      "max_tokens": 64,
+      "padding_words": 1024,
+      "prompt_characters": 6212
+    },
+    "longer_output": {
+      "max_tokens": 256,
+      "prompt_characters": 92,
+      "required_output_words": 64
+    },
+    "requests_concurrent": true,
+    "stream": false,
+    "synthetic_public_input": true,
+    "temperature": 0,
+    "timeout_seconds": 300.0
+  },
+  "started_at": "2026-09-29T00:34:22.534151+00:00"
+}

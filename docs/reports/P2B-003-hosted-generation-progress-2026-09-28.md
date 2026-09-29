@@ -1,7 +1,7 @@
 # P2B-003 hosted generation and safe-limit measurement — progress record
 
 Date: 2026-09-28
-Status: in progress; one profile has a tested safe point
+Status: in progress; one profile has a tested safe point and two failed boundary observations
 
 ## Contract
 
@@ -40,6 +40,24 @@ temperature 1 and a larger 256-token cap. It also reached the 300-second read
 timeout without response headers, identity or usage. See
 `docs/reports/P2B-003-kimi-low-reasoning-followup-2026-09-28.md`.
 
+### DeepSeek boundary follow-up
+
+A bounded DeepSeek-only follow-up tested two larger request shapes concurrently,
+with temperature zero, no streaming, no retry and a 300-second timeout. The
+immutable sanitized record is
+`evidence/phase2b/p2b-003-deepseek-limits-2026-09-28.json`.
+
+| Case | Request shape | Result |
+| --- | --- | --- |
+| Larger input | 6,212 prompt characters, 1,024 synthetic padding words, 64-token output cap | Read timeout at 300.464 seconds; no response metadata |
+| Longer output | 92 prompt characters, exactly 64 requested output words, 256-token cap | HTTP 200 at 278.248 seconds; exact model identity, `finish_reason: length`, 49 prompt and 256 completion tokens, but no user-visible content |
+
+Neither case passed its deterministic output contract, so neither is a safe
+operating point. In particular, HTTP 200 and token usage do not establish
+successful generation when the returned message has no content. The result
+records observed failure boundaries only; it does not establish a maximum
+context or output limit. No Kimi request was made in this follow-up.
+
 ## Review
 
 The implementation review found and fixed a direct-script import-path failure
@@ -47,7 +65,13 @@ before any provider request was made. It also tightened finish-reason and token
 count normalization so malformed provider values cannot enter evidence, and
 added a test preventing the two probe allowlists from silently diverging.
 
+The boundary probe was reviewed with five focused tests covering evidence
+redaction, exact output validation, identity mismatch, preregistered request
+bounds and invalid timeouts. Its CLI returns failure unless every observation
+passes the output contract; the live run therefore failed closed as intended.
+
 P2B-003 remains `IN PROGRESS`: the evidence is reproducible and positive for one
-bounded DeepSeek point, but Kimi ordinary generation and maximum safe
-input/output behavior for both profiles remain unverified. This result is not a
-benchmark, throughput claim, cost claim or production activation decision.
+small DeepSeek point, but the two larger DeepSeek points failed, Kimi ordinary
+generation remains unverified, and maximum safe input/output behavior for both
+profiles is unknown. This result is not a benchmark, throughput claim, cost
+claim or production activation decision.
