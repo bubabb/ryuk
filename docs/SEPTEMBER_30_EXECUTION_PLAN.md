@@ -119,6 +119,11 @@ The offline live-test manifest validator is implemented at
 the human reviewer must inspect the referenced account evidence, hypothesis and
 approval before execution.
 
+The offline P2B-004 evidence intake is implemented at
+`scripts/validate_nvidia_failure_evidence.py`. Use it only for provider/support
+records or naturally occurring failures; it does not authorize overload
+generation, polling, cancellation or replay.
+
 ## September 30 schedule
 
 ### Morning
