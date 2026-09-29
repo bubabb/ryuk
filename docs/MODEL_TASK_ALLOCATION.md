@@ -159,9 +159,9 @@ Review findings and resulting decisions:
 - SPEC-001/PROD-001 are too broad for a single confidence claim; split into
   measurable slices before using a lower-cost model as sole implementer.
 
-Mechanical coverage check: all 29 open tracker IDs occur exactly once in the main
-allocation table, with matching statuses. That proves coverage only, not 100%
-correctness or an 87% success rate. Pilot v1 is recorded in
+Mechanical coverage check: every currently open tracker ID has an assignment in
+the main allocation table, with matching statuses. That proves coverage only,
+not 100% correctness or an 87% success rate. Pilot v1 is recorded in
 `evals/model_allocation/runs/pilot-v1/`. It had one under-specified task, one
 critical first-pass failure and one infrastructure failure. No subagents were
 launched and no live provider was contacted for this evaluation.

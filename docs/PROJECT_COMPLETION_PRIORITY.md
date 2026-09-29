@@ -1,7 +1,8 @@
 # Ryuk project-completion priorities
 
-Date: 2026-09-26  
-Status: DEC-001 through DEC-009 and P2B-001 complete; P2B-002 is next
+Date: 2026-09-28
+Status: DEC-001 through DEC-009 and P2B-001 complete; P2B-002 through P2B-008
+blocked with named evidence gates
 
 ## Selected delivery sequence
 
@@ -81,10 +82,10 @@ design. Do not build distributed components merely to satisfy a checklist.
 
 ### P4 — evaluation
 
-Resume EVAL-010, freeze the v3 protocol, curate the held-out corpus, execute the
-matched evaluation, and run the context/tool/collaboration/memory/specialist/
-cache suites applicable to the approved first-release scope. Fix failures before
-certification.
+After the initial-release offline build-completion gate, resume EVAL-010, freeze
+the v3 protocol, curate the held-out corpus, execute the matched evaluation, and
+run the context/tool/collaboration/memory/specialist/cache suites applicable to
+the approved first-release scope. Fix failures before certification.
 
 ### P5 — real-time certification and owner acceptance
 
@@ -95,9 +96,10 @@ claim.
 
 ## Current count
 
-Twenty-two tracker items remain non-DONE: 15 HOLD (including deferred
-EVAL-010), 4 READY, and 3 BLOCKED. P2B-002 through P2B-005 are the next
-controlled provider-contract sequence.
+Twenty-two tracker items remain non-DONE: 15 HOLD and 7 BLOCKED, with no READY
+items. P2B-002 through P2B-005 require named external evidence before the
+controlled provider-contract sequence can resume. The September 30 live-test
+entry plan is `docs/SEPTEMBER_30_EXECUTION_PLAN.md`.
 Several broad items must be split after
 scope decisions, so 24 is a lower bound on implementation change
 sets, not a schedule estimate.

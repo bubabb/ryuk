@@ -5,6 +5,14 @@ Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
 
+The deadline execution and delegation plan is
+`docs/SEPTEMBER_30_EXECUTION_PLAN.md`. It targets an evidence-backed bounded
+live-test entry or no-go by 2026-09-30, not impossible completion of all 22 open
+items. It also corrects the initial-release chain: MEM-001 follows the Phase
+5/tool exit without requiring post-release COLLAB-001, and CACHE-001 follows
+the Phase 7/memory exit without requiring post-release SPEC-001. P2B-007 now
+explicitly requires EVAL-010.
+
 **P2B-001 is complete.** A protected `NVIDIA_API_KEY` authenticated to NVIDIA's
 shared hosted API, and `GET /v1/models` returned HTTP 200 with both exact
 owner-approved model routes: `moonshotai/kimi-k3` and

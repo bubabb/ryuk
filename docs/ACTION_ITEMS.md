@@ -72,7 +72,7 @@ the existence of configuration fields or integration tests.
 | P2B-004 | BLOCKED | Exercise timeout, overload, malformed response, and cancellation behavior | Non-disruptive provider contract/evidence or naturally observed failure | Fail-closed timeout/local-cancellation and documented HTTP 202 handling exist, but provider acknowledgment, late results, real malformed response and overload remain unavailable; never induce load; `docs/reports/phase-2b-blocker-review-2026-09-28.md` |
 | P2B-005 | BLOCKED | Verify structured output and tool behavior instead of assuming support | Stable ordinary generation and model-specific provider contract evidence | DeepSeek tool proposal and prompt-constrained JSON passed, but provider-enforced structured output and Kimi advanced capabilities remain unverified; `docs/reports/phase-2b-blocker-review-2026-09-28.md` |
 | P2B-006 | BLOCKED | Run real cross-deployment failover | P2B-002 through P2B-004 | Both attempts recorded with correct identity, usage, and provenance |
-| P2B-007 | BLOCKED | Run the pinned quality/performance/cost benchmark | DEC-006, P2B-003 | Accepted-patch, test-pass, latency, throughput, failure, usage, and cost report |
+| P2B-007 | BLOCKED | Run the pinned quality/performance/cost benchmark | DEC-006, P2B-003, EVAL-010 | Accepted-patch, test-pass, latency, throughput, failure, usage, and cost report |
 | P2B-008 | BLOCKED | Approve or reject each deployment profile | P2B-002 through P2B-007 | Signed-off activation decision; unknown/stale hard constraints remain ineligible |
 
 ## Phase 3 — durable single-task workflow
@@ -144,9 +144,9 @@ is part of the existing stable items.
 | CTX-004 | HOLD | Add source correction/invalidation, checkpoint compaction and context-retention behavior; evaluate critical-fact placement | CTX-002 and CTX-003; approved retention scope; revision-bound invalidation/deletion and held-out evaluation for two candidates |
 | TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Initial-release requirement under DEC-008; sequencing hold until Phase 4 exit |
 | COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Post-initial-release scope under DEC-008; Phase 2 and Phase 5 exits |
-| MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Initial-release requirement under DEC-008; sequencing hold until Phase 6 exit |
+| MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Initial-release requirement under DEC-008; sequencing hold until Phase 5/TOOL-001 exit; COLLAB-001 is not a prerequisite |
 | SPEC-001 | HOLD | Add specialist modalities one complete vertical slice at a time | Post-initial-release scope under DEC-008; Phase 7 exit |
-| CACHE-001 | HOLD | Add provenance-preserving application result caching | Initial-release requirement under DEC-008; sequencing hold until Phase 8 exit |
+| CACHE-001 | HOLD | Add provenance-preserving application result caching | Initial-release requirement under DEC-008; sequencing hold until Phase 7/MEM-001 exit; SPEC-001 is not a prerequisite |
 | PROD-001 | HOLD | Complete load, soak, chaos, restore, observability, incident-response, and rollout certification | All preceding production gates |
 
 ## Maintenance rules
