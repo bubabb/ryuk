@@ -104,7 +104,10 @@ remains deferred until the owner-selected offline build-completion gate.
 CTX-003/004 remain held until provider contract evidence exists. DEC-008 keeps
 collaboration, specialist modalities, and HA after the initial release. The
 intended initial release still includes governed tools, scoped persistent
-memory, and provenance-preserving application caching.
+memory, and provenance-preserving application caching. Their tracker status is
+a sequencing `HOLD` until the recorded prerequisite phase exits, not a
+post-release deferral; TOOL-001, MEM-001 and CACHE-001 remain required before
+initial certification.
 
 ## User-approved scope and current activation boundary
 

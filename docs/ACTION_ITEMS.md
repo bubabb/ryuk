@@ -129,17 +129,24 @@ blocked until Phase 2B passes.
 
 ## Later phase gates
 
+`HOLD` in this section can mean either sequencing or product deferral. Under
+DEC-008, TOOL-001, MEM-001 and CACHE-001 are required for the initial certified
+release and are held only until their named prerequisite phases exit. By
+contrast, COLLAB-001 and SPEC-001 are explicitly deferred until after that
+release. Do not count an additional reconciliation task: this scope distinction
+is part of the existing stable items.
+
 | ID | Status | Action | Dependency |
 | --- | --- | --- | --- |
 | CTX-001 | DONE | Define context-preparation boundary and implement candidate-specific token fitting | Offline Phase 3 exit review; evidence: ADR-017, `backend/context/`, `docs/reports/context-preparation-review-2026-09-25.md`, 10 focused tests; library only, not wired to dispatch |
 | CTX-002 | DONE | Add tenant/project-scoped durable conversations, source records and an authorization-filtered context builder | ADR-018, `backend/context/store.py` and `builder.py`, `docs/reports/conversation-source-store-review-2026-09-25.md`; 9 focused store tests; SQLite offline only, not API-integrated |
 | CTX-003 | HOLD | Bind verified candidate tokenizers/templates and capacity evidence to dispatch; account for structured/tool/media overhead | Verified candidate tokenizer/template and Phase 2B contract; reprepare after fallback and prove execution uses the exact counted payload/settings |
 | CTX-004 | HOLD | Add source correction/invalidation, checkpoint compaction and context-retention behavior; evaluate critical-fact placement | CTX-002 and CTX-003; approved retention scope; revision-bound invalidation/deletion and held-out evaluation for two candidates |
-| TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Phase 4 exit |
+| TOOL-001 | HOLD | Approve authorized tool/sandbox ADR and implement one isolated coding action | Initial-release requirement under DEC-008; sequencing hold until Phase 4 exit |
 | COLLAB-001 | HOLD | Implement the bounded Kimi–DeepSeek coding workflow | Post-initial-release scope under DEC-008; Phase 2 and Phase 5 exits |
-| MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Phase 6 exit |
+| MEM-001 | HOLD | Approve source/evidence/deletion ADR and add scoped persistent memory | Initial-release requirement under DEC-008; sequencing hold until Phase 6 exit |
 | SPEC-001 | HOLD | Add specialist modalities one complete vertical slice at a time | Post-initial-release scope under DEC-008; Phase 7 exit |
-| CACHE-001 | HOLD | Add provenance-preserving application result caching | Phase 8 exit |
+| CACHE-001 | HOLD | Add provenance-preserving application result caching | Initial-release requirement under DEC-008; sequencing hold until Phase 8 exit |
 | PROD-001 | HOLD | Complete load, soak, chaos, restore, observability, incident-response, and rollout certification | All preceding production gates |
 
 ## Maintenance rules
