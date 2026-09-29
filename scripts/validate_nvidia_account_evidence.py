@@ -68,6 +68,8 @@ class NvidiaAccountEvidence(BaseModel):
             raise ValueError("base_url must be the approved NVIDIA hosted API origin")
         if self.observed_at.tzinfo is None or self.observed_at.utcoffset() is None:
             raise ValueError("observed_at must include a timezone offset")
+        if self.account_reference_sha256 == self.evidence_artifact_sha256:
+            raise ValueError("account and evidence artifact digests must be distinct")
         configured = tuple(route.configured_model for route in self.routes)
         if len(set(configured)) != len(configured):
             raise ValueError("route entries must be unique")

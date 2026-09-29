@@ -95,8 +95,17 @@ free-entitled and ready. Example invocation after a human prepares the JSON:
 python scripts/validate_nvidia_account_evidence.py /path/to/sanitized-evidence.json
 ```
 
-Nine unit tests cover the passing contract, fail-closed unknown readiness,
+Ten unit tests cover the passing contract, fail-closed unknown readiness,
 raw/invalid references, extra secret-like fields, route mismatch/duplication,
-wrong origin, naive timestamps, file loading and non-echoing CLI rejection. This
-implementation does not create the external record, inspect an account, prove
-live response identity or unblock P2B-002 by itself.
+wrong origin, naive timestamps, distinct reference digests, file loading and
+non-echoing CLI rejection. This implementation does not create the external
+record, inspect an account, prove live response identity or unblock P2B-002 by
+itself.
+
+The operator collection and sanitization procedure is
+`docs/runbooks/P2B-002-nvidia-account-evidence.md`. Official NGC documentation
+confirms that API Catalog NIM access is derived from organization/user key
+grants, but the reviewed public documentation did not expose a supported
+read-only endpoint for the required account-to-route and recent-request record.
+The runbook therefore requires the authenticated UI or provider support and
+explicitly prohibits undocumented account probing.

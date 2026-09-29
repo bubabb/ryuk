@@ -116,6 +116,14 @@ def test_wrong_origin_and_naive_timestamp_are_rejected() -> None:
         NvidiaAccountEvidence.model_validate(naive_time)
 
 
+def test_account_and_artifact_digests_must_be_distinct() -> None:
+    payload = _valid_payload()
+    payload["evidence_artifact_sha256"] = "a" * 64
+
+    with pytest.raises(ValidationError, match="digests must be distinct"):
+        NvidiaAccountEvidence.model_validate(payload)
+
+
 def test_file_loader_uses_the_same_closed_contract(tmp_path: Path) -> None:
     path = tmp_path / "evidence.json"
     path.write_text(json.dumps(_valid_payload()), encoding="utf-8")

@@ -38,10 +38,18 @@ The local P2B-002 intake path is ready for that missing external evidence.
 dashboard/provider-support schema with SHA-256 account/artifact references,
 both exact routes, explicit free entitlement/readiness, and a timezone-aware
 timestamp. It rejects unknown fields, raw identifiers, route mismatches and
-unknown readiness, and its printed summary omits the hashes. Nine focused tests,
+unknown readiness, and its printed summary omits the hashes. Ten focused tests,
 including a CLI redaction regression, pass. A human must still obtain and
 sanitize the real provider record; the validator alone does not unblock
 P2B-002 or establish Kimi identity.
+
+The exact human collection procedure is
+`docs/runbooks/P2B-002-nvidia-account-evidence.md`. It covers NGC organization
+and API Catalog grant verification, exact route visibility, free entitlement,
+readiness, recent-request disposition, out-of-repository artifact retention,
+hash-only references and stop conditions. Public NGC documentation did not
+identify a supported read-only endpoint for the required mapping, so do not
+probe undocumented account APIs; use the authenticated UI or provider support.
 
 The next authorized P2B-003 run used concurrent 300-second requests with a
 64-token cap. DeepSeek V4.1 Flash returned HTTP 200 in 56.956 seconds with exact
@@ -187,8 +195,8 @@ allocation plan; consult Git history for the saved checkpoint.
 Using `/home/sudosu/miniforge3/envs/ryuk-ai/bin/python`:
 
 ```text
--m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 549 passed, 8 deselected
--m pytest -q tests/test_nvidia_account_evidence.py: 9 passed
+-m pytest -q -m 'not integration' with NVIDIA_API_KEY removed from the test process: 550 passed, 8 deselected
+-m pytest -q tests/test_nvidia_account_evidence.py: 10 passed
 -m pytest -q tests/test_nvidia_hosted_limits_probe.py: 5 passed
 -m pytest -q focused hosted adapter/profile suite: 32 passed, 2 deselected
 -m mypy backend tests scripts: success, 141 source files
