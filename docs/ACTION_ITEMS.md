@@ -1,9 +1,13 @@
 # Ryuk Action Tracker
 
-**Last updated:** 2026-09-28
-**Current milestone:** Phase 2B hosted identity verification
+**Last updated:** 2026-09-29
+**Current milestone:** Correct Kimi K3 deployment selection
 **Planning authority:** `RYUK_DEVELOPMENT_PHASE_PLAN.md`
-**Next session starts with:** obtain non-inference provider/account evidence for Kimi readiness and DEC-007 mapping; all remaining Phase 2B items are explicitly blocked. Do not repeat Kimi calls, failed DeepSeek boundary calls, or start P2B-006/P2B-007. See `docs/reports/phase-2b-blocker-review-2026-09-28.md`
+**Next session starts with:** resolve DEC-010: choose Hugging Face Inference
+Providers now or a specifically identified NVIDIA GPU deployment of the
+official Hugging Face Kimi K3 artifact. Do not make another NVIDIA API Catalog
+Kimi call or continue its dashboard-readiness investigation. See
+`docs/reports/KIMI_K3_INTENT_AND_EXECUTION_PLAN_2026-09-29.md`.
 
 Model assignments and cost-saving review: [MODEL_TASK_ALLOCATION.md](MODEL_TASK_ALLOCATION.md). Assignments preserve every existing authorization and phase gate.
 
@@ -47,6 +51,12 @@ synthetic/public-only until DEC-003's approved governance controls are
 implemented and the applicable tenant/provider evidence is verified. Treat
 catalog identity as observed rather than artifact-verified.
 
+Owner deployment correction (2026-09-29): the intended Kimi model identity is
+the official Hugging Face `moonshotai/Kimi-K3` artifact. NVIDIA's shared API
+Catalog Kimi route is not the intended primary deployment. Existing hosted
+decisions and evidence remain historical until DEC-010 records the replacement
+deployment. No additional shared-endpoint Kimi request is authorized.
+
 The remaining decisions block external Phase 2B work. Do not infer authorization from
 the existence of configuration fields or integration tests.
 
@@ -61,8 +71,14 @@ the existence of configuration fields or integration tests.
 | DEC-007 | DONE | Approve identity evidence for live hosted activation | Owner approved exact configuration/response identity agreement plus independent provider catalog/dashboard mapping and timestamped sanitized endpoint/account evidence on 2026-09-26; mismatches fail closed and claims remain provider-attested, not weight-verified; `docs/decisions/DEC-007-live-hosted-identity.md` |
 | DEC-008 | DONE | Select initial-release feature scope | Owner included multi-step workflows, governed tools, persistent memory and caching; deferred collaboration, specialist modalities and HA until after initial certification on 2026-09-26; `docs/decisions/DEC-008-initial-release-feature-scope.md` |
 | DEC-009 | DONE | Approve recommended `deepseek-ai/deepseek-v4.1-flash` as the exact replacement for deprecated `deepseek-ai/deepseek-v4-flash-0731` | Owner approved on 2026-09-26 | `docs/decisions/DEC-009-deepseek-v4-1-flash-replacement.md`; new immutable offline profile and fixture; historical `-0731` evidence retained; no account entitlement claimed |
+| DEC-010 | READY | Select the corrected Kimi deployment: Hugging Face Inference Providers or a specifically identified NVIDIA GPU deployment of the official Hugging Face artifact | Owner choice plus budget/provider evidence | Superseding decision record, exact Hugging Face revision, provider/deployment identity and updated Phase 2 critical path; `docs/reports/KIMI_K3_INTENT_AND_EXECUTION_PLAN_2026-09-29.md` |
 
 ## Phase 2B — real deployment certification
+
+The rows below record the NVIDIA shared-hosted work completed before the
+2026-09-29 owner correction. They remain valid for that endpoint but are paused
+as the Kimi critical path. DEC-010 must define replacement work items before
+any further Kimi certification request.
 
 | ID | Status | Action | Dependency | Completion evidence |
 | --- | --- | --- | --- | --- |

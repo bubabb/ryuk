@@ -1,9 +1,37 @@
 # Ryuk next-session handoff
 
-Date: 2026-09-28
+Date: 2026-09-29
 Repository: `/home/sudosu/projects/ryuk`
 
 ## Resume objective
+
+**Owner correction recorded on 2026-09-29: stop treating NVIDIA's shared API
+Catalog Kimi endpoint as the intended Kimi deployment.** The owner wants the
+official `moonshotai/Kimi-K3` artifact published on Hugging Face and remote
+GPU-backed inference without loading the 2.8T model on the local development
+machine. The clarification report is
+`docs/reports/KIMI_K3_INTENT_AND_EXECUTION_PLAN_2026-09-29.md`.
+
+The next session must start by resolving one deployment choice: use Hugging
+Face Inference Providers now (currently third-party Kimi providers), or require
+a specifically identified NVIDIA GPU deployment of the Hugging Face artifact.
+Do not request or use another NVIDIA API key, do not make another NVIDIA-hosted
+Kimi call, and do not continue the old dashboard/readiness investigation. Once
+the owner selects the path, add a superseding decision record, preserve all
+existing NVIDIA-hosted evidence as historical, create an immutable
+Hugging-Face-revision-bound deployment profile, and implement the appropriate
+adapter behind Ryuk's owned inference contracts.
+
+The NVIDIA Developer Program remains useful for free shared NIM prototyping,
+eligible downloadable NIM software, development/testing use on up to 16
+separately obtained GPUs, CUDA/NGC tooling, documentation and community
+support. It does not automatically provide the Kimi-scale GPU cluster, make
+Hugging Face inference free, grant production rights, or prove that a
+third-party Hugging Face provider used a particular NVIDIA deployment.
+
+Everything below this correction describes the earlier NVIDIA-hosted Phase 2B
+work. It remains accurate evidence for that separate endpoint, but it is no
+longer the Kimi critical path and must not override this owner correction.
 
 The deadline execution and delegation plan is
 `docs/SEPTEMBER_30_EXECUTION_PLAN.md`. It targets an evidence-backed bounded
